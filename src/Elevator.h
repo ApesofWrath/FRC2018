@@ -5,6 +5,7 @@
  *      Author: DriversStation
  */
 
+
 #ifndef SRC_ELEVATOR_H_
 #define SRC_ELEVATOR_H_
 
@@ -29,7 +30,7 @@ public:
 	void Move(double ref);
 
 	void StartElevatorThread();
-	void ElevatorWrapper(Elevator *el, double *ref);
+	static void ElevatorWrapper(Elevator *el, double *ref);
 	void EndElevatorThread();
 
 };

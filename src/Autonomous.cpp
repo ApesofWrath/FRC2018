@@ -7,8 +7,15 @@
 
 #include <Autonomous.h>
 
-Autonomous::Autonomous() {
-	// TODO Auto-generated constructor stub
+DriveController *drive_controller;
+Elevator *elevator_;
+Intake *intake_;
+
+Autonomous::Autonomous(DriveController *dc, Elevator *el, Intake *in) {
+
+	drive_controller = dc;
+	elevator_ = el;
+	intake_ = in;
 
 }
 

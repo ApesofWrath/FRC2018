@@ -5,6 +5,7 @@
  *      Author: DriversStation
  */
 
+
 #ifndef SRC_INTAKE_H_
 #define SRC_INTAKE_H_
 
@@ -37,7 +38,7 @@ public:
 
 	void StartIntakeThread();
 	void EndIntakeThread();
-	void IntakeWrapper(Intake *in, double *ref);
+	static void IntakeWrapper(Intake *in, double *ref);
 
 
 

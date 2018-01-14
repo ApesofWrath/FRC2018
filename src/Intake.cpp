@@ -6,7 +6,6 @@
  */
 
 #include <Intake.h>
-#include <Timer.h> //needs to be double included
 
 const int STOP_STATE = 0;
 const int IN_STATE = 1;
@@ -17,7 +16,7 @@ int intake_state = 0;
 
 Timer *intakeTimer = new Timer();
 
-const double INTAKE_SLEEP_TIME = 0.0;
+const int INTAKE_SLEEP_TIME = 0;
 const double INTAKE_WAIT_TIME = 0.01; //sec
 
 int ref_;

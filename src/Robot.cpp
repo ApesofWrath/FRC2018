@@ -34,7 +34,6 @@ public:
 	Elevator *elevator_;
 	Intake *intake_;
 	Autonomous *autonomous_;
-	MotionProfiling *motion_profiling;
 	TeleopStateMachine *teleop_state_machine;
 
 	Joystick *joyThrottle, *joyWheel;
@@ -44,8 +43,7 @@ public:
 		drive_controller = new DriveController();
 		elevator_ = new Elevator();
 		intake_ = new Intake();
-		autonomous_ = new Autonomous();
-		motion_profiling = new MotionProfiling();
+		autonomous_ = new Autonomous(drive_controller, elevator_, intake_);
 		teleop_state_machine = new TeleopStateMachine(elevator_, intake_);
 
 		joyThrottle = new Joystick(JOY_THROTTLE);
@@ -64,10 +62,8 @@ public:
 	void TeleopInit() {
 
 		drive_controller->ZeroI(true);
-		//	drive_controller->ZeroEncs();
+		drive_controller->ZeroEncs();
 		drive_controller->ahrs->ZeroYaw();
-
-		//	std::cout << "INIT" << std::endl;
 
 		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
 				&is_vision, &is_fc);
@@ -80,18 +76,17 @@ public:
 		is_vision = false;
 		is_fc = false;
 
-		//	std::cout << "TELOP PERIODIC" << std::endl;
 
 	}
 
 	void DisabledInit() override {
+
 		drive_controller->EndTeleopThreads();
+
 	}
 
 	void TestPeriodic() {
 
-		//double vel = joyThrottle->GetThrottle();
-		std::cout << "v: " << std::endl; //does not print
 
 	}
 

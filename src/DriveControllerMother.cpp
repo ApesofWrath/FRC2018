@@ -19,7 +19,7 @@ using namespace std::chrono;
 const double WHEEL_DIAMETER = 4.0; //inches
 const double TICKS_PER_ROT = 4096.0;
 
-const double MAX_Y_RPM = 625;
+double MAX_Y_RPM;
 double DYN_MAX_Y_RPM = 625;
 const double MAX_X_RPM = 400; // ACTUAL: 330
 const double MAX_YAW_RATE = (19.04 / 625) * MAX_Y_RPM; //max angular velocity divided by the max rpm multiplied by set max rpm
@@ -157,13 +157,15 @@ double total_heading = 0;
 
 bool tank;
 
-int FL = 0, FR = 0, RL = 0, RR = 0, K = 0;
+int FL = 0, ML = 0, RL = 0, FR = 0, MR = 0, RR = 0, K = 0;
 
 std::vector<double> drive_ref; //TODO: fill this with the motion profile one row at a time
 std::vector<std::vector<double> > auton_profile;
 
 DriveControllerMother::DriveControllerMother(int fl, int fr, int rl, int rr,
 		int k, bool is_wc) {
+
+	MAX_Y_RPM = 625;
 
 	if (is_wc) {
 		tank = true;
@@ -184,6 +186,44 @@ DriveControllerMother::DriveControllerMother(int fl, int fr, int rl, int rr,
 	canTalonKicker = new TalonSRX(K);
 
 	ahrs = new AHRS(SPI::Port::kMXP, 200);
+
+	canTalonMidRight = new TalonSRX(-1);
+	canTalonMidLeft = new TalonSRX(-1);
+
+}
+
+DriveControllerMother::DriveControllerMother(int fl, int ml, int rl, int rr, int mr, int fr) { //TODO: Test
+
+	tank = true;
+
+	FL = fl;
+	ML = ml;
+	RL = rl;
+	FR = fr;
+	MR = mr;
+	RR = rr;
+
+	canTalonFrontRight = new TalonSRX(FR);
+	canTalonFrontRight->ConfigSelectedFeedbackSensor(QuadEncoder, 0, 0);
+
+	canTalonMidRight = new TalonSRX(MR);
+	canTalonMidRight->Set(ControlMode::Follower, FR);
+
+	canTalonRearRight = new TalonSRX(RR);
+	canTalonRearRight->Set(ControlMode::Follower, FR);
+
+	canTalonFrontLeft = new TalonSRX(FL);
+	canTalonFrontLeft->ConfigSelectedFeedbackSensor(QuadEncoder, 0, 0);
+
+	canTalonMidLeft = new TalonSRX(ML);
+	canTalonMidLeft->Set(ControlMode::Follower, FL);
+
+	canTalonRearLeft = new TalonSRX(RL);
+	canTalonRearLeft->Set(ControlMode::Follower, FL);
+
+	ahrs = new AHRS(SPI::Port::kMXP, 200);
+
+	canTalonKicker = new TalonSRX(-1);
 
 }
 
@@ -277,7 +317,7 @@ void DriveControllerMother::TeleopHDrive(Joystick *JoyThrottle,
 
 }
 
-void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle, //TODO: find why this doesn't work
+void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle,
 		Joystick *JoyWheel) {
 
 	double target_l, target_r, target_yaw_rate;
@@ -311,9 +351,9 @@ void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle, //TODO: find wh
 		target_r = -MAX_Y_RPM;
 	}
 
-	Controller(0, target_r, target_l, target_yaw_rate, K_P_RIGHT_VEL,
-			K_P_LEFT_VEL, K_P_KICK_VEL, K_P_YAW_T, 0.0, K_D_LEFT_VEL,
-			K_D_RIGHT_VEL, K_D_KICK_VEL, 0.0, 0.0, 0.0);
+	Controller(0.0, target_r, target_l, target_yaw_rate, K_P_RIGHT_VEL,
+			K_P_LEFT_VEL, 0.0, K_P_YAW_T, 0.0, K_D_LEFT_VEL,
+			K_D_RIGHT_VEL, 0.0, 0.0, 0.0, 0.0);
 
 }
 
@@ -343,128 +383,128 @@ void DriveControllerMother::RotationController(Joystick *JoyWheel) {
 /**
  * Param: Feet forward, + = forward
  */
-//void DriveControllerMother::AutonDrive() { //auton targets, actually just pd
-//
-//	double refYaw = drive_ref.at(0);
-//	double refLeft = drive_ref.at(1);
-//	double refRight = drive_ref.at(2);
-//	double refKick = drive_ref.at(3);
-//	//double targetYawRate = drive_ref(4);
-//	double tarVelLeft = drive_ref.at(5);
-//	double tarVelRight = drive_ref.at(6);
-//	double tarVelKick = drive_ref.at(7);
-//
-//	//std::cout << "R: " << refRight;
-//	//std::cout << " L: " << refLeft << std::endl;
-//	//std::cout << "R: " << tarVelRight << " L: " << tarVelLeft << std::endl;
-//
-//	//tarVels are same
-//	//refLeft and refRight are same
-//	//target_rpms : left < right
-//
-//	if (std::abs(tarVelKick) < .05) {
-//		tarVelKick = 0.0;
-//	}
-//
-//
-//
-//	double r_current = -((double) canTalonFrontRight->GetSelectedSensorVelocity(0)
-//			/ (double) CONVERSION_DIVISION) * CONVERSION_MULTIPLICATION;
-//	double l_current = ((double) canTalonFrontLeft->GetSelectedSensorVelocity(0)
-//			/ (double) CONVERSION_DIVISION) * CONVERSION_MULTIPLICATION;
-//
-//	//conversion to feet
-//	double r_dis = -(((double) canTalonFrontRight->GetSelectedSensorPosition(0)
-//			/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
-//	double l_dis = (((double) canTalonFrontLeft->GetSelectedSensorPosition(0)
-//			/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
-//	double k_dis = (((double) canTalonKicker->GetSelectedSensorPosition(0) / TICKS_PER_ROT)
-//			* (WHEEL_DIAMETER * PI) / 12);
-//	double y_dis = -1.0 * ahrs->GetYaw() * (double) (PI / 180); //current theta (yaw) value
-//
-//	//std::cout << "Y: " << y_dis << std::endl;
-//
-//	l_error_dis_au = refLeft - l_dis;
-//	r_error_dis_au = refRight - r_dis;
-//	k_error_dis_au = refKick - k_dis;
-//	y_error_dis_au = refYaw - y_dis;
-//
-//	if (std::abs(tarVelLeft - tarVelRight) < .05 && (std::abs(r_current) < 10)
-//			&& (std::abs(l_current) < 10)) { //initial jitter
-//
-//		//y_error_dis_au = 0; //?
-//
-//	}
-//
-//	//std::cout << "Y: " << y_error_dis_au << std::endl;
-//	//std::cout << "Error: " << y_error_dis_au << std::endl;
-//
-//	i_right += (r_error_dis_au);
-//	d_right = (r_error_dis_au - r_last_error);
-//
-//	i_left += (l_error_dis_au);
-//	d_left = (l_error_dis_au - l_last_error);
-//
-//	i_kick += (k_error_dis_au);
-//	d_kick = (k_error_dis_au - kick_last_error);
-//
-//	i_yaw += y_error_dis_au;
-//
-//	P_RIGHT_DIS = K_P_RIGHT_DIS * r_error_dis_au;
-//	I_RIGHT_DIS = K_I_RIGHT_DIS * i_right;
-//	D_RIGHT_DIS = K_D_RIGHT_DIS * d_right;
-//
-//	P_LEFT_DIS = K_P_LEFT_DIS * l_error_dis_au;
-//	I_LEFT_DIS = K_I_LEFT_DIS * i_left;
-//	D_LEFT_DIS = K_D_LEFT_DIS * d_left;
-//
-//	P_KICK_DIS = K_P_KICKER_DIS * k_error_dis_au;
-//	I_KICK_DIS = K_I_KICKER_DIS * i_kick;
-//	D_KICK_DIS = K_D_KICKER_DIS * d_kick;
-//
-//	P_YAW_DIS = K_P_YAW_DIS * y_error_dis_au;
-//	I_YAW_DIS = K_I_YAW_DIS * i_yaw;
-//
-//	double total_right = P_RIGHT_DIS + I_RIGHT_DIS + D_RIGHT_DIS;
-//	double total_left = P_LEFT_DIS + I_LEFT_DIS + D_LEFT_DIS;
-//	double total_kick = P_KICK_DIS + I_KICK_DIS + D_KICK_DIS;
-//	double total_yaw = P_YAW_DIS + I_YAW_DIS;
-//
-//	//std::cout << "Y: " << total_yaw << std::endl;
-//
-//	double target_rpm_yaw_change = total_yaw * MAX_Y_RPM;
-//	double target_rpm_right = total_right * MAX_Y_RPM;
-//	double target_rpm_left = total_left * MAX_Y_RPM;
-//	double target_rpm_kick = total_kick * MAX_X_RPM;
-//
-//	target_rpm_right = target_rpm_right + target_rpm_yaw_change;
-//	target_rpm_left = target_rpm_left - target_rpm_yaw_change;
-//
-//	if (target_rpm_left > MAX_Y_RPM) {
-//		target_rpm_left = MAX_Y_RPM;
-//	} else if (target_rpm_left < -MAX_Y_RPM) {
-//		target_rpm_left = -MAX_Y_RPM;
-//	}
-//
-//	if (target_rpm_right > MAX_Y_RPM) {
-//		target_rpm_right = MAX_Y_RPM;
-//	} else if (target_rpm_right < -MAX_Y_RPM) {
-//		target_rpm_right = -MAX_Y_RPM;
-//	}
-//
-//	Controller(target_rpm_kick, target_rpm_right, target_rpm_left,
-//			targetYawRate, K_P_RIGHT_VEL, K_P_LEFT_VEL, K_P_KICK_VEL,
-//			K_P_YAW_AU, K_D_YAW_AU, K_D_LEFT_VEL, K_D_RIGHT_VEL, K_D_KICK_VEL,
-//			tarVelLeft, tarVelRight, tarVelKick);
-//
-//	l_last_error = l_error_dis_au;
-//	r_last_error = r_error_dis_au;
-//	kick_last_error = k_error_dis_au;
-//
-//	//std::cout << "L: " << target_rpm_left;
-//	//std::cout << " R: " << target_rpm_right << std::endl;
-//
-//}
+void DriveControllerMother::AutonDrive() { //auton targets, actually just pd
+
+	double refYaw = drive_ref.at(0);
+	double refLeft = drive_ref.at(1);
+	double refRight = drive_ref.at(2);
+	double refKick = drive_ref.at(3);
+	double targetYawRate = drive_ref.at(4);
+	double tarVelLeft = drive_ref.at(5);
+	double tarVelRight = drive_ref.at(6);
+	double tarVelKick = drive_ref.at(7);
+
+	//std::cout << "R: " << refRight;
+	//std::cout << " L: " << refLeft << std::endl;
+	//std::cout << "R: " << tarVelRight << " L: " << tarVelLeft << std::endl;
+
+	//tarVels are same
+	//refLeft and refRight are same
+	//target_rpms : left < right
+
+	if (std::abs(tarVelKick) < .05) {
+		tarVelKick = 0.0;
+	}
+
+
+
+	double r_current = -((double) canTalonFrontRight->GetSelectedSensorVelocity(0)
+			/ (double) CONVERSION_DIVISION) * CONVERSION_MULTIPLICATION;
+	double l_current = ((double) canTalonFrontLeft->GetSelectedSensorVelocity(0)
+			/ (double) CONVERSION_DIVISION) * CONVERSION_MULTIPLICATION;
+
+	//conversion to feet
+	double r_dis = -(((double) canTalonFrontRight->GetSelectedSensorPosition(0)
+			/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
+	double l_dis = (((double) canTalonFrontLeft->GetSelectedSensorPosition(0)
+			/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
+	double k_dis = (((double) canTalonKicker->GetSelectedSensorPosition(0) / TICKS_PER_ROT)
+			* (WHEEL_DIAMETER * PI) / 12);
+	double y_dis = -1.0 * ahrs->GetYaw() * (double) (PI / 180); //current theta (yaw) value
+
+	//std::cout << "Y: " << y_dis << std::endl;
+
+	l_error_dis_au = refLeft - l_dis;
+	r_error_dis_au = refRight - r_dis;
+	k_error_dis_au = refKick - k_dis;
+	y_error_dis_au = refYaw - y_dis;
+
+	if (std::abs(tarVelLeft - tarVelRight) < .05 && (std::abs(r_current) < 10)
+			&& (std::abs(l_current) < 10)) { //initial jitter
+
+		//y_error_dis_au = 0; //?
+
+	}
+
+	//std::cout << "Y: " << y_error_dis_au << std::endl;
+	//std::cout << "Error: " << y_error_dis_au << std::endl;
+
+	i_right += (r_error_dis_au);
+	d_right = (r_error_dis_au - r_last_error);
+
+	i_left += (l_error_dis_au);
+	d_left = (l_error_dis_au - l_last_error);
+
+	i_kick += (k_error_dis_au);
+	d_kick = (k_error_dis_au - kick_last_error);
+
+	i_yaw += y_error_dis_au;
+
+	P_RIGHT_DIS = K_P_RIGHT_DIS * r_error_dis_au;
+	I_RIGHT_DIS = K_I_RIGHT_DIS * i_right;
+	D_RIGHT_DIS = K_D_RIGHT_DIS * d_right;
+
+	P_LEFT_DIS = K_P_LEFT_DIS * l_error_dis_au;
+	I_LEFT_DIS = K_I_LEFT_DIS * i_left;
+	D_LEFT_DIS = K_D_LEFT_DIS * d_left;
+
+	P_KICK_DIS = K_P_KICKER_DIS * k_error_dis_au;
+	I_KICK_DIS = K_I_KICKER_DIS * i_kick;
+	D_KICK_DIS = K_D_KICKER_DIS * d_kick;
+
+	P_YAW_DIS = K_P_YAW_DIS * y_error_dis_au;
+	I_YAW_DIS = K_I_YAW_DIS * i_yaw;
+
+	double total_right = P_RIGHT_DIS + I_RIGHT_DIS + D_RIGHT_DIS;
+	double total_left = P_LEFT_DIS + I_LEFT_DIS + D_LEFT_DIS;
+	double total_kick = P_KICK_DIS + I_KICK_DIS + D_KICK_DIS;
+	double total_yaw = P_YAW_DIS + I_YAW_DIS;
+
+	//std::cout << "Y: " << total_yaw << std::endl;
+
+	double target_rpm_yaw_change = total_yaw * MAX_Y_RPM;
+	double target_rpm_right = total_right * MAX_Y_RPM;
+	double target_rpm_left = total_left * MAX_Y_RPM;
+	double target_rpm_kick = total_kick * MAX_X_RPM;
+
+	target_rpm_right = target_rpm_right + target_rpm_yaw_change;
+	target_rpm_left = target_rpm_left - target_rpm_yaw_change;
+
+	if (target_rpm_left > MAX_Y_RPM) {
+		target_rpm_left = MAX_Y_RPM;
+	} else if (target_rpm_left < -MAX_Y_RPM) {
+		target_rpm_left = -MAX_Y_RPM;
+	}
+
+	if (target_rpm_right > MAX_Y_RPM) {
+		target_rpm_right = MAX_Y_RPM;
+	} else if (target_rpm_right < -MAX_Y_RPM) {
+		target_rpm_right = -MAX_Y_RPM;
+	}
+
+	Controller(target_rpm_kick, target_rpm_right, target_rpm_left,
+			targetYawRate, K_P_RIGHT_VEL, K_P_LEFT_VEL, K_P_KICK_VEL,
+			K_P_YAW_AU, K_D_YAW_AU, K_D_LEFT_VEL, K_D_RIGHT_VEL, K_D_KICK_VEL,
+			tarVelLeft, tarVelRight, tarVelKick);
+
+	l_last_error = l_error_dis_au;
+	r_last_error = r_error_dis_au;
+	kick_last_error = k_error_dis_au;
+
+	//std::cout << "L: " << target_rpm_left;
+	//std::cout << " R: " << target_rpm_right << std::endl;
+
+}
 
 
 
@@ -552,8 +592,8 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	double total_kick = D_KICK_VEL + P_KICK_VEL + feed_forward_k
 			+ (Kv_KICK * target_vel_kick);
 
-	canTalonFrontLeft->Set(ControlMode::PercentOutput, -total_left);
-	canTalonFrontRight->Set(ControlMode::PercentOutput, total_right);
+	canTalonFrontLeft->Set(ControlMode::PercentOutput, -total_left); //TODO: Check if reversed
+	canTalonFrontRight->Set(ControlMode::PercentOutput, total_right); //for 4-talon, mids and backs are slaved to fronts. should work.
 	canTalonRearRight->Set(ControlMode::PercentOutput,  total_right);
 	canTalonRearLeft->Set(ControlMode::PercentOutput, -total_left);
 	canTalonKicker->Set(ControlMode::PercentOutput,  -total_kick);
@@ -587,11 +627,11 @@ void DriveControllerMother::StopAll() {
 //sets the position of all the drive encoders to 0
 void DriveControllerMother::ZeroEncs() {
 
-	canTalonFrontRight->SetSelectedSensorPosition(0, 0, 10);
-	canTalonFrontLeft->SetSelectedSensorPosition(0, 0, 10);
-	canTalonRearRight->SetSelectedSensorPosition(0, 0, 10);
-	canTalonRearLeft->SetSelectedSensorPosition(0, 0, 10); //TODO: third parameter? timeoutMs
-	canTalonKicker->SetSelectedSensorPosition(0, 0, 10);
+	canTalonFrontRight->SetSelectedSensorPosition(0, 0, 0); //Check if this works
+	canTalonFrontLeft->SetSelectedSensorPosition(0, 0, 0);
+	canTalonRearRight->SetSelectedSensorPosition(0, 0, 0);
+	canTalonRearLeft->SetSelectedSensorPosition(0, 0, 0);
+	canTalonKicker->SetSelectedSensorPosition(0, 0, 0);
 
 
 }
@@ -619,6 +659,18 @@ void DriveControllerMother::ZeroI(bool StopMotors) {
 void DriveControllerMother::SetRefs(std::vector<std::vector<double>> profile){
 
 	auton_profile = profile;
+
+}
+
+void DriveControllerMother::SetMaxRpm(double rpm) {
+
+	MAX_Y_RPM = rpm;
+
+}
+
+double DriveControllerMother::GetMaxRpm() {
+
+	return MAX_Y_RPM;
 
 }
 

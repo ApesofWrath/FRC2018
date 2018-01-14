@@ -6,13 +6,13 @@
  */
 
 #include <Elevator.h>
-#include "ctre/Phoenix.h"
+//#include "ctre/Phoenix.h"
 
 const int DOWN_STATE = 0;
 const int UP_STATE = 1;
 int elevator_state = 0;
 
-const double ELEVATOR_SLEEP_TIME = 0.0;
+const int ELEVATOR_SLEEP_TIME = 0;
 const double ELEVATOR_WAIT_TIME = 0.01; //sec
 
 double ref_;
@@ -24,10 +24,11 @@ Timer *elevatorTimer = new Timer();
 
 Elevator::Elevator() {
 
-	talonElevator1 = new TalonSRX(0);
-	talonElevator2 = new TalonSRX(0);
+	talonElevator1 = new TalonSRX(8);
+	talonElevator2 = new TalonSRX(9);
 
-	talonElevator2->Set(ControlMode::Follower, 0); //TODO: figure out why this gives an error
+//	talonElevator2->Set(ControlMode::Follower, 0); //TODO: figure out why this gives an error
+//	talonIntake2->Set(ControlMode::Follower, 0);
 
 }
 
@@ -53,7 +54,7 @@ void Elevator::ElevatorStateMachine() {
 void Elevator::StartElevatorThread() {
 
 	Elevator *el = this;
-	ElevatorThread = std::thread(&Elevator::ElevatorWrapper(), el, &ref_);
+	ElevatorThread = std::thread(&Elevator::ElevatorWrapper, el, &ref_);
 	ElevatorThread.detach();
 
 }

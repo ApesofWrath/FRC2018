@@ -22,13 +22,14 @@
 class DriveControllerMother {
 public:
 
-	TalonSRX *canTalonFrontLeft, *canTalonFrontRight, *canTalonRearRight,
+	TalonSRX *canTalonFrontLeft, *canTalonMidLeft, *canTalonFrontRight, *canTalonMidRight, *canTalonRearRight,
 			*canTalonRearLeft, *canTalonKicker;
 
 	AHRS *ahrs;
 
 	//needs the CAN IDs of all the talons and whether or not this is a west coast or HDrive train, input -1 if no kicker (or really whatever you want since it wont be used)
 	DriveControllerMother(int fl, int fr, int rl, int rr, int k, bool is_wc);
+	DriveControllerMother(int fl, int ml, int rl, int rr, int mr, int fr); //for 4 talons on each side
 
 	//Driving Operators
 	void TeleopHDrive(Joystick *JoyThrottle, Joystick *JoyWheel, bool *is_fc); //creates velocity references set by joysticks, for HDrive Train
@@ -45,6 +46,10 @@ public:
 	void StopAll();
 	void ZeroEncs();
 	void ZeroI(bool StopMotors);
+
+	//Support for changing between different gears
+	void SetMaxRpm(double rpm);
+	double GetMaxRpm();
 
 	//Funstion to fill the profile points vector for autonomous
 	void SetRefs(std::vector<std::vector<double>> profile);
