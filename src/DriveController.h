@@ -16,14 +16,9 @@
 class DriveController : public DriveControllerMother {
 public:
 
-	DriveController() : DriveControllerMother(30, 33, 36, 18, -1, true) {// change to int fl, int ml, int rl, int rr, int mr, int fr
-			solenoidLeft = new DoubleSolenoid(0, 0, 1); //pcm can id, forward channel, reverse channel
-			solenoidRight = new DoubleSolenoid(0, 0, 1);
+	DriveController() : DriveControllerMother(23, 18, 30, 36, 29, 24, 21, 22) { //CHECK 29isright
+
 	}
-
-	DoubleSolenoid *solenoidLeft, *solenoidRight;
-
-	void Switch();
 
 };
 

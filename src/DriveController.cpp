@@ -7,11 +7,6 @@
 
 #include <DriveController.h>
 
-void DriveController::Switch() {
-
-	solenoidLeft->Set(DoubleSolenoid::Value::kForward);
-	solenoidRight->Set(DoubleSolenoid::Value::kForward);
 
 
 
-}

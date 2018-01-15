@@ -18,7 +18,7 @@ public:
 
 	Elevator();
 
-	TalonSRX *talonElevator1, talonElevator2;
+	TalonSRX *talonElevator1, *talonElevator2;
 
 	std::thread ElevatorThread;
 

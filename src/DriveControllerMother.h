@@ -22,14 +22,21 @@
 class DriveControllerMother {
 public:
 
-	TalonSRX *canTalonFrontLeft, *canTalonMidLeft, *canTalonFrontRight, *canTalonMidRight, *canTalonRearRight,
-			*canTalonRearLeft, *canTalonKicker;
+	TalonSRX *canTalonLeft1, *canTalonLeft2, *canTalonLeft3, *canTalonLeft4, *canTalonRight1, *canTalonRight2,
+			*canTalonRight3, *canTalonRight4, *canTalonKicker; //for 4 talons: 1 is front right, 2 is back right, 3 is front left, 4 is back left
+
+	DoubleSolenoid *solenoidLeft, *solenoidRight;
 
 	AHRS *ahrs;
 
 	//needs the CAN IDs of all the talons and whether or not this is a west coast or HDrive train, input -1 if no kicker (or really whatever you want since it wont be used)
-	DriveControllerMother(int fl, int fr, int rl, int rr, int k, bool is_wc);
-	DriveControllerMother(int fl, int ml, int rl, int rr, int mr, int fr); //for 4 talons on each side
+	DriveControllerMother(int fl, int fr, int rl, int rr, int k, bool is_wc); //for HDrive or West Coast with 4 total talons
+	DriveControllerMother(int l1, int l2, int l3, int l4, int r1, int r2, int r3, int r4); //for West Coast with 8 total talons
+
+	void ShiftUp();
+	void ShiftDown();
+	void SetGainsHigh();
+	void SetGainsLow();
 
 	//Driving Operators
 	void TeleopHDrive(Joystick *JoyThrottle, Joystick *JoyWheel, bool *is_fc); //creates velocity references set by joysticks, for HDrive Train
