@@ -12,6 +12,7 @@
 #include <WPILib.h>
 #include "ctre/Phoenix.h"
 #include <Timer.h>
+#include <thread>
 
 class Intake {
 public:
@@ -25,7 +26,7 @@ public:
 	const int OUT_STATE_H = 2;
 	const int DOWN_STATE_H = 3;
 	const int UP_STATE_H = 4;
-	int intake_state = 0;
+	int intake_state_h = 0;
 
 	Intake();
 

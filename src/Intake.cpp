@@ -5,7 +5,9 @@
  *      Author: DriversStation
  */
 
-#include <Intake.h>
+#include <Intake.h> //MORE STATES
+
+using namespace std::chrono;
 
 const int STOP_STATE = 0;
 const int IN_STATE = 1;
@@ -26,11 +28,11 @@ const double UP_ANGLE = 0.0;
 
 Intake::Intake() {
 
-	talonIntake1 = new TalonSRX(0);
-	talonIntake2 = new TalonSRX(0);
-	talonIntake2->Set(ControlMode::Follower, 0);
+	talonIntake1 = new TalonSRX(2);
+	talonIntake2 = new TalonSRX(3);
+	talonIntake2->Set(ControlMode::Follower, 2);
 
-	talonIntakeArm = new TalonSRX(0);
+	talonIntakeArm = new TalonSRX(4);
 
 	//ref_ = DOWN_ANGLE;
 

@@ -19,20 +19,22 @@ using namespace std::chrono;
 const double WHEEL_DIAMETER = 4.0; //inches
 const double TICKS_PER_ROT = 4096.0;
 
-const double MAX_RPM_LOW = 625; //TODO: Determine these values
-const double MAX_RPM_HIGH = 625;
-double max_y_rpm = MAX_RPM_LOW; //for now
+double max_y_rpm = 0; //change according to gear
+const double MAX_RPM_LOW = 625.0; //TODO: Determine these values
+const double MAX_RPM_HIGH = 825.0; //for testing purposes
+const double MAX_Y_RPM_HD = 625.0; //HDrive
 
-double DYN_max_y_rpm = 625;
-const double MAX_X_RPM = 400; // ACTUAL: 330
-const double MAX_YAW_RATE = (19.04 / 625) * max_y_rpm; //max angular velocity divided by the max rpm multiplied by set max rpm
+
+double DYN_MAX_Y_RPM = 625.0;
+const double MAX_X_RPM = 400.0; // ACTUAL: 330
+double MAX_YAW_RATE = 0.0; //max angular velocity divided by the max rpm multiplied by set max rpm
 /////////////////////////////////////////////////////
 
 const int DRIVE_SLEEP_TIME = 0.00; //we do not sleep as the wait time is close to the tick rate (?)
 const double DRIVE_WAIT_TIME = 0.01; //seconds
 
-const double CONVERSION_DIVISION = 4096; //ticks per rotation for mag encoders
-const double CONVERSION_MULTIPLICATION = 600; //part of the conversion from ticks velocity to rad velocity
+const double CONVERSION_DIVISION = 4096.0; //ticks per rotation for mag encoders
+const double CONVERSION_MULTIPLICATION = 600.0; //part of the conversion from ticks velocity to rad velocity
 
 double l_last_error = 0;
 double r_last_error = 0;
@@ -45,30 +47,45 @@ double kick_last_error_vel = 0;
 
 //Changeable Start
 
-double K_P_RIGHT_VEL_LOW = 0; double K_P_LEFT_VEL_LOW = 0; double K_P_YAW_VEL_LOW = 0;
- double K_D_RIGHT_VEL_LOW = 0;
- double K_D_LEFT_VEL_LOW = 0;
+const double K_P_RIGHT_VEL_LOW = 0;
+const double K_P_LEFT_VEL_LOW = 0;
+const double K_P_YAW_VEL_LOW = 0;
+const double K_D_RIGHT_VEL_LOW = 0;
+const double K_D_LEFT_VEL_LOW = 0;
 
-double k_p_right_vel, k_p_left_vel, k_p_yaw_vel, k_d_right_vel, k_d_left_vel;
+double k_p_right_vel;
+double k_p_left_vel;
+double k_p_yaw_vel;
+double k_d_right_vel;
+double k_d_left_vel; //TODO: Finish updating gains for different drive types / gears
+double k_p_yaw_t;
+double k_p_kick_vel;
+double k_d_kick_vel;
+double k_p_yaw_h_vel;
+double k_p_yaw_au;
+double k_d_yaw_au; //change according to gear, used in WC
 
-double K_P_RIGHT_VEL_HIGH = 0; //change according to gear
-double K_P_LEFT_VEL_HIGH = 0;
-double K_P_YAW_VEL_HIGH = 0;
-double K_D_RIGHT_VEL_HIGH = 0;
-double K_D_LEFT_VEL_HIGH = 0;
+const double K_P_RIGHT_VEL_HIGH = 0;
+const double K_P_LEFT_VEL_HIGH = 0;
+const double K_P_YAW_VEL_HIGH = 0;
+const double K_D_RIGHT_VEL_HIGH = 0;
+const double K_D_LEFT_VEL_HIGH = 0;
 
- double K_P_YAW_T = 0.0; // 20.0; //TeleopDrive
+const double K_P_YAW_AU_HD = 5.0; //AutonDrive
+const double K_D_YAW_AU_HD = 0.085;
+const double K_P_YAW_AU_WC = 0.0;
+const double K_D_YAW_AU_WC = 0.0;
 
- double K_P_YAW_AU = 5.0; //AutonDrive
- double K_D_YAW_AU = 0.085;
+double k_p_yaw_heading_pos = 0.0; //!! //9.0 for Koba
+double k_d_vision_pos = 0.0;
+const double K_P_YAW_HEADING_POS_HD = 0.0;
+const double K_P_YAW_HEADING_POS_WC = 0.0;
+const double K_D_VISION_POS_HD = 0.0;
+const double K_D_VISION_POS_WC = 0.0;
 
- double K_P_YAW_H_VEL = 0.0; //13.0;
- double K_P_YAW_HEADING_POS = 9.0;
- double K_D_VISION_POS = 0.0;
-
- double K_P_LEFT_VEL = 0.0; // 0.0040;
- double K_D_LEFT_VEL = 0.0;
- double K_F_LEFT_VEL = 1.0 / 625.0;
+double K_P_LEFT_VEL = 0.0; // 0.0040;
+double K_D_LEFT_VEL = 0.0;
+double K_F_LEFT_VEL = 1.0 / 625.0;
 
 double P_LEFT_VEL = 0; //dynamic values
 double D_LEFT_VEL = 0;
@@ -106,8 +123,8 @@ const double K_D_KICKER_DIS = 0.0;
 
 //CHANGEABLE END
 
-const double MAX_FPS = ((max_y_rpm * 4.0 * PI) / 12.0) / 60.0; //conversion to fps
-const double Kv = 1 / MAX_FPS; //scale from -1 to 1
+double MAX_FPS = 0; //conversion to fps
+double Kv = 0; //scale from -1 to 1
 
 const double MAX_KICK_FPS = ((MAX_X_RPM * 4.0 * PI) / 12.0) / 60.0;
 const int Kv_KICK = 1 / MAX_KICK_FPS;
@@ -170,17 +187,22 @@ std::thread TeleopThread, AutonThread;
 double init_heading = 0;
 double total_heading = 0;
 
-bool tank;
+bool tank = false;
 
 int LF = 0, L2 = 0, L3 = 0, LR = 0, RF = 0, R2 = 0, R3 = 0, RR = 0, K = 0;
 
 std::vector<double> drive_ref; //TODO: fill this with the motion profile one row at a time
 std::vector<std::vector<double> > auton_profile;
 
-DriveControllerMother::DriveControllerMother(int fl, int fr, int rl, int rr, //test
-		int k, bool is_wc) {
+DriveControllerMother::DriveControllerMother(int fl, int fr, int rl, int rr, //armadillo, auton, teleopstatemachine
+		int k, bool is_wc, bool start_low) { // may still need to initialize more constants
 
-	max_y_rpm = MAX_RPM_LOW;
+	max_y_rpm = MAX_Y_RPM_HD;
+	//max_yaw_rate =
+	k_p_yaw_au = K_P_YAW_AU_HD;
+	k_d_yaw_au = K_D_YAW_AU_HD;
+	k_p_yaw_heading_pos = K_P_YAW_HEADING_POS_HD;
+	k_d_vision_pos = K_D_VISION_POS_HD;
 
 	if (is_wc) {
 		tank = true;
@@ -224,7 +246,33 @@ DriveControllerMother::DriveControllerMother(int fl, int fr, int rl, int rr, //t
 }
 
 DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
-		int r1, int r2, int r3, int r4) { //TODO: Test
+		int r1, int r2, int r3, int r4, bool start_low) {
+
+	if (start_low) { //CANNOT CALL OTHER FUNCTIONS IN THE CONSTRUCTOR
+		max_y_rpm = 625; //MAX_RPM_LOW
+
+		MAX_FPS = ((max_y_rpm * 4.0 * PI) / 12.0) / 60.0;
+		Kv = 1 / MAX_FPS;
+		MAX_YAW_RATE = (19.04 / 625.0) * max_y_rpm;
+
+		k_p_right_vel = K_P_RIGHT_VEL_LOW;
+		k_p_left_vel = K_P_LEFT_VEL_LOW;
+		k_p_yaw_t = K_P_YAW_VEL_LOW;
+		k_d_right_vel = K_D_RIGHT_VEL_LOW;
+		k_d_left_vel = K_D_LEFT_VEL_LOW;
+	} else {
+		max_y_rpm = MAX_RPM_HIGH;
+
+		MAX_FPS = ((max_y_rpm * 4.0 * PI) / 12.0) / 60.0;
+		Kv = 1 / MAX_FPS;
+		MAX_YAW_RATE = (19.04 / 625.0) * max_y_rpm;
+
+		k_p_right_vel = K_P_RIGHT_VEL_HIGH;
+		k_p_left_vel = K_P_LEFT_VEL_HIGH;
+		k_p_yaw_t = K_P_YAW_VEL_HIGH;
+		k_d_right_vel = K_D_RIGHT_VEL_HIGH;
+		k_d_left_vel = K_D_LEFT_VEL_HIGH;
+	}
 
 	tank = true;
 
@@ -326,14 +374,14 @@ void DriveControllerMother::TeleopHDrive(Joystick *JoyThrottle,
 
 	if (strafe != 0) { //if x is 0, it is undefined (division)
 		axis_ratio = std::abs(forward / strafe); //dont use regular abs, that returns an int
-		DYN_max_y_rpm = MAX_X_RPM * (double) axis_ratio;
-		DYN_max_y_rpm = DYN_max_y_rpm > max_y_rpm ? max_y_rpm : DYN_max_y_rpm; //if DYN_max_Y is bigger than MAX_Y then set to MAX_Y, otherwise keep DYN_MAX_Y
+		DYN_MAX_Y_RPM = MAX_X_RPM * (double) axis_ratio;
+		DYN_MAX_Y_RPM = DYN_MAX_Y_RPM > max_y_rpm ? max_y_rpm : DYN_MAX_Y_RPM; //if DYN_max_Y is bigger than MAX_Y then set to MAX_Y, otherwise keep DYN_MAX_Y
 	} else {
-		DYN_max_y_rpm = max_y_rpm; //deals with special case tht x = 0 (ratio cant divide by zero)
+		DYN_MAX_Y_RPM = max_y_rpm; //deals with special case tht x = 0 (ratio cant divide by zero)
 	}
 
 	target_l = 1.0 * (forward < 0 ? -1 : 1) * (forward * forward)
-			* DYN_max_y_rpm; //if joy value is less than 0 set to -1, otherwise to 1
+			* DYN_MAX_Y_RPM; //if joy value is less than 0 set to -1, otherwise to 1
 
 	target_r = target_l;
 
@@ -363,14 +411,15 @@ void DriveControllerMother::TeleopHDrive(Joystick *JoyThrottle,
 		target_r = -max_y_rpm;
 	}
 
-	Controller(target_kick, target_r, target_l, target_yaw_rate, K_P_RIGHT_VEL,
-			K_P_LEFT_VEL, K_P_KICK_VEL, K_P_YAW_T, 0.0, K_D_LEFT_VEL,
-			K_D_RIGHT_VEL, K_D_KICK_VEL, 0.0, 0.0, 0.0);
+	Controller(target_kick, target_r, target_l, target_yaw_rate, k_p_right_vel,
+			k_p_left_vel, k_p_kick_vel, k_p_yaw_t, 0.0, k_d_left_vel,
+			K_D_RIGHT_VEL, k_d_kick_vel, 0.0, 0.0, 0.0);
 
 }
 
 void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle,
 		Joystick *JoyWheel) {
+
 
 	double target_l, target_r, target_yaw_rate;
 
@@ -386,6 +435,7 @@ void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle,
 	target_r = target_l;
 
 	double joy_wheel_val = JoyWheel->GetX();
+
 
 	if (std::abs(joy_wheel_val) < .02) {
 		joy_wheel_val = 0.0;
@@ -405,8 +455,10 @@ void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle,
 		target_r = -max_y_rpm;
 	}
 
-	Controller(0.0, target_r, target_l, target_yaw_rate, K_P_RIGHT_VEL,
-			K_P_LEFT_VEL, 0.0, K_P_YAW_T, 0.0, K_D_LEFT_VEL, K_D_RIGHT_VEL, 0.0,
+
+
+	Controller(0.0, target_r, target_l, target_yaw_rate, k_p_right_vel,
+			k_p_left_vel, 0.0, k_p_yaw_t, 0.0, k_d_left_vel, k_d_right_vel, 0.0,
 			0.0, 0.0, 0.0);
 
 }
@@ -420,7 +472,7 @@ void DriveControllerMother::RotationController(Joystick *JoyWheel) {
 
 	double error_heading_h = target_heading - current_heading;
 
-	double total_heading_h = K_P_YAW_HEADING_POS * error_heading_h;
+	double total_heading_h = k_p_yaw_heading_pos * error_heading_h;
 
 	if (total_heading > MAX_YAW_RATE) {
 		total_heading = MAX_YAW_RATE;
@@ -428,9 +480,9 @@ void DriveControllerMother::RotationController(Joystick *JoyWheel) {
 		total_heading = -MAX_YAW_RATE;
 	}
 
-	Controller(0.0, 0.0, 0.0, total_heading_h, K_P_RIGHT_VEL, K_P_LEFT_VEL,
-			K_P_KICK_VEL, K_P_YAW_H_VEL, 0.0, K_D_RIGHT_VEL, K_D_LEFT_VEL,
-			K_D_KICK_VEL, 0.0, 0.0, 0.0);
+	Controller(0.0, 0.0, 0.0, total_heading_h, k_p_right_vel, k_p_left_vel,
+			k_p_kick_vel, k_p_yaw_h_vel, 0.0, k_d_right_vel, k_d_left_vel,
+			k_d_kick_vel, 0.0, 0.0, 0.0);
 
 }
 
@@ -448,19 +500,11 @@ void DriveControllerMother::AutonDrive() { //auton targets, actually just pd
 	double tarVelRight = drive_ref.at(6);
 	double tarVelKick = drive_ref.at(7);
 
-	//std::cout << "R: " << refRight;
-	//std::cout << " L: " << refLeft << std::endl;
-	//std::cout << "R: " << tarVelRight << " L: " << tarVelLeft << std::endl;
-
-	//tarVels are same
-	//refLeft and refRight are same
-	//target_rpms : left < right
-
 	if (std::abs(tarVelKick) < .05) {
 		tarVelKick = 0.0;
 	}
 
-	double r_current = -((double) canTalonRight1->GetSelectedSensorVelocity(0)
+	double r_current = -((double) canTalonRight1->GetSelectedSensorVelocity(0) //TODO: make sure this is actually negative
 			/ (double) CONVERSION_DIVISION) * CONVERSION_MULTIPLICATION;
 	double l_current = ((double) canTalonLeft1->GetSelectedSensorVelocity(0)
 			/ (double) CONVERSION_DIVISION) * CONVERSION_MULTIPLICATION;
@@ -474,8 +518,6 @@ void DriveControllerMother::AutonDrive() { //auton targets, actually just pd
 			/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
 	double y_dis = -1.0 * ahrs->GetYaw() * (double) (PI / 180); //current theta (yaw) value
 
-	//std::cout << "Y: " << y_dis << std::endl;
-
 	l_error_dis_au = refLeft - l_dis;
 	r_error_dis_au = refRight - r_dis;
 	k_error_dis_au = refKick - k_dis;
@@ -484,12 +526,7 @@ void DriveControllerMother::AutonDrive() { //auton targets, actually just pd
 	if (std::abs(tarVelLeft - tarVelRight) < .05 && (std::abs(r_current) < 10)
 			&& (std::abs(l_current) < 10)) { //initial jitter
 
-		//y_error_dis_au = 0; //?
-
 	}
-
-	//std::cout << "Y: " << y_error_dis_au << std::endl;
-	//std::cout << "Error: " << y_error_dis_au << std::endl;
 
 	i_right += (r_error_dis_au);
 	d_right = (r_error_dis_au - r_last_error);
@@ -545,16 +582,13 @@ void DriveControllerMother::AutonDrive() { //auton targets, actually just pd
 	}
 
 	Controller(target_rpm_kick, target_rpm_right, target_rpm_left,
-			targetYawRate, K_P_RIGHT_VEL, K_P_LEFT_VEL, K_P_KICK_VEL,
-			K_P_YAW_AU, K_D_YAW_AU, K_D_LEFT_VEL, K_D_RIGHT_VEL, K_D_KICK_VEL,
+			targetYawRate, k_p_right_vel, k_p_left_vel, k_p_kick_vel,
+			k_p_yaw_au, k_d_yaw_au, k_d_left_vel, k_d_right_vel, k_d_kick_vel,
 			tarVelLeft, tarVelRight, tarVelKick);
 
 	l_last_error = l_error_dis_au;
 	r_last_error = r_error_dis_au;
 	kick_last_error = k_error_dis_au;
-
-	//std::cout << "L: " << target_rpm_left;
-	//std::cout << " R: " << target_rpm_right << std::endl;
 
 }
 
@@ -569,18 +603,6 @@ void DriveControllerMother::ShiftUp() {
 
 }
 
-void DriveControllerMother::SetGainsHigh() {
-
-	max_y_rpm = MAX_RPM_HIGH;
-
-	K_P_RIGHT_VEL = K_P_RIGHT_VEL_HIGH;
-	K_P_LEFT_VEL = K_P_LEFT_VEL_HIGH;
-	K_P_YAW_T = K_P_YAW_VEL_HIGH;
-	K_D_RIGHT_VEL = K_D_RIGHT_VEL_HIGH;
-	K_D_LEFT_VEL = K_D_LEFT_VEL_HIGH;
-
-}
-
 void DriveControllerMother::ShiftDown() {
 
 	solenoidLeft->Set(DoubleSolenoid::Value::kReverse);
@@ -592,15 +614,35 @@ void DriveControllerMother::ShiftDown() {
 
 }
 
+void DriveControllerMother::SetGainsHigh() {
+
+	max_y_rpm = MAX_RPM_HIGH;
+
+	MAX_FPS = ((max_y_rpm * 4.0 * PI) / 12.0) / 60.0;
+	Kv = 1 / MAX_FPS;
+	MAX_YAW_RATE = (19.04 / 625.0) * max_y_rpm; //constant , //the one we actually use
+
+	k_p_right_vel = K_P_RIGHT_VEL_HIGH;
+	k_p_left_vel = K_P_LEFT_VEL_HIGH;
+	k_p_yaw_t = K_P_YAW_VEL_HIGH;
+	k_d_right_vel = K_D_RIGHT_VEL_HIGH;
+	k_d_left_vel = K_D_LEFT_VEL_HIGH;
+
+}
+
 void DriveControllerMother::SetGainsLow() {
 
 	max_y_rpm = MAX_RPM_LOW;
 
-	K_P_RIGHT_VEL = K_P_RIGHT_VEL_LOW;
-	K_P_LEFT_VEL = K_P_LEFT_VEL_LOW;
-	K_P_YAW_T = K_P_YAW_VEL_LOW;
-	K_D_RIGHT_VEL = K_D_RIGHT_VEL_LOW;
-	K_D_LEFT_VEL = K_D_LEFT_VEL_LOW;
+	MAX_FPS = ((max_y_rpm * 4.0 * PI) / 12.0) / 60.0;
+	Kv = 1 / MAX_FPS;
+	MAX_YAW_RATE = (19.04 / 625.0) * max_y_rpm;
+
+	k_p_right_vel = K_P_RIGHT_VEL_LOW;
+	k_p_left_vel = K_P_LEFT_VEL_LOW;
+	k_p_yaw_t = K_P_YAW_VEL_LOW;
+	k_d_right_vel = K_D_RIGHT_VEL_LOW;
+	k_d_left_vel = K_D_LEFT_VEL_LOW;
 
 }
 
@@ -614,6 +656,8 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 			* (double) ((PI) / 180); //left should be positive
 
 	double target_yaw_rate = ref_yaw;
+
+	std::cout << "max_fps " << MAX_FPS << std::endl;
 
 	ref_left = ref_left - (target_yaw_rate * (max_y_rpm / MAX_YAW_RATE)); //left should be positive
 	ref_right = ref_right + (target_yaw_rate * (max_y_rpm / MAX_YAW_RATE));
@@ -688,8 +732,8 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	double total_kick = D_KICK_VEL + P_KICK_VEL + feed_forward_k
 			+ (Kv_KICK * target_vel_kick);
 
-	canTalonLeft1->Set(ControlMode::PercentOutput, total_left); //TODO: Check if reversed
-	canTalonRight1->Set(ControlMode::PercentOutput, -total_right); //for 4-talon, mids and backs are slaved to fronts. should work. //negative for Koba
+	canTalonLeft1->Set(ControlMode::PercentOutput, total_left); //Right is reversed
+	canTalonRight1->Set(ControlMode::PercentOutput, -total_right); //negative for Koba and for new drive train
 	//canTalonRearRight->Set(ControlMode::PercentOutput,  total_right); //these are slaves
 	//canTalonRearLeft->Set(ControlMode::PercentOutput, -total_left);
 	canTalonKicker->Set(ControlMode::PercentOutput, -total_kick);
@@ -828,24 +872,24 @@ void DriveControllerMother::StartTeleopThreads(Joystick *JoyThrottle, //must pas
 	TeleopThread.detach();
 }
 
-void DriveControllerMother::StartAutonThreads() {
-
-	DriveControllerMother *dc = this;
-
-//	AutonThread = std::thread(&DriveControllerMother::AutonWrapper, dc);
-	AutonThread.detach();
-
-}
-
+//void DriveControllerMother::StartAutonThreads() {
+//
+//	DriveControllerMother *dc = this;
+//
+////	AutonThread = std::thread(&DriveControllerMother::AutonWrapper, dc);
+//	AutonThread.detach();
+//
+//}
+//
 void DriveControllerMother::EndTeleopThreads() {
 
 	TeleopThread.~thread();
 
 }
-
-void DriveControllerMother::EndAutonThreads() {
-
-	AutonThread.~thread();
-
-}
+//
+//void DriveControllerMother::EndAutonThreads() {
+//
+//	AutonThread.~thread();
+//
+//}
 

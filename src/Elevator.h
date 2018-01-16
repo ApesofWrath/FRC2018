@@ -11,7 +11,9 @@
 
 #include <WPILib.h>
 #include "ctre/Phoenix.h"
+#include <chrono>
 #include <Timer.h>
+#include <thread>
 
 class Elevator {
 public:
@@ -24,7 +26,7 @@ public:
 
 	const int DOWN_STATE_H = 0;
 	const int UP_STATE_H = 1;
-	int elevator_state = 0;
+	int elevator_state_h = 0;
 
 	void ElevatorStateMachine();
 	void Move(double ref);

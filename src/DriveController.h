@@ -8,17 +8,25 @@
 #ifndef SRC_DRIVECONTROLLER_H_
 #define SRC_DRIVECONTROLLER_H_
 
-#include "ctre/Phoenix.h"
-#include <WPILib.h>
+//#include "ctre/Phoenix.h"
+//#include <WPILib.h>
 #include <DriveControllerMother.h>
-#include <DoubleSolenoid.h>
+//#include <DoubleSolenoid.h>
+//#include <thread>
+//#include <chrono>
 
 class DriveController : public DriveControllerMother {
 public:
 
-	DriveController() : DriveControllerMother(23, 18, 30, 36, 29, 24, 21, 22) { //CHECK 29isright
+	std::thread AutonThread;
+
+	DriveController() : DriveControllerMother(23, 18, 30, 36, 29, 24, 21, 22, true) {
 
 	}
+
+	static void AutonWrapper(DriveController *driveController);
+	void StartAutonThread();
+	void EndAutonThread();
 
 };
 

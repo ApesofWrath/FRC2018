@@ -20,14 +20,14 @@ const double ELEVATOR_WAIT_TIME = 0.01; //sec
 const double DOWN_ANGLE = 0.0;
 const double UP_ANGLE = 0.0;
 
-Timer *elevatorTimer = new Timer();
+//Timer *elevatorTimer = new Timer();
 
 Elevator::Elevator() {
 
-	talonElevator1 = new TalonSRX(0);
-	talonElevator2 = new TalonSRX(0);
+	talonElevator1 = new TalonSRX(8);
+	talonElevator2 = new TalonSRX(9);
 
-	talonElevator2->Set(ControlMode::Follower, 0);
+	talonElevator2->Set(ControlMode::Follower, 8);
 
 }
 

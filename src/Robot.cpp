@@ -151,7 +151,6 @@ public:
 
 	///	SmartDashboard::PutBoolean("Close Currents ", acceptable_current);
 
-
 		is_heading = false;
 		is_vision = false;
 		is_fc = false;
