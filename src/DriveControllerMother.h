@@ -53,6 +53,7 @@ public:
 	//Motor Functions
 	void StopAll();
 	void ZeroEncs();
+	void ZeroYaw();
 	void ZeroI(bool StopMotors);
 
 	void SetMaxRpm(double rpm);
@@ -74,6 +75,7 @@ public:
 	//AutonThread functions for use in the daughter class
 	void UpdateIndex();
 	void ResetIndex();
+
 
 };
 

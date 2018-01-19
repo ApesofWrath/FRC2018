@@ -21,7 +21,7 @@ public:
 
 	std::thread IntakeThread;
 
-	const int STOP_STATE_H = 0;
+	const int STOP_WHEEL_STATE_H = 0;
 	const int IN_STATE_H = 1;
 	const int OUT_STATE_H = 2;
 	const int DOWN_STATE_H = 3;

@@ -79,7 +79,7 @@ public:
 
 		drive_controller->ZeroI(true);
 		drive_controller->ZeroEncs();
-		drive_controller->ahrs->ZeroYaw();
+		drive_controller->ZeroYaw();
 
 		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
 				&is_vision, &is_fc);
@@ -88,7 +88,7 @@ public:
 
 	void TeleopPeriodic() {
 
-		SmartDashboard::PutNumber("Left 1", drive_controller->canTalonLeft1->GetOutputCurrent());
+/*		SmartDashboard::PutNumber("Left 1", drive_controller->canTalonLeft1->GetOutputCurrent());
 		SmartDashboard::PutNumber("Left 2", drive_controller->canTalonLeft2->GetOutputCurrent());
 		SmartDashboard::PutNumber("Left 3", drive_controller->canTalonLeft3->GetOutputCurrent());
 		SmartDashboard::PutNumber("Left 4", drive_controller->canTalonLeft4->GetOutputCurrent());
@@ -147,7 +147,7 @@ public:
 		}
 		else {
 			acceptable_current_r = true;
-		}
+		} */
 
 	///	SmartDashboard::PutBoolean("Close Currents ", acceptable_current);
 

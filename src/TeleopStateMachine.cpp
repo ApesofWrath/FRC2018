@@ -30,7 +30,7 @@ void TeleopStateMachine::StateMachine() {
 		case WAIT_FOR_BUTTON_STATE:
 			elevator->elevator_state_h = elevator->DOWN_STATE_H;
 			intake->intake_state_h = intake->DOWN_STATE_H;
-			intake->intake_state_h = intake->STOP_STATE_H;
+			intake->intake_state_h = intake->STOP_WHEEL_STATE_H;
 			break;
 		case INTAKE_SPIN_IN_STATE:
 			intake->intake_state_h = intake->IN_STATE_H;
