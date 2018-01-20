@@ -20,21 +20,21 @@ const double WHEEL_DIAMETER = 4.0; //inches
 const double TICKS_PER_ROT = 1365.0; //about 3 encoder rotations for each actual rotation // 4096 ticks per rotation for mag encoders
 
 double max_y_rpm = 0;
-const double MAX_Y_RPM_LOW = 480.0; //TODO: CHECK
+const double MAX_Y_RPM_LOW = 350.0;
 const double MAX_Y_RPM_HIGH = 1000.0;
 const double MAX_Y_RPM_HD = 0; //HDrive
 
 double actual_max_y_rpm = 0;
-const double ACTUAL_MAX_Y_RPM_LOW = 600.0;
-const double ACTUAL_MAX_Y_RPM_HIGH = 1200.0; //TODO:CHECK
+const double ACTUAL_MAX_Y_RPM_LOW = 470.0;
+const double ACTUAL_MAX_Y_RPM_HIGH = 1200.0; //left is 1150
 const double ACTUAL_MAX_Y_RPM_HD = 0;
 
 double DYN_MAX_Y_RPM = 625.0; //for field-centric
 const double MAX_X_RPM = 400.0; // ACTUAL: 330 // for HDrive
 
 double max_yaw_rate = 0; //max angular velocity divided by the max rpm multiplied by set max rpm
-const double MAX_YAW_RATE_LOW = 17.0;
-const double MAX_YAW_RATE_HIGH = 25.0;
+const double MAX_YAW_RATE_LOW = 12.0;
+const double MAX_YAW_RATE_HIGH = 28.0;
 const double MAX_YAW_RATE_HD = 0.0;
 /////////////////////////////////////////////////////
 
@@ -54,11 +54,12 @@ double kick_last_error_vel = 0;
 
 //Changeable Start
 
-const double K_P_RIGHT_VEL_LOW = 0;
-const double K_P_LEFT_VEL_LOW = 0;
-const double K_P_YAW_VEL_LOW = 0;
-const double K_D_RIGHT_VEL_LOW = 0;
-const double K_D_LEFT_VEL_LOW = 0;
+const double K_P_RIGHT_VEL_LOW = 0.0012;
+const double K_P_LEFT_VEL_LOW = 0.0022;
+const double K_P_YAW_VEL_LOW = 12.0;
+const double K_D_YAW_VEL_LOW = 1.0;
+const double K_D_RIGHT_VEL_LOW = 0.000;
+const double K_D_LEFT_VEL_LOW = 0.000;
 
 double k_p_right_vel;
 double k_p_left_vel;
@@ -66,16 +67,18 @@ double k_p_yaw_vel;
 double k_d_right_vel;
 double k_d_left_vel;
 double k_p_yaw_t;
+double k_d_yaw_t;
 double k_p_kick_vel;
 double k_d_kick_vel;
 double k_p_yaw_h_vel;
 double k_p_yaw_au;
-double k_d_yaw_au; //goes 50 rpm faster depending on direction?
+double k_d_yaw_au;
 
 const double K_P_RIGHT_VEL_HIGH = 0.00;
 const double K_P_LEFT_VEL_HIGH = 0.00;
-const double K_P_YAW_VEL_HIGH = 0.0;
-const double K_D_RIGHT_VEL_HIGH = 0.000;
+const double K_P_YAW_VEL_HIGH = 0.004;
+const double K_D_YAW_VEL_HIGH = 0.0005;
+const double K_D_RIGHT_VEL_HIGH = 0.00;
 const double K_D_LEFT_VEL_HIGH = 0.0;
 
 const double K_P_YAW_AU_HD = 5.0; //AutonDrive
@@ -248,8 +251,7 @@ DriveControllerMother::DriveControllerMother(int fl, int fr, int rl, int rr,
 	canTalonRight4 = new TalonSRX(-1);
 	canTalonLeft3 = new TalonSRX(-1);
 	canTalonLeft4 = new TalonSRX(-1);
-	solenoidLeft = new DoubleSolenoid(-1, -1, -1);
-	solenoidRight = new DoubleSolenoid(-1, -1, -1);
+	solenoid = new DoubleSolenoid(-1, -1, -1);
 
 }
 
@@ -270,6 +272,7 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 		k_p_right_vel = K_P_RIGHT_VEL_LOW;
 		k_p_left_vel = K_P_LEFT_VEL_LOW;
 		k_p_yaw_t = K_P_YAW_VEL_LOW;
+		k_d_yaw_t = K_D_YAW_VEL_LOW;
 		k_d_right_vel = K_D_RIGHT_VEL_LOW;
 		k_d_left_vel = K_D_LEFT_VEL_LOW;
 
@@ -287,6 +290,7 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 		k_p_right_vel = K_P_RIGHT_VEL_HIGH;
 		k_p_left_vel = K_P_LEFT_VEL_HIGH;
 		k_p_yaw_t = K_P_YAW_VEL_HIGH;
+		k_d_yaw_t = K_P_YAW_VEL_HIGH;
 		k_d_right_vel = K_D_RIGHT_VEL_HIGH;
 		k_d_left_vel = K_D_LEFT_VEL_HIGH;
 	}
@@ -337,8 +341,7 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 
 	ahrs = new AHRS(SPI::Port::kMXP, 200);
 
-	solenoidLeft = new DoubleSolenoid(1, 0, 1);
-	solenoidRight = new DoubleSolenoid(1, 0, 1);
+	solenoid = new DoubleSolenoid(1, 0, 1);
 
 	canTalonKicker = new TalonSRX(-1);
 
@@ -602,8 +605,7 @@ void DriveControllerMother::AutonDrive() { //auton targets, actually just pd
 
 void DriveControllerMother::ShiftUp() { //high gear, inside
 
-	solenoidLeft->Set(DoubleSolenoid::Value::kForward);
-	solenoidRight->Set(DoubleSolenoid::Value::kReverse);
+	solenoid->Set(DoubleSolenoid::Value::kForward);
 	std::cout << "UP" << std::endl;
 
 	//print on smartdashboard
@@ -614,8 +616,7 @@ void DriveControllerMother::ShiftUp() { //high gear, inside
 
 void DriveControllerMother::ShiftDown() { //low gear, outside
 
-	solenoidLeft->Set(DoubleSolenoid::Value::kReverse);
-	solenoidRight->Set(DoubleSolenoid::Value::kForward);
+	solenoid->Set(DoubleSolenoid::Value::kReverse);
 	std::cout << "DOWN" << std::endl;
 
 	//print on smart dashboard
@@ -638,6 +639,7 @@ void DriveControllerMother::SetGainsHigh() {
 	k_p_right_vel = K_P_RIGHT_VEL_HIGH;
 	k_p_left_vel = K_P_LEFT_VEL_HIGH;
 	k_p_yaw_t = K_P_YAW_VEL_HIGH;
+	k_d_yaw_t = K_P_YAW_VEL_HIGH;
 	k_d_right_vel = K_D_RIGHT_VEL_HIGH;
 	k_d_left_vel = K_D_LEFT_VEL_HIGH;
 
@@ -657,6 +659,7 @@ void DriveControllerMother::SetGainsLow() {
 	k_p_right_vel = K_P_RIGHT_VEL_LOW;
 	k_p_left_vel = K_P_LEFT_VEL_LOW;
 	k_p_yaw_t = K_P_YAW_VEL_LOW;
+	k_d_yaw_t = K_D_YAW_VEL_LOW;
 	k_d_right_vel = K_D_RIGHT_VEL_LOW;
 	k_d_left_vel = K_D_LEFT_VEL_LOW;
 
@@ -669,20 +672,22 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 		double target_vel_right, double target_vel_kick) {
 
 	double yaw_rate_current = -1.0 * (double) ahrs->GetRawGyroZ()
-			* (double) ((PI) / 180); //left should be positive
+			* (double) ((PI) / 180.0); //left should be positive
 
+	//std::cout << "current yaw: " << yaw_rate_current << std::endl;
 	double target_yaw_rate = ref_yaw;
-
-	//double yaw_pos = -1.0 * ahrs->GetYaw() * (double) (PI / 180);
-	//std::cout << "k_p_left_vel: " << k_p_left << std::endl;
+	//std::cout << "ref yaw: " << ref_yaw << std::endl;
 
 	ref_left = ref_left - (target_yaw_rate * (max_y_rpm / max_yaw_rate)); //left should be positive
 	ref_right = ref_right + (target_yaw_rate * (max_y_rpm / max_yaw_rate));
 
 	double yaw_error = target_yaw_rate - yaw_rate_current;
 
-	if (std::abs(yaw_error) < .25) {
-		yaw_error = 0;
+	//std::cout << "kp:" << k_p_left << std::endl;
+	//std::cout << "yaw p: " << k_p_yaw << std::endl;
+
+	if (std::abs(yaw_error) < .2) {
+		yaw_error = 0.0;
 	}
 
 	d_yaw_dis = yaw_error - yaw_last_error;
@@ -720,8 +725,9 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	double kick_current = ((double) canTalonKicker->GetSelectedSensorVelocity(0)
 			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION; //going right is positive
 
-	std::cout << "left: " << l_current << std::endl;
-	std::cout << " right: " << r_current << std::endl;
+	//std::cout << "left: " << ref_left << std::endl;
+	//std::cout << "right: " << ref_right << std::endl;
+	//std::cout << "yaw: " << yaw_rate_current << std::endl;
 
 	l_error_vel_t = ref_left - l_current;
 	r_error_vel_t = ref_right - r_current;
@@ -759,11 +765,11 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	canTalonKicker->Set(ControlMode::PercentOutput, -total_kick);
 
 	//	std::cout << " Ref: " << ref_kick;
-	//	std::cout << " Left: " << l_current;
-	//	std::cout << " Right: " << r_current;
+		std::cout << " Left: " << l_error_vel_t << std::endl;
+		std::cout << " Right: " << r_error_vel_t << std::endl;
 	//  std::cout << " Error: " << kick_error_vel << std::endl;
 		//std::cout << "YAW RATE: " << yaw_rate_current << std::endl;
-	//	std::cout << " ERROR: " << yaw_error << std::endl;
+	//std::cout << "YAW ERROR: " << yaw_error << std::endl;
 	//	std::cout << "R: " << r_current;<< " L: " << l_current << std::endl;
 
 	yaw_last_error = yaw_error;

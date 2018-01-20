@@ -26,7 +26,7 @@ public:
 	TalonSRX *canTalonLeft1, *canTalonLeft2, *canTalonLeft3, *canTalonLeft4, *canTalonRight1, *canTalonRight2,
 			*canTalonRight3, *canTalonRight4, *canTalonKicker; //for 4 talons: 1 is front right, 2 is back right, 3 is front left, 4 is back left
 
-	DoubleSolenoid *solenoidLeft, *solenoidRight;
+	DoubleSolenoid *solenoid;
 
 	AHRS *ahrs;
 
