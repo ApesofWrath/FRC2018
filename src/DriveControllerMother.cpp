@@ -56,7 +56,7 @@ double kick_last_error_vel = 0;
 
 const double K_P_RIGHT_VEL_LOW = 0.0008;
 const double K_P_LEFT_VEL_LOW = 0.002;
-const double K_P_YAW_VEL_LOW = 13.0;
+const double K_P_YAW_VEL_LOW = 5.0; //not straight
 const double K_D_YAW_VEL_LOW = 0.0;
 const double K_D_RIGHT_VEL_LOW = 0.000;
 const double K_D_LEFT_VEL_LOW = 0.000;
@@ -717,7 +717,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	double yaw_error = target_yaw_rate - yaw_rate_current;
 
 	//std::cout << "kp:" << k_p_left << std::endl;
-	//std::cout << "yaw p: " << k_p_yaw << std::endl;
+	std::cout << "yaw: " << yaw_error << std::endl;
 
 	if (std::abs(yaw_error) < .2) {
 		yaw_error = 0.0;
@@ -758,8 +758,8 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	double kick_current = ((double) canTalonKicker->GetSelectedSensorVelocity(0)
 			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION; //going right is positive
 
-	//std::cout << "left: " << l_current << std::endl;
-	//std::cout << "right: " << r_current << std::endl;
+	std::cout << "left: " << l_current << std::endl;
+	std::cout << "right: " << r_current << std::endl;
 	//std::cout << "yaw: " << yaw_error << std::endl;
 
 	l_error_vel_t = ref_left - l_current;

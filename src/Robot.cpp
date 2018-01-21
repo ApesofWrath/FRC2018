@@ -175,6 +175,8 @@ public:
 
 	void TestPeriodic() {
 
+		drive_controller->canTalonLeft1->Set(ControlMode::PercentOutput, 1.0);
+		drive_controller->canTalonRight1->Set(ControlMode::PercentOutput, 1.0);
 
 	}
 
