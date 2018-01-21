@@ -38,6 +38,7 @@ public:
 	void ShiftDown();
 	void SetGainsHigh();
 	void SetGainsLow();
+	void AutoShift();
 
 	//Driving Operators
 	void TeleopHDrive(Joystick *JoyThrottle, Joystick *JoyWheel, bool *is_fc); //creates velocity references set by joysticks, for HDrive Train

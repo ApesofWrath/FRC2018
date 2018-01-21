@@ -54,10 +54,10 @@ double kick_last_error_vel = 0;
 
 //Changeable Start
 
-const double K_P_RIGHT_VEL_LOW = 0.0012;
-const double K_P_LEFT_VEL_LOW = 0.0022;
-const double K_P_YAW_VEL_LOW = 12.0;
-const double K_D_YAW_VEL_LOW = 1.0;
+const double K_P_RIGHT_VEL_LOW = 0.0008;
+const double K_P_LEFT_VEL_LOW = 0.002;
+const double K_P_YAW_VEL_LOW = 13.0;
+const double K_D_YAW_VEL_LOW = 0.0;
 const double K_D_RIGHT_VEL_LOW = 0.000;
 const double K_D_LEFT_VEL_LOW = 0.000;
 
@@ -74,10 +74,10 @@ double k_p_yaw_h_vel;
 double k_p_yaw_au;
 double k_d_yaw_au;
 
-const double K_P_RIGHT_VEL_HIGH = 0.00;
-const double K_P_LEFT_VEL_HIGH = 0.00;
-const double K_P_YAW_VEL_HIGH = 0.004;
-const double K_D_YAW_VEL_HIGH = 0.0005;
+const double K_P_RIGHT_VEL_HIGH = 0.001;
+const double K_P_LEFT_VEL_HIGH = 0.001;
+const double K_P_YAW_VEL_HIGH = 12.0;
+const double K_D_YAW_VEL_HIGH = 0.000;
 const double K_D_RIGHT_VEL_HIGH = 0.00;
 const double K_D_LEFT_VEL_HIGH = 0.0;
 
@@ -95,7 +95,7 @@ const double K_D_VISION_POS_WC = 0.0;
 
 double K_P_LEFT_VEL = 0.0; // 0.0040;
 double K_D_LEFT_VEL = 0.0;
-double K_F_LEFT_VEL = 1.0 / 625.0;
+double k_f_left_vel; //625
 
 double P_LEFT_VEL = 0; //dynamic values
 double D_LEFT_VEL = 0;
@@ -103,7 +103,7 @@ double d_left_vel = 0;
 
 double K_P_RIGHT_VEL = 0.0; //0.0040;
 double K_D_RIGHT_VEL = 0.0;
-const double K_F_RIGHT_VEL = 1.0 / 625.0;
+double k_f_right_vel; //625
 
 double P_RIGHT_VEL = 0; //dynamic values
 double D_RIGHT_VEL = 0;
@@ -198,6 +198,7 @@ double init_heading = 0;
 double total_heading = 0;
 
 bool tank = false;
+bool is_low_gear = true;
 
 int LF = 0, L2 = 0, L3 = 0, LR = 0, RF = 0, R2 = 0, R3 = 0, RR = 0, K = 0;
 
@@ -276,6 +277,11 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 		k_d_right_vel = K_D_RIGHT_VEL_LOW;
 		k_d_left_vel = K_D_LEFT_VEL_LOW;
 
+		k_f_left_vel = 1.0 / actual_max_y_rpm;
+		k_f_right_vel = 1.0 / actual_max_y_rpm;
+
+		is_low_gear = true;
+
 	} else {
 
 		max_y_rpm = MAX_Y_RPM_HIGH;
@@ -293,6 +299,12 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 		k_d_yaw_t = K_P_YAW_VEL_HIGH;
 		k_d_right_vel = K_D_RIGHT_VEL_HIGH;
 		k_d_left_vel = K_D_LEFT_VEL_HIGH;
+
+		k_f_left_vel = 1.0 / actual_max_y_rpm;
+		k_f_right_vel = 1.0 / actual_max_y_rpm;
+
+		is_low_gear = false;
+
 	}
 
 	tank = true;
@@ -338,6 +350,15 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 	canTalonRight2->ConfigPeakCurrentLimit(30, 0);
 	canTalonRight3->ConfigPeakCurrentLimit(30, 0);
 	canTalonRight4->ConfigPeakCurrentLimit(30, 0);
+
+	canTalonLeft1->ConfigOpenloopRamp(0.2, 0); //TODO: adjust this as needed
+	canTalonLeft2->ConfigOpenloopRamp(0.2, 0);
+	canTalonLeft3->ConfigOpenloopRamp(0.2, 0);
+	canTalonLeft4->ConfigOpenloopRamp(0.2, 0);
+	canTalonRight1->ConfigOpenloopRamp(0.2, 0);
+	canTalonRight2->ConfigOpenloopRamp(0.2, 0);
+	canTalonRight3->ConfigOpenloopRamp(0.2, 0);
+	canTalonRight4->ConfigOpenloopRamp(0.2, 0);
 
 	ahrs = new AHRS(SPI::Port::kMXP, 200);
 
@@ -643,6 +664,11 @@ void DriveControllerMother::SetGainsHigh() {
 	k_d_right_vel = K_D_RIGHT_VEL_HIGH;
 	k_d_left_vel = K_D_LEFT_VEL_HIGH;
 
+	k_f_left_vel = 1.0 / actual_max_y_rpm;
+	k_f_right_vel = 1.0 / actual_max_y_rpm;
+
+	is_low_gear = false;
+
 }
 
 void DriveControllerMother::SetGainsLow() {
@@ -663,6 +689,15 @@ void DriveControllerMother::SetGainsLow() {
 	k_d_right_vel = K_D_RIGHT_VEL_LOW;
 	k_d_left_vel = K_D_LEFT_VEL_LOW;
 
+	k_f_left_vel = 1.0 / actual_max_y_rpm;
+	k_f_right_vel = 1.0 / actual_max_y_rpm;
+
+	is_low_gear = true;
+
+}
+
+void DriveControllerMother::AutoShift() {
+
 }
 
 void DriveControllerMother::Controller(double ref_kick, double ref_right,
@@ -674,9 +709,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	double yaw_rate_current = -1.0 * (double) ahrs->GetRawGyroZ()
 			* (double) ((PI) / 180.0); //left should be positive
 
-	//std::cout << "current yaw: " << yaw_rate_current << std::endl;
 	double target_yaw_rate = ref_yaw;
-	//std::cout << "ref yaw: " << ref_yaw << std::endl;
 
 	ref_left = ref_left - (target_yaw_rate * (max_y_rpm / max_yaw_rate)); //left should be positive
 	ref_right = ref_right + (target_yaw_rate * (max_y_rpm / max_yaw_rate));
@@ -713,8 +746,8 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 		ref_right = -max_y_rpm;
 	}
 
-	double feed_forward_r = K_F_RIGHT_VEL * ref_right;
-	double feed_forward_l = K_F_LEFT_VEL * ref_left;
+	double feed_forward_r = k_f_right_vel * ref_right;
+	double feed_forward_l = k_f_left_vel * ref_left;
 	double feed_forward_k = K_F_KICK_VEL * ref_kick;
 
 	//conversion to RPM from native unit
@@ -725,9 +758,9 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	double kick_current = ((double) canTalonKicker->GetSelectedSensorVelocity(0)
 			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION; //going right is positive
 
-	//std::cout << "left: " << ref_left << std::endl;
-	//std::cout << "right: " << ref_right << std::endl;
-	//std::cout << "yaw: " << yaw_rate_current << std::endl;
+	//std::cout << "left: " << l_current << std::endl;
+	//std::cout << "right: " << r_current << std::endl;
+	//std::cout << "yaw: " << yaw_error << std::endl;
 
 	l_error_vel_t = ref_left - l_current;
 	r_error_vel_t = ref_right - r_current;
@@ -736,6 +769,16 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	d_left_vel = (l_error_vel_t - l_last_error_vel);
 	d_right_vel = (r_error_vel_t - r_last_error_vel);
 	d_kick_vel = (kick_error_vel - kick_last_error_vel);
+
+//	if ((ref_left < -5.0) && (ref_right < -5.0)) { //not straight when going back, may be ok
+//		std::cout << "HERE" << std::endl;
+//		if (is_low_gear) {
+//			k_p_left = 0.004;
+//		} else {
+//			k_p_left = 0.003;
+//		}
+//
+//	}
 
 	P_LEFT_VEL = k_p_left * l_error_vel_t;
 	P_RIGHT_VEL = k_p_right * r_error_vel_t;
@@ -758,6 +801,17 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	double total_kick = D_KICK_VEL + P_KICK_VEL + feed_forward_k
 			+ (Kv_KICK * target_vel_kick);
 
+	if (total_right > 1.0) {
+		total_right = 1.0;
+	} else if (total_right < -1.0) {
+		total_right = -1.0;
+	}
+	if (total_left > 1.0) {
+		total_left = 1.0;
+	} else if (total_left < -1.0) {
+		total_left = -1.0;
+	}
+
 	canTalonLeft1->Set(ControlMode::PercentOutput, total_left); //Right is reversed
 	canTalonRight1->Set(ControlMode::PercentOutput, -total_right); //negative for Koba and for new drive train
 	//canTalonRearRight->Set(ControlMode::PercentOutput,  total_right); //these are slaves
@@ -765,10 +819,10 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	canTalonKicker->Set(ControlMode::PercentOutput, -total_kick);
 
 	//	std::cout << " Ref: " << ref_kick;
-		std::cout << " Left: " << l_error_vel_t << std::endl;
-		std::cout << " Right: " << r_error_vel_t << std::endl;
+	//	std::cout << " Error: " << l_error_vel_t << std::endl;
+	//std::cout << " Current: " << l_current << std::endl;
 	//  std::cout << " Error: " << kick_error_vel << std::endl;
-		//std::cout << "YAW RATE: " << yaw_rate_current << std::endl;
+	//std::cout << "YAW RATE: " << yaw_rate_current << std::endl;
 	//std::cout << "YAW ERROR: " << yaw_error << std::endl;
 	//	std::cout << "R: " << r_current;<< " L: " << l_current << std::endl;
 
