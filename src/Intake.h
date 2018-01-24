@@ -21,12 +21,14 @@ public:
 
 	std::thread IntakeThread;
 
+	const int UP_STATE_H = 0;
+	const int DOWN_STATE_H = 1;
+	int intake_arm_state_h = UP_STATE_H;
+
 	const int STOP_WHEEL_STATE_H = 0;
 	const int IN_STATE_H = 1;
 	const int OUT_STATE_H = 2;
-	const int DOWN_STATE_H = 3;
-	const int UP_STATE_H = 4;
-	int intake_state_h = 0;
+	int intake_wheel_state_h = STOP_WHEEL_STATE_H;
 
 	Intake();
 
@@ -35,7 +37,10 @@ public:
 	void Stop();
 	void Rotate(double ref);
 
-	void IntakeStateMachine();
+	bool HaveCube();
+
+	void IntakeWheelStateMachine();
+	void IntakeArmStateMachine();
 
 	void StartIntakeThread();
 	void EndIntakeThread();

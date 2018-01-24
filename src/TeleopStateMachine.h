@@ -18,7 +18,7 @@ class TeleopStateMachine {
 public:
 
 	TeleopStateMachine(Elevator *elevator_, Intake *intake_);
-	void StateMachine();
+	void StateMachine(bool wait_for_button, bool intake_spin_in, bool intake_spin_out, bool intake_spin_stop, bool get_cube, bool raise_to_switch, bool raise_to_scale, bool intake_arm_up, bool intake_arm_down, bool elevator_up, bool elevator_down);
 
 	Intake *intake;
 	Elevator *elevator;

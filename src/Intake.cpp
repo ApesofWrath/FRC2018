@@ -5,18 +5,20 @@
  *      Author: DriversStation
  */
 
-#include <Intake.h> //MORE STATES
+#include <Intake.h>
 
 using namespace std::chrono;
+
+const int UP_STATE = 0;
+const int DOWN_STATE = 1;
+int intake_arm_state = UP_STATE;
 
 const int STOP_WHEEL_STATE = 0;
 const int IN_STATE = 1;
 const int OUT_STATE = 2;
-const int DOWN_STATE = 3;
-const int UP_STATE = 4;
-//const int STAY_STATE =
+int intake_wheel_state = STOP_WHEEL_STATE;
 
-int intake_state = 0;
+const int MAX_INTAKE_CURRENT = 0.0; //check
 
 Timer *intakeTimer = new Timer();
 
@@ -62,30 +64,48 @@ void Intake::Rotate(double ref) {
 
 }
 
-void Intake::IntakeStateMachine() {
+void Intake::IntakeArmStateMachine() {
 
-	switch (intake_state) {
+	switch (intake_arm_state) {
 
-	case STOP_WHEEL_STATE:
-		Stop();
-		break;
-
-	case IN_STATE:
-		In();
-		break;
-
-	case OUT_STATE:
-		Out();
+	case UP_STATE:
+		ref_ = UP_ANGLE;
 		break;
 
 	case DOWN_STATE:
 		ref_ = DOWN_ANGLE;
 		break;
 
-	case UP_STATE:
-		ref_ = UP_ANGLE;
-		break;
+	}
 
+}
+
+void Intake::IntakeWheelStateMachine() {
+
+	switch (intake_wheel_state) {
+
+		case STOP_WHEEL_STATE:
+			Stop();
+			break;
+
+		case IN_STATE:
+			In();
+			break;
+
+		case OUT_STATE:
+			Out();
+			break;
+
+	}
+
+}
+
+bool Intake::HaveCube() {
+
+	if (talonIntake1->GetOutputCurrent() >= MAX_INTAKE_CURRENT) {
+		return true;
+	} else {
+		return false;
 	}
 
 }
@@ -108,12 +128,12 @@ void Intake::IntakeWrapper(Intake *in, double *ref) {
 			std::this_thread::sleep_for(
 					std::chrono::milliseconds(INTAKE_SLEEP_TIME));
 
-				if (intakeTimer->HasPeriodPassed(INTAKE_WAIT_TIME)) {
+			if (intakeTimer->HasPeriodPassed(INTAKE_WAIT_TIME)) {
 
-					intakeTimer->Reset();
-					in->Rotate(*ref);
+				intakeTimer->Reset();
+				in->Rotate(*ref);
 
-				}
+			}
 		}
 	}
 

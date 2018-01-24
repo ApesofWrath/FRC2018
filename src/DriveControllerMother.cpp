@@ -54,10 +54,10 @@ double kick_last_error_vel = 0;
 
 //Changeable Start
 
-const double K_P_RIGHT_VEL_LOW = 0.008;
-const double K_P_LEFT_VEL_LOW = 0.002;
-const double K_P_YAW_VEL_LOW = 14.0; //8.0
-const double K_D_YAW_VEL_LOW = 2.0; //0.0
+const double K_P_RIGHT_VEL_LOW = 0.001;//008;
+const double K_P_LEFT_VEL_LOW = 0.001;//002;
+const double K_P_YAW_VEL_LOW = 5.0;//5.0; //8.0
+const double K_D_YAW_VEL_LOW = 0.0; //0.0
 const double K_D_RIGHT_VEL_LOW = 0.000;
 const double K_D_LEFT_VEL_LOW = 0.000;
 
@@ -627,7 +627,7 @@ void DriveControllerMother::AutonDrive() { //auton targets, actually just pd
 void DriveControllerMother::ShiftUp() { //high gear, inside
 
 	solenoid->Set(DoubleSolenoid::Value::kForward);
-	std::cout << "UP" << std::endl;
+	//std::cout << "UP" << std::endl;
 
 	//print on smartdashboard
 
@@ -638,7 +638,7 @@ void DriveControllerMother::ShiftUp() { //high gear, inside
 void DriveControllerMother::ShiftDown() { //low gear, outside
 
 	solenoid->Set(DoubleSolenoid::Value::kReverse);
-	std::cout << "DOWN" << std::endl;
+	//std::cout << "DOWN" << std::endl;
 
 	//print on smart dashboard
 
@@ -819,8 +819,8 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	canTalonKicker->Set(ControlMode::PercentOutput, -total_kick);
 
 	//	std::cout << " Ref: " << ref_kick;
-	std::cout << " Left: " << l_error_vel_t << std::endl;
-	std::cout << " Right: " << r_error_vel_t << std::endl; //high
+	//std::cout << " Left: " << l_error_vel_t << std::endl;
+	//std::cout << " Right: " << r_error_vel_t << std::endl; //high
 	//  std::cout << " Error: " << kick_error_vel << std::endl;
 	//std::cout << "YAW RATE: " << yaw_rate_current << std::endl;
 	//std::cout << "YAW ERROR: " << yaw_error << std::endl;
