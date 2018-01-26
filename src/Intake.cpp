@@ -6,6 +6,7 @@
  */
 
 #include <Intake.h>
+#include <ctre/Phoenix.h>
 
 using namespace std::chrono;
 
@@ -36,7 +37,10 @@ Intake::Intake() {
 	talonIntake2 = new TalonSRX(3);
 	talonIntake2->Set(ControlMode::Follower, 2);
 
-	talonIntakeArm = new TalonSRX(4);
+	talonIntakeArm = new TalonSRX(4); //set current limit for arm
+
+	talonIntake1->ConfigPeakCurrentLimit(10, 0);
+	talonIntake2->ConfigPeakCurrentLimit(10, 0);
 
 	ref_ = DOWN_ANGLE;
 
@@ -44,13 +48,13 @@ Intake::Intake() {
 
 void Intake::In() {
 
-	talonIntake1->Set(ControlMode::PercentOutput, 0.7);
+	talonIntake1->Set(ControlMode::PercentOutput, 0.7); // +2.0/12.0 maybe
 
 }
 
 void Intake::Out() {
 
-	talonIntake1->Set(ControlMode::PercentOutput, -0.7);
+	talonIntake1->Set(ControlMode::PercentOutput, -0.7); // +2.0/12.0 maybe
 
 }
 
@@ -69,10 +73,12 @@ void Intake::IntakeArmStateMachine() {
 	switch (intake_arm_state) {
 
 	case UP_STATE:
+		SmartDashboard::PutString("INTAKE ARM", "UP");
 		ref_ = UP_ANGLE;
 		break;
 
 	case DOWN_STATE:
+		SmartDashboard::PutString("INTAKE ARM", "DOWN");
 		ref_ = DOWN_ANGLE;
 		break;
 
@@ -85,14 +91,17 @@ void Intake::IntakeWheelStateMachine() {
 	switch (intake_wheel_state) {
 
 		case STOP_WHEEL_STATE:
+			SmartDashboard::PutString("INTAKE WHEEL", "STOP");
 			Stop();
 			break;
 
 		case IN_STATE:
+			SmartDashboard::PutString("INTAKE WHEEL", "IN");
 			In();
 			break;
 
 		case OUT_STATE:
+			SmartDashboard::PutString("INTAKE WHEEL", "OUT");
 			Out();
 			break;
 
@@ -112,7 +121,7 @@ bool Intake::HaveCube() {
 
 void Intake::StartIntakeThread() {
 
-	Intake *in = this;
+	//Intake *in = this;
 
 	//IntakeThread = std::thread(&Intake::IntakeWrapper, in, &ref_);
 	//IntakeThread.detach();

@@ -13,6 +13,7 @@
 #include "ctre/Phoenix.h"
 #include <Timer.h>
 #include <thread>
+#include <chrono>
 
 class Intake {
 public:
@@ -38,6 +39,7 @@ public:
 	void Rotate(double ref);
 
 	bool HaveCube();
+	bool EncodersRunning();
 
 	void IntakeWheelStateMachine();
 	void IntakeArmStateMachine();

@@ -8,12 +8,7 @@
 #ifndef SRC_DRIVECONTROLLER_H_
 #define SRC_DRIVECONTROLLER_H_
 
-//#include "ctre/Phoenix.h"
-//#include <WPILib.h>
 #include <DriveControllerMother.h>
-//#include <DoubleSolenoid.h>
-//#include <thread>
-//#include <chrono>
 
 class DriveController : public DriveControllerMother {
 public:

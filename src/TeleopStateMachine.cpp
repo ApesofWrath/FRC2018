@@ -32,6 +32,8 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 
 	switch(state) {
 
+		//if encoders not working, stop motors
+
 		if(intake_spin_out) {
 			state_intake_wheel = false;
 			intake->intake_wheel_state_h = intake->OUT_STATE_H;
@@ -77,7 +79,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		}
 
 		case INIT_STATE:
-
+			SmartDashboard::PutString("STATE", "INIT STATE");
 			elevator->elevator_state_h = elevator->DOWN_STATE_H;
 			intake->intake_arm_state_h = intake->UP_STATE_H;
 			intake->intake_wheel_state_h = intake->STOP_WHEEL_STATE_H;
@@ -85,11 +87,16 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 			break;
 
 		case WAIT_FOR_BUTTON_STATE:
-			elevator->elevator_state_h = elevator->DOWN_STATE_H;
-			intake->intake_arm_state_h = intake->UP_STATE_H;
-			if(state_intake_wheel) {
-			intake->intake_wheel_state_h = intake->STOP_WHEEL_STATE_H;
-			}
+			SmartDashboard::PutString("STATE", "WAIT FOR BUTTON");
+//			if(state_elevator) {
+//			elevator->elevator_state_h = elevator->DOWN_STATE_H;
+//			}
+//			if(state_intake_arm) {
+//			intake->intake_arm_state_h = intake->UP_STATE_H;
+//			}
+//			if(state_intake_wheel) {
+//			intake->intake_wheel_state_h = intake->STOP_WHEEL_STATE_H;
+//			}
 			if(get_cube) {
 				state = GET_CUBE_STATE;
 			}
@@ -102,25 +109,38 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 			break;
 
 		case GET_CUBE_STATE:
+			SmartDashboard::PutString("STATE", "GET CUBE STATE");
+			if(state_elevator) {
 			elevator->elevator_state_h = elevator->DOWN_STATE_H;
+			}
 			if(state_intake_wheel) {
 			intake->intake_wheel_state_h = intake->IN_STATE_H;
 			}
+			if(state_intake_arm) {
 			intake->intake_arm_state_h = intake->DOWN_STATE_H;
-			if(intake->HaveCube()) {
+			}
+			if(intake->HaveCube()) { //might add button
 				state = WAIT_FOR_BUTTON_STATE;
 			}
 			break;
+
 		case SCALE_STATE:
+			SmartDashboard::PutString("STATE", "SCALE STATE");
 			if(state_intake_arm) {
 			intake->intake_arm_state_h = intake->UP_STATE_H;
 			}
+			if(state_elevator) {
 			elevator->elevator_state_h = elevator->UP_STATE_H;
+			}
 			break;
+
 		case SWITCH_STATE:
+			SmartDashboard::PutString("STATE", "SWITCH");
+			if(state_elevator) {
 			elevator->elevator_state_h = elevator->DOWN_STATE_H;
+			}
 			if(state_intake_arm) {
-			intake->intake_arm_state_h = intake->UP_STATE_H;
+			intake->intake_arm_state_h = intake->DOWN_STATE_H;
 			}
 			break;
 

@@ -7,6 +7,7 @@
 
 #include <Elevator.h>
 //#include "ctre/Phoenix.h"
+#include <WPILib.h>
 
 const int DOWN_STATE = 0;
 const int UP_STATE = 1;
@@ -40,10 +41,12 @@ void Elevator::ElevatorStateMachine() {
 	switch (elevator_state) {
 
 	case DOWN_STATE:
+		SmartDashboard::PutString("ELEVATOR", "DOWN");
 		//ref_ = DOWN_ANGLE;
 		break;
 
 	case UP_STATE:
+		SmartDashboard::PutString("ELEVATOR", "UP");
 		//ref_ = UP_ANGLE;
 		break;
 
@@ -53,12 +56,12 @@ void Elevator::ElevatorStateMachine() {
 void Elevator::StartElevatorThread() {
 
 	Elevator *el = this;
-	////ElevatorThread = std::thread(&Elevator::ElevatorWrapper, el, &ref_);
+	//ElevatorThread = std::thread(&Elevator::ElevatorWrapper, el, &ref_);
 	//ElevatorThread.detach();
 
 }
 
-//void Elevator::ElevatorWrapper(Elevator *el, double *ref) {
+void Elevator::ElevatorWrapper(Elevator *el, double *ref) {
 //
 //	elevatorTimer->Start();
 //
@@ -76,10 +79,10 @@ void Elevator::StartElevatorThread() {
 //		}
 //	}
 //
-//}
+}
 //
-//void Elevator::EndElevatorThread() {
+void Elevator::EndElevatorThread() {
 //
 //	ElevatorThread.~thread();
 //
-//}
+}
