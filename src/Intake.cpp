@@ -12,21 +12,20 @@ using namespace std::chrono;
 
 const int UP_STATE = 0;
 const int DOWN_STATE = 1;
-int intake_arm_state = UP_STATE;
+const int STOP_ARM_STATE = 2;
 
 const int STOP_WHEEL_STATE = 0;
 const int IN_STATE = 1;
 const int OUT_STATE = 2;
-int intake_wheel_state = STOP_WHEEL_STATE;
 
-const int MAX_INTAKE_CURRENT = 0.0; //check
+const int MAX_INTAKE_CURRENT = 0.0; //find
 
 Timer *intakeTimer = new Timer();
 
 const int INTAKE_SLEEP_TIME = 0;
 const double INTAKE_WAIT_TIME = 0.01; //sec
 
-int ref_;
+int ref_intake;
 
 const double DOWN_ANGLE = 0.0;
 const double UP_ANGLE = 0.0;
@@ -42,7 +41,7 @@ Intake::Intake() {
 	talonIntake1->ConfigPeakCurrentLimit(10, 0);
 	talonIntake2->ConfigPeakCurrentLimit(10, 0);
 
-	ref_ = DOWN_ANGLE;
+	ref_intake = DOWN_ANGLE;
 
 }
 
@@ -58,13 +57,19 @@ void Intake::Out() {
 
 }
 
-void Intake::Stop() {
+void Intake::StopWheels() {
 
 	talonIntake1->Set(ControlMode::PercentOutput, 0.0);
 
 }
 
-void Intake::Rotate(double ref) {
+void Intake::Rotate(double ref_intake_) {
+
+}
+
+void Intake::StopArm() {
+
+	talonIntakeArm->Set(ControlMode::PercentOutput, 0.0);
 
 }
 
@@ -74,12 +79,17 @@ void Intake::IntakeArmStateMachine() {
 
 	case UP_STATE:
 		SmartDashboard::PutString("INTAKE ARM", "UP");
-		ref_ = UP_ANGLE;
+		ref_intake = UP_ANGLE;
 		break;
 
 	case DOWN_STATE:
 		SmartDashboard::PutString("INTAKE ARM", "DOWN");
-		ref_ = DOWN_ANGLE;
+		ref_intake = DOWN_ANGLE;
+		break;
+
+	case STOP_ARM_STATE:
+		SmartDashboard::PutString("INTAKE ARM", "STOP");
+		ref_intake = 0.0;
 		break;
 
 	}
@@ -92,7 +102,7 @@ void Intake::IntakeWheelStateMachine() {
 
 		case STOP_WHEEL_STATE:
 			SmartDashboard::PutString("INTAKE WHEEL", "STOP");
-			Stop();
+			StopWheels();
 			break;
 
 		case IN_STATE:
@@ -119,16 +129,17 @@ bool Intake::HaveCube() {
 
 }
 
+
 void Intake::StartIntakeThread() {
 
-	//Intake *in = this;
+	Intake *in = this;
 
-	//IntakeThread = std::thread(&Intake::IntakeWrapper, in, &ref_);
-	//IntakeThread.detach();
+//	IntakeThread = std::thread(&Intake::IntakeWrapper, in, &ref_);
+//	IntakeThread.detach();
 
 }
 
-void Intake::IntakeWrapper(Intake *in, double *ref) {
+void Intake::IntakeWrapper(Intake *in, double *ref_in) {
 
 	intakeTimer->Start();
 
@@ -140,7 +151,12 @@ void Intake::IntakeWrapper(Intake *in, double *ref) {
 			if (intakeTimer->HasPeriodPassed(INTAKE_WAIT_TIME)) {
 
 				intakeTimer->Reset();
-				in->Rotate(*ref);
+				if(*ref_in == 0.0) {
+					in->StopArm();
+				}
+				else {
+				in->Rotate(*ref_in);
+				}
 
 			}
 		}
@@ -150,6 +166,6 @@ void Intake::IntakeWrapper(Intake *in, double *ref) {
 
 void Intake::EndIntakeThread() {
 
-	IntakeThread.~thread();
+	//IntakeThread.~thread();
 
 }

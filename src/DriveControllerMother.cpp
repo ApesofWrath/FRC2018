@@ -626,17 +626,15 @@ void DriveControllerMother::AutonDrive() { //auton targets, actually just pd
 
 void DriveControllerMother::ShiftUp() { //high gear, inside
 
+	SmartDashboard::PutString("GEAR", "HIGH");
 	solenoid->Set(DoubleSolenoid::Value::kForward);
-	//std::cout << "UP" << std::endl;
-
-	//print on smartdashboard
-
 	SetGainsHigh();
 
 }
 
 void DriveControllerMother::ShiftDown() { //low gear, outside
 
+	SmartDashboard::PutString("GEAR", "LOW");
 	solenoid->Set(DoubleSolenoid::Value::kReverse);
 	//std::cout << "DOWN" << std::endl;
 

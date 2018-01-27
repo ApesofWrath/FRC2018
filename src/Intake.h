@@ -24,19 +24,22 @@ public:
 
 	const int UP_STATE_H = 0;
 	const int DOWN_STATE_H = 1;
-	int intake_arm_state_h = UP_STATE_H;
+	const int STOP_ARM_STATE_H = 2;
+	int intake_arm_state = UP_STATE_H;
 
 	const int STOP_WHEEL_STATE_H = 0;
 	const int IN_STATE_H = 1;
 	const int OUT_STATE_H = 2;
-	int intake_wheel_state_h = STOP_WHEEL_STATE_H;
+	int intake_wheel_state = STOP_WHEEL_STATE_H;
 
 	Intake();
 
 	void In();
 	void Out();
-	void Stop();
-	void Rotate(double ref);
+	void StopWheels();
+
+	void Rotate(double ref_intake_);
+	void StopArm();
 
 	bool HaveCube();
 	bool EncodersRunning();

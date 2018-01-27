@@ -26,10 +26,11 @@ public:
 
 	const int DOWN_STATE_H = 0;
 	const int UP_STATE_H = 1;
-	int elevator_state_h = 0;
+	int elevator_state = DOWN_STATE_H;
 
 	void ElevatorStateMachine();
-	void Move(double ref);
+	void Move(double ref_elevator_);
+	void StopElevator();
 
 	void StartElevatorThread();
 	static void ElevatorWrapper(Elevator *el, double *ref);
