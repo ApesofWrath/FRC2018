@@ -11,8 +11,9 @@
 using namespace std::chrono;
 
 const int UP_STATE = 0;
-const int DOWN_STATE = 1;
-const int STOP_ARM_STATE = 2;
+const int MID_STATE = 1;
+const int DOWN_STATE = 2;
+const int STOP_ARM_STATE = 3;
 
 const int STOP_WHEEL_STATE = 0;
 const int IN_STATE = 1;
@@ -30,6 +31,7 @@ double ref_intake;
 std::thread IntakeThread;
 
 const double DOWN_ANGLE = 0.0;
+const double MID_ANGLE = 0.0;
 const double UP_ANGLE = 0.0;
 
 Intake::Intake() {
@@ -84,6 +86,11 @@ void Intake::IntakeArmStateMachine() {
 		ref_intake = UP_ANGLE;
 		break;
 
+	case MID_STATE:
+		SmartDashboard::PutString("INTAKE ARM", "MID");
+		ref_intake = MID_ANGLE;
+		break;
+
 	case DOWN_STATE:
 		SmartDashboard::PutString("INTAKE ARM", "DOWN");
 		ref_intake = DOWN_ANGLE;
@@ -119,6 +126,15 @@ void Intake::IntakeWheelStateMachine() {
 
 	}
 
+}
+
+bool Intake::EncodersRunning() { //TODO: Check these values
+
+	double current_pos = (talonIntake1->GetSelectedSensorPosition(0) / 4096) * 2.0 * 3.14; //radians
+	if(talonIntake1->GetOutputCurrent() > 3.0 && talonIntake1->GetSelectedSensorVelocity(0) == 0.0 && std::abs(ref_intake - current_pos) > 0.2) {
+		return false;
+	}
+	return true;
 }
 
 bool Intake::HaveCube() {

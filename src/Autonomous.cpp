@@ -19,4 +19,7 @@ Autonomous::Autonomous(DriveController *dc, Elevator *el, Intake *in) {
 
 }
 
+void Autonomous::RunAuton() {
+
+}
 

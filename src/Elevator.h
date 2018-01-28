@@ -25,12 +25,16 @@ public:
 	std::thread ElevatorThread;
 
 	const int DOWN_STATE_H = 0;
-	const int UP_STATE_H = 1;
+	const int MID_STATE_H = 1;
+	const int UP_STATE_H = 2;
+	const int STOP_STATE_H = 3;
 	int elevator_state = DOWN_STATE_H;
 
 	void ElevatorStateMachine();
 	void Move(double ref_elevator_);
 	void StopElevator();
+
+	bool EncodersRunning();
 
 	void StartElevatorThread();
 	static void ElevatorWrapper(Elevator *el, double *ref);

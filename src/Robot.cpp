@@ -33,16 +33,17 @@ public:
 	const int HIGH_GEAR_BUTTON = 5;
 
 	const int WAIT_FOR_BUTTON = 5;
-	const int INTAKE_SPIN_IN = 6;
-	const int INTAKE_SPIN_OUT = 7;
-	const int INTAKE_SPIN_STOP = 8;
-	const int GET_CUBE = 9;
+	const int INTAKE_SPIN_IN = 99;//
+	const int INTAKE_SPIN_OUT = 99;//
+	const int INTAKE_SPIN_STOP = 99;//
+	const int GET_CUBE_GROUND = 9;
+	const int GET_CUBE_STATION = 4;
 	const int RAISE_TO_SWITCH = 10;
 	const int RAISE_TO_SCALE = 11;
 	const int INTAKE_ARM_UP = 12;
-	const int INTAKE_ARM_DOWN = 13;
-	const int ELEVATOR_UP = 14;
-	const int ELEVATOR_DOWN = 15;
+	const int INTAKE_ARM_DOWN = 6;
+	const int ELEVATOR_UP = 7; //configuration when driving around ?
+	const int ELEVATOR_DOWN = 8;
 
 	bool is_heading, is_vision, is_fc;
 
@@ -118,7 +119,8 @@ public:
 		bool intake_spin_in = joyOp->GetRawButton(INTAKE_SPIN_IN);
 		bool intake_spin_out = joyOp->GetRawButton(INTAKE_SPIN_OUT);
 		bool intake_spin_stop = joyOp->GetRawButton(INTAKE_SPIN_STOP);
-		bool get_cube = joyOp->GetRawButton(GET_CUBE);
+		bool get_cube_ground = joyOp->GetRawButton(GET_CUBE_GROUND);
+		bool get_cube_station = joyOp->GetRawButton(GET_CUBE_STATION);
 		bool raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
 		bool raise_to_scale = joyOp->GetRawButton(RAISE_TO_SCALE);
 		bool intake_arm_up = joyOp->GetRawButton(INTAKE_ARM_UP);
@@ -126,7 +128,7 @@ public:
 		bool elevator_up = joyOp->GetRawButton(ELEVATOR_UP);
 		bool elevator_down = joyOp->GetRawButton(ELEVATOR_DOWN);
 
-		teleop_state_machine->StateMachine(wait_for_button, intake_spin_in, intake_spin_out, intake_spin_stop, get_cube, raise_to_switch, raise_to_scale, intake_arm_up, intake_arm_down, elevator_up, elevator_down);
+		teleop_state_machine->StateMachine(wait_for_button, intake_spin_in, intake_spin_out, intake_spin_stop, get_cube_ground, get_cube_station, raise_to_switch, raise_to_scale, intake_arm_up, intake_arm_down, elevator_up, elevator_down);
 
 		elevator_->ElevatorStateMachine();
 		intake_->IntakeArmStateMachine();

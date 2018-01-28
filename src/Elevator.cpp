@@ -10,8 +10,9 @@
 #include <WPILib.h>
 
 const int DOWN_STATE = 0;
-const int UP_STATE = 1;
-const int STOP_STATE = 2;
+const int MID_STATE = 1;
+const int UP_STATE = 2;
+const int STOP_STATE = 3;
 
 const int ELEVATOR_SLEEP_TIME = 0;
 const double ELEVATOR_WAIT_TIME = 0.01; //sec
@@ -19,6 +20,7 @@ const double ELEVATOR_WAIT_TIME = 0.01; //sec
 double ref_elevator;
 
 const double DOWN_ANGLE = 0.0;
+const double MID_ANGLE = 0.0;
 const double UP_ANGLE = 0.0;
 
 Timer *elevatorTimer = new Timer();
@@ -42,6 +44,15 @@ void Elevator::StopElevator() {
 
 }
 
+bool Elevator::EncodersRunning() { //TODO: check these values
+
+	double current_pos = (talonElevator1->GetSelectedSensorPosition(0) / 4096) * 2.0 * 3.14; //radians
+	if(talonElevator1->GetOutputCurrent() > 3.0 && talonElevator1->GetSelectedSensorVelocity(0) == 0.0 && std::abs(ref_elevator - current_pos) > 0.2) {
+		return false;
+	}
+	return true;
+}
+
 void Elevator::ElevatorStateMachine() {
 
 	switch (elevator_state) {
@@ -49,6 +60,11 @@ void Elevator::ElevatorStateMachine() {
 	case DOWN_STATE:
 		SmartDashboard::PutString("ELEVATOR", "DOWN");
 		ref_elevator = DOWN_ANGLE;
+		break;
+
+	case MID_STATE:
+		SmartDashboard::PutString("ELEVATOR", "MID");
+		ref_elevator = MID_ANGLE;
 		break;
 
 	case UP_STATE:

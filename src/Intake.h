@@ -21,8 +21,9 @@ public:
 	TalonSRX *talonIntake1, *talonIntake2, *talonIntakeArm;
 
 	const int UP_STATE_H = 0;
-	const int DOWN_STATE_H = 1;
-	const int STOP_ARM_STATE_H = 2;
+	const int MID_STATE_H = 1;
+	const int DOWN_STATE_H = 2;
+	const int STOP_ARM_STATE_H = 3;
 	int intake_arm_state = UP_STATE_H;
 
 	const int STOP_WHEEL_STATE_H = 0;

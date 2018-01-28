@@ -19,6 +19,7 @@ class Autonomous {
 public:
 
 	Autonomous(DriveController *dc, Elevator *el, Intake *in);
+	void RunAuton();
 
 
 };

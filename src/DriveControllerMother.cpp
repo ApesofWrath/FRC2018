@@ -949,6 +949,42 @@ void DriveControllerMother::TeleopWrapper(Joystick *JoyThrottle,
 
 void DriveControllerMother::AutonWrapper(DriveControllerMother *driveController) {
 
+	timerAuton->Start();
+
+		while (frc::RobotState::IsAutonomous() && frc::RobotState::IsEnabled()) {
+
+			std::this_thread::sleep_for(
+					std::chrono::milliseconds(DRIVE_SLEEP_TIME));
+
+			if (timerAuton->HasPeriodPassed(DRIVE_WAIT_TIME)) {
+
+				for (int i = 0; i < sizeof(drive_ref); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs
+
+					//drive_ref[i] = full_refs[profile_index][i]; //from SetRef()
+
+				}
+
+				if (drive_ref[12] == 1) { //vision on
+
+					//driveController->AutoVisionTrack();
+
+				} else { //vision off
+
+					driveController->AutonDrive();
+
+				}
+
+				timerAuton->Reset();
+
+			//	profile_index++;
+			}
+
+			//if (profile_index >= NUM_POINTS) { //stop at the end of the motion profile, this number is set after the creation of the array
+				//so not all of the array will be accessed, only the part before the non-zero points
+				break;
+			//}
+		}
+
 }
 
 void DriveControllerMother::StartTeleopThreads(Joystick *JoyThrottle, //must pass in parameters to wrapper to use them in functions
