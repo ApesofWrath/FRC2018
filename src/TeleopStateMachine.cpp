@@ -35,21 +35,23 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 
 	//intake from human player station
 
+	//if encoders not working, stop
+
 	if (intake_spin_out) {
 		state_intake_wheel = false;
-		//SmartDashboard::PutString("BOOL INTAKE", "FALSE");
+		SmartDashboard::PutString("BOOL INTAKE", "FALSE");
 		intake->intake_wheel_state = intake->OUT_STATE_H;
 	} else if (intake_spin_in) {
 		state_intake_wheel = false;
-		//SmartDashboard::PutString("BOOL INTAKE", "FALSE");
+		SmartDashboard::PutString("BOOL INTAKE", "FALSE");
 		intake->intake_wheel_state = intake->IN_STATE_H;
 	} else if (intake_spin_stop) {
 		state_intake_wheel = false;
-		//SmartDashboard::PutString("BOOL INTAKE", "FALSE");
+		SmartDashboard::PutString("BOOL INTAKE", "FALSE");
 		intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
 	} else {
 		state_intake_wheel = true;
-		//SmartDashboard::PutString("BOOL INTAKE", "TRUE");
+		SmartDashboard::PutString("BOOL INTAKE", "TRUE");
 	}
 
 	if (intake_arm_up) {
@@ -140,7 +142,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 			elevator->elevator_state = elevator->DOWN_STATE_H;
 		}
 		if (state_intake_arm) {
-			intake->intake_arm_state = intake->DOWN_STATE_H;
+			intake->intake_arm_state = intake->UP_STATE_H;
 		}
 		break;
 

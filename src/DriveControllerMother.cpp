@@ -192,7 +192,8 @@ double drive_wait_time = 0.01;
 Timer *timerTeleop = new Timer();
 Timer *timerAuton = new Timer();
 
-std::thread TeleopThread, AutonThread;
+std::thread TeleopThread;
+std::thread AutonThread;
 
 double init_heading = 0;
 double total_heading = 0;
@@ -946,6 +947,10 @@ void DriveControllerMother::TeleopWrapper(Joystick *JoyThrottle,
 	}
 }
 
+void DriveControllerMother::AutonWrapper(DriveControllerMother *driveController) {
+
+}
+
 void DriveControllerMother::StartTeleopThreads(Joystick *JoyThrottle, //must pass in parameters to wrapper to use them in functions
 		Joystick *JoyWheel, bool *is_heading, bool *is_vision, bool *is_fc) {
 
@@ -956,24 +961,24 @@ void DriveControllerMother::StartTeleopThreads(Joystick *JoyThrottle, //must pas
 	TeleopThread.detach();
 }
 
-//void DriveControllerMother::StartAutonThreads() {
-//
-//	DriveControllerMother *dc = this;
-//
-////	AutonThread = std::thread(&DriveControllerMother::AutonWrapper, dc);
-//	AutonThread.detach();
-//
-//}
-//
+void DriveControllerMother::StartAutonThreads() {
+
+	DriveControllerMother *dc = this;
+
+	AutonThread = std::thread(&DriveControllerMother::AutonWrapper, dc);
+	AutonThread.detach();
+
+}
+
 void DriveControllerMother::EndTeleopThreads() {
 
 	TeleopThread.~thread();
 
 }
-//
-//void DriveControllerMother::EndAutonThreads() {
-//
-//	AutonThread.~thread();
-//
-//}
+
+void DriveControllerMother::EndAutonThreads() {
+
+	AutonThread.~thread();
+
+}
 

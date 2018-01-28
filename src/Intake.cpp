@@ -25,7 +25,9 @@ Timer *intakeTimer = new Timer();
 const int INTAKE_SLEEP_TIME = 0;
 const double INTAKE_WAIT_TIME = 0.01; //sec
 
-int ref_intake;
+double ref_intake;
+
+std::thread IntakeThread;
 
 const double DOWN_ANGLE = 0.0;
 const double UP_ANGLE = 0.0;
@@ -129,16 +131,6 @@ bool Intake::HaveCube() {
 
 }
 
-
-void Intake::StartIntakeThread() {
-
-	Intake *in = this;
-
-//	IntakeThread = std::thread(&Intake::IntakeWrapper, in, &ref_);
-//	IntakeThread.detach();
-
-}
-
 void Intake::IntakeWrapper(Intake *in, double *ref_in) {
 
 	intakeTimer->Start();
@@ -164,8 +156,17 @@ void Intake::IntakeWrapper(Intake *in, double *ref_in) {
 
 }
 
+void Intake::StartIntakeThread() {
+
+	Intake *in = this;
+
+	IntakeThread = std::thread(&Intake::IntakeWrapper, in, &ref_intake);
+	IntakeThread.detach();
+
+}
+
 void Intake::EndIntakeThread() {
 
-	//IntakeThread.~thread();
+	IntakeThread.~thread();
 
 }

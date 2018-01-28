@@ -20,8 +20,6 @@ public:
 
 	TalonSRX *talonIntake1, *talonIntake2, *talonIntakeArm;
 
-	std::thread IntakeThread;
-
 	const int UP_STATE_H = 0;
 	const int DOWN_STATE_H = 1;
 	const int STOP_ARM_STATE_H = 2;
@@ -49,7 +47,7 @@ public:
 
 	void StartIntakeThread();
 	void EndIntakeThread();
-	static void IntakeWrapper(Intake *in, double *ref);
+	static void IntakeWrapper(Intake *in, double *ref_);
 
 
 
