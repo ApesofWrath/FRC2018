@@ -19,6 +19,22 @@ const int STOP_WHEEL_STATE = 0;
 const int IN_STATE = 1;
 const int OUT_STATE = 2;
 
+const double TICKS_PER_ROT = 4096.0;
+const double PI = 3.14159;
+const double MAX_VOLTAGE = 12.0; //CANNOT EXCEED abs(12)
+const double MIN_VOLTAGE = -12.0;
+
+double u = 0; //this is the input in volts to the motor
+double v_bat = 12.0; //this will be the voltage of the battery at every loop
+
+double K[2][2] = { { 0, 0 }, //controller matrix that is calculated in the Python simulation, pos and vel
+		{ 0, 0 } };
+
+double X[2][1] = { { 0 }, //state matrix filled with the states of the system
+		{ 0 } };
+
+double error[2][1] = { { 0 }, { 0 } };
+
 const int MAX_INTAKE_CURRENT = 0.0; //find
 
 Timer *intakeTimer = new Timer();
@@ -26,7 +42,7 @@ Timer *intakeTimer = new Timer();
 const int INTAKE_SLEEP_TIME = 0;
 const double INTAKE_WAIT_TIME = 0.01; //sec
 
-double ref_intake;
+double ref_intake[2][1];
 
 std::thread IntakeThread;
 
@@ -42,10 +58,8 @@ Intake::Intake() {
 
 	talonIntakeArm = new TalonSRX(4); //set current limit for arm
 
-	talonIntake1->ConfigPeakCurrentLimit(10, 0);
-	talonIntake2->ConfigPeakCurrentLimit(10, 0);
-
-	ref_intake = DOWN_ANGLE;
+	talonIntake1->ConfigPeakCurrentLimit(40, 0);
+	talonIntake2->ConfigPeakCurrentLimit(40, 0);
 
 }
 
@@ -67,7 +81,53 @@ void Intake::StopWheels() {
 
 }
 
-void Intake::Rotate(double ref_intake_) {
+double Intake::GetAngularVelocity() {
+
+	//Native vel units are in ticks per 100ms so divide by TICKS_PER_ROT to get rotations per 100ms then multiply 10 to get per second
+	//multiply by 2pi to get into radians per second (2pi radians are in one revolution)
+	double ang_vel = (talonIntake1->GetSelectedSensorVelocity(0)
+			/ (TICKS_PER_ROT)) * (2 * PI) * (10.0);
+
+	return ang_vel;
+
+}
+
+double Intake::GetAngularPosition() {
+
+	//Native position in ticks, divide by ticks per rot to get into revolutions multiply by 2pi to get into radians
+	//spi radians per rotations
+	double ang_pos = (talonIntake1->GetSelectedSensorPosition(0)
+			/ (TICKS_PER_ROT)) * (2 * PI);
+
+	return ang_pos;
+
+}
+
+void Intake::Rotate(double ref_intake[2][1]) {
+
+	double current_pos = GetAngularPosition();
+	double current_vel = GetAngularVelocity();
+	double goal_pos = ref_intake[0][0];
+	double goal_vel = ref_intake[1][0];
+
+	error[0][0] = goal_pos - current_pos;
+	error[1][0] = goal_vel - current_vel;
+
+	u = (K[0][0] * error[0][0]) + (K[0][1] * error[1][0]); // for this system the second row of the K matrix is a copy and does not matter.
+
+	//scaling the input value not to exceed the set parameters
+	if (u > MAX_VOLTAGE) {
+		u = MAX_VOLTAGE;
+	} else if (u < MIN_VOLTAGE) {
+		u = MIN_VOLTAGE;
+	}
+
+	//get the input into the -1 to +1 range for the talon
+	//TODO: change v_bat into a dynamic value that tracks the battery's current voltage
+	u = u / (v_bat);
+
+	//talonElevator2 is slaved to this talon and does not need to be set
+	talonIntake1->Set(ControlMode::PercentOutput, u);
 
 }
 
@@ -83,22 +143,22 @@ void Intake::IntakeArmStateMachine() {
 
 	case UP_STATE:
 		SmartDashboard::PutString("INTAKE ARM", "UP");
-		ref_intake = UP_ANGLE;
+
 		break;
 
 	case MID_STATE:
 		SmartDashboard::PutString("INTAKE ARM", "MID");
-		ref_intake = MID_ANGLE;
+
 		break;
 
 	case DOWN_STATE:
 		SmartDashboard::PutString("INTAKE ARM", "DOWN");
-		ref_intake = DOWN_ANGLE;
+
 		break;
 
 	case STOP_ARM_STATE:
 		SmartDashboard::PutString("INTAKE ARM", "STOP");
-		ref_intake = 0.0;
+
 		break;
 
 	}
@@ -109,20 +169,20 @@ void Intake::IntakeWheelStateMachine() {
 
 	switch (intake_wheel_state) {
 
-		case STOP_WHEEL_STATE:
-			SmartDashboard::PutString("INTAKE WHEEL", "STOP");
-			StopWheels();
-			break;
+	case STOP_WHEEL_STATE:
+		SmartDashboard::PutString("INTAKE WHEEL", "STOP");
+		StopWheels();
+		break;
 
-		case IN_STATE:
-			SmartDashboard::PutString("INTAKE WHEEL", "IN");
-			In();
-			break;
+	case IN_STATE:
+		SmartDashboard::PutString("INTAKE WHEEL", "IN");
+		In();
+		break;
 
-		case OUT_STATE:
-			SmartDashboard::PutString("INTAKE WHEEL", "OUT");
-			Out();
-			break;
+	case OUT_STATE:
+		SmartDashboard::PutString("INTAKE WHEEL", "OUT");
+		Out();
+		break;
 
 	}
 
@@ -130,8 +190,11 @@ void Intake::IntakeWheelStateMachine() {
 
 bool Intake::EncodersRunning() { //TODO: Check these values
 
-	double current_pos = (talonIntake1->GetSelectedSensorPosition(0) / 4096) * 2.0 * 3.14; //radians
-	if(talonIntake1->GetOutputCurrent() > 3.0 && talonIntake1->GetSelectedSensorVelocity(0) == 0.0 && std::abs(ref_intake - current_pos) > 0.2) {
+	double current_pos = (talonIntake1->GetSelectedSensorPosition(0) / 4096)
+			* 2.0 * 3.14; //radians
+	if (talonIntake1->GetOutputCurrent() > 3.0
+			&& talonIntake1->GetSelectedSensorVelocity(0) == 0.0
+			&& std::abs(ref_intake[0][0] - current_pos) > 0.2) {
 		return false;
 	}
 	return true;
@@ -147,7 +210,7 @@ bool Intake::HaveCube() {
 
 }
 
-void Intake::IntakeWrapper(Intake *in, double *ref_in) {
+void Intake::IntakeWrapper(Intake *in, double *ref_in[2][1]) {
 
 	intakeTimer->Start();
 
@@ -159,11 +222,10 @@ void Intake::IntakeWrapper(Intake *in, double *ref_in) {
 			if (intakeTimer->HasPeriodPassed(INTAKE_WAIT_TIME)) {
 
 				intakeTimer->Reset();
-				if(*ref_in == 0.0) {
+				if (*ref_in[0][0] == 0.0) {
 					in->StopArm();
-				}
-				else {
-				in->Rotate(*ref_in);
+				} else {
+					in->Rotate(*ref_in[2][1]);
 				}
 
 			}
@@ -176,7 +238,7 @@ void Intake::StartIntakeThread() {
 
 	Intake *in = this;
 
-	IntakeThread = std::thread(&Intake::IntakeWrapper, in, &ref_intake);
+	IntakeThread = std::thread(&Intake::IntakeWrapper, in, &ref_intake[2][1]);
 	IntakeThread.detach();
 
 }

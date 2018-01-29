@@ -36,9 +36,11 @@ public:
 	void In();
 	void Out();
 	void StopWheels();
-
-	void Rotate(double ref_intake_);
 	void StopArm();
+
+	void Rotate(double ref_intake[2][1]);
+	double GetAngularVelocity();
+	double GetAngularPosition();
 
 	bool HaveCube();
 	bool EncodersRunning();
@@ -48,7 +50,7 @@ public:
 
 	void StartIntakeThread();
 	void EndIntakeThread();
-	static void IntakeWrapper(Intake *in, double *ref_);
+	static void IntakeWrapper(Intake *in, double *ref_in[2][1]);
 
 
 
