@@ -7,6 +7,7 @@
 
 #include <Intake.h>
 #include <ctre/Phoenix.h>
+//#include <MotionProfiler.h>
 
 using namespace std::chrono;
 
@@ -24,6 +25,21 @@ const double PI = 3.14159;
 const double MAX_VOLTAGE = 12.0; //CANNOT EXCEED abs(12)
 const double MIN_VOLTAGE = -12.0;
 
+
+//to change
+double free_speed = 1967; //rad/s
+double m = 2.1;
+double l = 0.2;
+double Kt = 0.00595;
+double G = ((60.0 / 1.0) * (48.0 / 38.0));
+
+double MAX_THEORETICAL_VELOCITY = (free_speed / G);
+double MAX_VELOCITY = 28.0; //choose
+double MAX_ACCELERATION = 38.0; //choose
+double TIME_STEP = 0.01;
+double Kv_in = 1 / MAX_THEORETICAL_VELOCITY;
+
+
 double u = 0; //this is the input in volts to the motor
 double v_bat = 12.0; //this will be the voltage of the battery at every loop
 
@@ -37,8 +53,6 @@ double error[2][1] = { { 0 }, { 0 } };
 
 const int MAX_INTAKE_CURRENT = 0.0; //find
 
-Timer *intakeTimer = new Timer();
-
 const int INTAKE_SLEEP_TIME = 0;
 const double INTAKE_WAIT_TIME = 0.01; //sec
 
@@ -46,9 +60,29 @@ double ref_intake[2][1];
 
 std::thread IntakeThread;
 
+MotionProfiler *intake_profiler = new MotionProfiler(MAX_VELOCITY,
+		MAX_ACCELERATION, TIME_STEP);
+
+std::vector<double> down_ang = {{0.0}};
+std::vector<double> mid_ang = {{0.0}};
+std::vector<double> up_ang = {{0.0}};
+
 const double DOWN_ANGLE = 0.0;
 const double MID_ANGLE = 0.0;
 const double UP_ANGLE = 0.0;
+
+std::vector<std::vector<double>> up_to_down_profile =
+		intake_profiler->CreateProfile1D(UP_ANGLE, down_ang);
+std::vector<std::vector<double>> mid_to_down_profile =
+		intake_profiler->CreateProfile1D(MID_ANGLE, down_ang);
+std::vector<std::vector<double>> up_to_mid_profile =
+		intake_profiler->CreateProfile1D(UP_ANGLE, mid_ang);
+std::vector<std::vector<double>> down_to_up_profile =
+		intake_profiler->CreateProfile1D(DOWN_ANGLE, up_ang);
+std::vector<std::vector<double>> down_to_mid_profile =
+		intake_profiler->CreateProfile1D(DOWN_ANGLE, mid_ang);
+
+Timer *intakeTimer = new Timer();
 
 Intake::Intake() {
 
@@ -210,7 +244,7 @@ bool Intake::HaveCube() {
 
 }
 
-void Intake::IntakeWrapper(Intake *in, double *ref_in[2][1]) {
+void Intake::IntakeWrapper(Intake *in, double *profile) {
 
 	intakeTimer->Start();
 
@@ -222,11 +256,11 @@ void Intake::IntakeWrapper(Intake *in, double *ref_in[2][1]) {
 			if (intakeTimer->HasPeriodPassed(INTAKE_WAIT_TIME)) {
 
 				intakeTimer->Reset();
-				if (*ref_in[0][0] == 0.0) {
+//				if (*profile == -1) {
 					in->StopArm();
-				} else {
-					in->Rotate(*ref_in[2][1]);
-				}
+//				} else {
+//					in->Rotate();
+//				}
 
 			}
 		}

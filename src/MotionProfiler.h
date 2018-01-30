@@ -1,10 +1,9 @@
 /*
  * MotionProfiler.h
  *
- *  Created on: Jan 3, 2018
- *      Author: maxkwon
+ *  Created on: Jan 29, 2018
+ *      Author: DriversStation
  */
-
 
 #include <list>
 #include <vector>
@@ -14,7 +13,7 @@
 #ifndef SRC_MOTIONPROFILER_H_
 #define SRC_MOTIONPROFILER_H_
 
-namespace std {
+//namespace std {
 
 class MotionProfiler {
 public:
@@ -35,6 +34,6 @@ public:
 
 };
 
-} /* namespace std */
+//} /* namespace std */
 
 #endif /* SRC_MOTIONPROFILER_H_ */

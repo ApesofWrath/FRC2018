@@ -1,13 +1,13 @@
 /*
  * MotionProfiler.cpp
  *
- *  Created on: Jan 3, 2018
- *      Author: maxkwon
+ *  Created on: Jan 29, 2018
+ *      Author: DriversStation
  */
 
 #include "MotionProfiler.h"
 
-namespace std {
+//namespace std {
 
 double ramp_time = 0.0;
 double ramp_dis = 0.0;
@@ -33,8 +33,6 @@ MotionProfiler::MotionProfiler(double max_vel, double max_acc,
 	interval = time_step / time_dt; //frequency of when points should be recorded
 
 }
-
-
 
 //works off basic triangle geometry calculating times through area calculations under velocity time curves (acceleration is known and constant)
 std::vector<std::vector<double> > MotionProfiler::CreateProfile1D(double init_pos,
@@ -153,4 +151,4 @@ double MotionProfiler::FindAngle(std::vector<double> p1, std::vector<double> p2)
 
 
 
-} /* namespace std */
+//} /* namespace std */

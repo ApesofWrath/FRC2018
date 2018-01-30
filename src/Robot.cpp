@@ -18,7 +18,6 @@
 #include <Intake.h>
 #include <Elevator.h>
 #include <Autonomous.h>
-#include <MotionProfiling.h>
 #include <Joystick.h>
 #include <TeleopStateMachine.h>
 

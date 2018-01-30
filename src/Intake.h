@@ -12,6 +12,7 @@
 #include <WPILib.h>
 #include "ctre/Phoenix.h"
 #include <Timer.h>
+#include <MotionProfiler.h>
 #include <thread>
 #include <chrono>
 
@@ -50,7 +51,7 @@ public:
 
 	void StartIntakeThread();
 	void EndIntakeThread();
-	static void IntakeWrapper(Intake *in, double *ref_in[2][1]);
+	static void IntakeWrapper(Intake *in, double *profile);
 
 
 

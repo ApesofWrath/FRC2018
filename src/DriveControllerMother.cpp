@@ -192,16 +192,13 @@ double drive_wait_time = 0.01;
 Timer *timerTeleop = new Timer();
 Timer *timerAuton = new Timer();
 
-std::thread TeleopThread;
-std::thread AutonThread;
-
 double init_heading = 0;
 double total_heading = 0;
 
 bool tank = false;
 bool is_low_gear = true;
 
-int LF = 0, L2 = 0, L3 = 0, LR = 0, RF = 0, R2 = 0, R3 = 0, RR = 0, K = 0;
+int LF = 0, L2 = 0, L3 = 0, LR = 0, RF = 0, R2 = 0, R3 = 0, RR = 0, KICKER = 0;
 
 std::vector<double> drive_ref; //TODO: fill this with the motion profile one row at a time
 std::vector<std::vector<double> > auton_profile;
@@ -225,7 +222,7 @@ DriveControllerMother::DriveControllerMother(int fl, int fr, int rl, int rr,
 	LR = rl;
 	RF = fr;
 	RR = rr;
-	K = k;
+	KICKER = k;
 
 	canTalonLeft1 = new TalonSRX(LF);
 	canTalonLeft1->ConfigSelectedFeedbackSensor(QuadEncoder, 0, 0);
@@ -239,7 +236,7 @@ DriveControllerMother::DriveControllerMother(int fl, int fr, int rl, int rr,
 	canTalonRight2 = new TalonSRX(RR);
 	canTalonRight2->Set(ControlMode::Follower, RF);
 
-	canTalonKicker = new TalonSRX(K);
+	canTalonKicker = new TalonSRX(KICKER);
 
 	canTalonLeft1->ConfigPeakCurrentLimit(30, 0);
 	canTalonLeft2->ConfigPeakCurrentLimit(30, 0);

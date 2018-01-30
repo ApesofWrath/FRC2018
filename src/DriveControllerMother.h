@@ -28,6 +28,9 @@ public:
 
 	DoubleSolenoid *solenoid;
 
+	std::thread TeleopThread;
+	std::thread AutonThread;
+
 	AHRS *ahrs;
 
 	//needs the CAN IDs of all the talons and whether or not this is a west coast or HDrive train, input -1 if no kicker (or really whatever you want since it wont be used)
