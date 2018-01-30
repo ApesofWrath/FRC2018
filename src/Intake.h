@@ -39,6 +39,11 @@ public:
 	void StopWheels();
 	void StopArm();
 
+	int intake_index = 0;
+
+	void SetIndex(int index);
+	int GetIndex();
+
 	void Rotate(double ref_intake[2][1]);
 	double GetAngularVelocity();
 	double GetAngularPosition();

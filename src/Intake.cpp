@@ -25,7 +25,6 @@ const double PI = 3.14159;
 const double MAX_VOLTAGE = 12.0; //CANNOT EXCEED abs(12)
 const double MIN_VOLTAGE = -12.0;
 
-
 //to change
 double free_speed = 1967; //rad/s
 double m = 2.1;
@@ -38,7 +37,6 @@ double MAX_VELOCITY = 28.0; //choose
 double MAX_ACCELERATION = 38.0; //choose
 double TIME_STEP = 0.01;
 double Kv_in = 1 / MAX_THEORETICAL_VELOCITY;
-
 
 double u = 0; //this is the input in volts to the motor
 double v_bat = 12.0; //this will be the voltage of the battery at every loop
@@ -63,9 +61,9 @@ std::thread IntakeThread;
 MotionProfiler *intake_profiler = new MotionProfiler(MAX_VELOCITY,
 		MAX_ACCELERATION, TIME_STEP);
 
-std::vector<double> down_ang = {{0.0}};
-std::vector<double> mid_ang = {{0.0}};
-std::vector<double> up_ang = {{0.0}};
+std::vector<double> down_ang = { { 0.0 } };
+std::vector<double> mid_ang = { { 0.0 } };
+std::vector<double> up_ang = { { 0.0 } };
 
 const double DOWN_ANGLE = 0.0;
 const double MID_ANGLE = 0.0;
@@ -81,6 +79,14 @@ std::vector<std::vector<double>> down_to_up_profile =
 		intake_profiler->CreateProfile1D(DOWN_ANGLE, up_ang);
 std::vector<std::vector<double>> down_to_mid_profile =
 		intake_profiler->CreateProfile1D(DOWN_ANGLE, mid_ang);
+
+const int UP_TO_DOWN = 0;
+const int MID_TO_DOWN = 1;
+const int UP_TO_MID = 2;
+const int DOWN_TO_UP = 3;
+const int DOWN_TO_MID = 4;
+
+int profile_in = 0;
 
 Timer *intakeTimer = new Timer();
 
@@ -130,8 +136,8 @@ double Intake::GetAngularPosition() {
 
 	//Native position in ticks, divide by ticks per rot to get into revolutions multiply by 2pi to get into radians
 	//spi radians per rotations
-	double ang_pos = (talonIntake1->GetSelectedSensorPosition(0)
-			/ (TICKS_PER_ROT)) * (2 * PI);
+	double ang_pos = (talonIntake1->GetSelectedSensorPosition(0.0)
+			/ (TICKS_PER_ROT)) * (2.0 * PI);
 
 	return ang_pos;
 
@@ -224,7 +230,7 @@ void Intake::IntakeWheelStateMachine() {
 
 bool Intake::EncodersRunning() { //TODO: Check these values
 
-	double current_pos = (talonIntake1->GetSelectedSensorPosition(0) / 4096)
+	double current_pos = (talonIntake1->GetSelectedSensorPosition(0.0) / 4096.0)
 			* 2.0 * 3.14; //radians
 	if (talonIntake1->GetOutputCurrent() > 3.0
 			&& talonIntake1->GetSelectedSensorVelocity(0) == 0.0
@@ -246,6 +252,11 @@ bool Intake::HaveCube() {
 
 void Intake::IntakeWrapper(Intake *in, double *profile) {
 
+	std::vector<std::vector<double>> intake_profile = { };
+
+	int last_profile = 0;
+	int profile_state = 0;
+
 	intakeTimer->Start();
 
 	while (true) {
@@ -255,12 +266,66 @@ void Intake::IntakeWrapper(Intake *in, double *profile) {
 
 			if (intakeTimer->HasPeriodPassed(INTAKE_WAIT_TIME)) {
 
+				profile_state = *profile;
+
+				switch (profile_state) {
+
+				case UP_TO_DOWN:
+					intake_profile = up_to_down_profile;
+					if (last_profile != profile_state) { //first time in state
+						in->SetIndex(0);
+					}
+					break;
+
+				case MID_TO_DOWN:
+					intake_profile = mid_to_down_profile;
+					if (last_profile != profile_state) { //first time in state
+						in->SetIndex(0);
+					}
+					break;
+
+				case UP_TO_MID:
+					intake_profile = up_to_mid_profile;
+					if (last_profile != profile_state) { //first time in state
+						in->SetIndex(0);
+					}
+					break;
+
+				case DOWN_TO_UP:
+					intake_profile = down_to_up_profile;
+					if (last_profile != profile_state) { //first time in state
+						in->SetIndex(0);
+					}
+					break;
+
+				case DOWN_TO_MID:
+					intake_profile = down_to_mid_profile;
+					if (last_profile != profile_state) { //first time in state
+						in->SetIndex(0);
+					}
+					break;
+
+				}
+
+				last_profile = profile_state;
+
+				double indeces[2][1] = { { intake_profile.at(0).at(
+						in->intake_index) }, { intake_profile.at(1).at(
+						in->intake_index) } };
+
+				in->Rotate(indeces);
+
+				if (in->intake_index < intake_profile.at(0).size() - 1) {
+					in->intake_index++;
+				}
+
+				//				if (*profile == -1) { //TODO: add state that stops, if profile = stop, then stopArm(), else Rotate()
+				in->StopArm();
+				//				} else {
+				//					in->Rotate();
+				//				}
+
 				intakeTimer->Reset();
-//				if (*profile == -1) {
-					in->StopArm();
-//				} else {
-//					in->Rotate();
-//				}
 
 			}
 		}
@@ -268,11 +333,17 @@ void Intake::IntakeWrapper(Intake *in, double *profile) {
 
 }
 
+void Intake::SetIndex(int index) {
+
+	intake_index = index;
+
+}
+
 void Intake::StartIntakeThread() {
 
 	Intake *in = this;
 
-	IntakeThread = std::thread(&Intake::IntakeWrapper, in, &ref_intake[2][1]);
+	IntakeThread = std::thread(&Intake::IntakeWrapper, in, &profile_in);
 	IntakeThread.detach();
 
 }

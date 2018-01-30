@@ -99,12 +99,7 @@ void Elevator::ElevatorWrapper(Elevator *el, double *ref_el) {
 				if (elevatorTimer->HasPeriodPassed(ELEVATOR_WAIT_TIME)) {
 
 					elevatorTimer->Reset();
-					if(*ref_el == 0.0) {
-						el->StopElevator();
-					}
-					else {
-					el->Move(*ref_el);
-					}
+
 
 				}
 		}
