@@ -37,6 +37,7 @@ public:
 	const int INTAKE_SPIN_STOP = 99;//
 	const int GET_CUBE_GROUND = 9;
 	const int GET_CUBE_STATION = 4;
+	const int POST_INTAKE = 99;
 	const int RAISE_TO_SWITCH = 10;
 	const int RAISE_TO_SCALE = 11;
 	const int INTAKE_ARM_UP = 12;
@@ -120,6 +121,7 @@ public:
 		bool intake_spin_stop = joyOp->GetRawButton(INTAKE_SPIN_STOP);
 		bool get_cube_ground = joyOp->GetRawButton(GET_CUBE_GROUND);
 		bool get_cube_station = joyOp->GetRawButton(GET_CUBE_STATION);
+		bool post_intake = joyOp->GetRawButton(POST_INTAKE);
 		bool raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
 		bool raise_to_scale = joyOp->GetRawButton(RAISE_TO_SCALE);
 		bool intake_arm_up = joyOp->GetRawButton(INTAKE_ARM_UP);
@@ -127,7 +129,7 @@ public:
 		bool elevator_up = joyOp->GetRawButton(ELEVATOR_UP);
 		bool elevator_down = joyOp->GetRawButton(ELEVATOR_DOWN);
 
-		teleop_state_machine->StateMachine(wait_for_button, intake_spin_in, intake_spin_out, intake_spin_stop, get_cube_ground, get_cube_station, raise_to_switch, raise_to_scale, intake_arm_up, intake_arm_down, elevator_up, elevator_down);
+		teleop_state_machine->StateMachine(wait_for_button, intake_spin_in, intake_spin_out, intake_spin_stop, get_cube_ground, get_cube_station, post_intake, raise_to_switch, raise_to_scale, intake_arm_up, intake_arm_down, elevator_up, elevator_down);
 
 		elevator_->ElevatorStateMachine();
 		intake_->IntakeArmStateMachine();
