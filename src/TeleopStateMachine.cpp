@@ -16,7 +16,7 @@ const int PLACE_SCALE_STATE = 5;
 const int PLACE_SWITCH_STATE = 6;
 int state = INIT_STATE;
 
-bool state_intake_wheel = false;
+bool state_intake_wheel = false; //set to true to override the states set in the state machine
 bool state_intake_arm = false;
 bool state_elevator = false;
 
@@ -49,7 +49,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		state_intake_wheel = true;
 	}
 
-	if(!intake->EncodersRunning()) {
+	if(!intake->EncodersRunning()) { //will stop regardless of what operator does
 		state_intake_arm = false;
 		intake->intake_arm_state = intake->STOP_ARM_STATE_H;
 	} else if (intake_arm_up) {
@@ -62,7 +62,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		state_intake_arm = true;
 	}
 
-	if(!elevator->EncodersRunning()) {
+	if(!elevator->EncodersRunning()) {  //will stop regardless of what operator does
 		state_elevator = false;
 		elevator->elevator_state = elevator->STOP_STATE_H;
 	} else if (elevator_up) {
@@ -75,7 +75,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		state_elevator = true;
 	}
 
-	if (wait_for_button) {
+	if (wait_for_button) { //can always return to wait for button state
 		state = WAIT_FOR_BUTTON_STATE;
 	}
 
@@ -92,13 +92,21 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 	case WAIT_FOR_BUTTON_STATE:
 		SmartDashboard::PutString("STATE", "WAIT FOR BUTTON");
 
-		if (get_cube_ground) { //these buttons?
+		if (get_cube_ground) { //can go to all states below
 			state = GET_CUBE_GROUND_STATE;
 		} else if (get_cube_station) {
 			state = GET_CUBE_STATION_STATE;
-		} else if (raise_to_scale) {
+		} else if (post_intake) {
+			state = POST_INTAKE_STATE;
+		} else if (raise_to_scale) { //should not need to go from this state to a place state, but in case
+			if (state_intake_wheel) {
+				intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H; //in order to not have to change intake wheel state immediately
+			}
 			state = PLACE_SCALE_STATE;
 		} else if (raise_to_switch) {
+			if (state_intake_wheel) {
+				intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H; //in order to not have to change intake wheel state immediately
+			}
 			state = PLACE_SWITCH_STATE;
 		}
 
@@ -120,7 +128,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		}
 		break;
 
-	case GET_CUBE_STATION_STATE:
+	case GET_CUBE_STATION_STATE: //human player station
 		SmartDashboard::PutString("STATE", "GET CUBE STATION");
 		if (state_elevator) {
 			elevator->elevator_state = elevator->DOWN_STATE_H;
@@ -136,7 +144,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		}
 		break;
 
-	case POST_INTAKE_STATE:
+	case POST_INTAKE_STATE: //have cube, waiting to place cube
 		if (state_elevator) {
 			elevator->elevator_state = elevator->DOWN_STATE_H;
 		}
@@ -146,12 +154,12 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		if (state_intake_wheel) {
 			intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
 		}
-		if(raise_to_scale) {
+		if (raise_to_scale) {
 			state = PLACE_SCALE_STATE;
 		}
-		else if(raise_to_switch) {
+		else if (raise_to_switch) {
 			state = PLACE_SWITCH_STATE;
-		}
+		} //can always go back to wait for button state
 		break;
 
 	case PLACE_SCALE_STATE:
@@ -162,9 +170,8 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		if (state_elevator) {
 			elevator->elevator_state = elevator->UP_STATE_H;
 		}
-		if (state_intake_wheel) {
-			intake->intake_wheel_state = intake->IN_STATE_H;
-		}
+		//intake is stopped
+		//stay in this state when spitting cube, then return to WFB
 		break;
 
 	case PLACE_SWITCH_STATE:
@@ -175,9 +182,8 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		if (state_intake_arm) {
 			intake->intake_arm_state = intake->UP_STATE_H;
 		}
-		if (state_intake_wheel) {
-			intake->intake_wheel_state = intake->IN_STATE_H;
-		}
+		//intake is stopped
+		 //stay in this state when spitting cube, then return to WFB
 		break;
 
 	}

@@ -18,11 +18,17 @@
 class MotionProfiler {
 public:
 
+	int profile_index = 0;
+	double final_goal = 0;
+
 	//maximum velocity acceleration of the arm or system and the time step for the controller is needed
 	MotionProfiler(double max_vel, double max_acc, double time_step);
 
 	//will generate a 1 dimensional profile for appendages
 	std::vector<std::vector<double> > CreateProfile1D(double init_pos, std::vector<double> waypoints);
+
+	//get only next point, generate while moving
+	std::vector<double> GetNextRef(double init_pos);
 
 	double FindAngle(std::vector<double> p1, std::vector<double> p2);
 
@@ -30,7 +36,9 @@ public:
 	//Abstract method that will have to be written in the inherited class
 	//virtual std::vector<std::vector<double>> CreateWCProfile(double init_pos, std::vector<std::vector<double> > waypoints) = 0; //TODO: create this function
 
-
+	void ZeroProfileIndex();
+	double GetGoal();
+	void SetFinalGoal(double goal);
 
 };
 

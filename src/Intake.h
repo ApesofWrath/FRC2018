@@ -40,13 +40,12 @@ public:
 	void StopArm();
 
 	int intake_index = 0; //
-	int last_intake_state = 0;
-
-	void SetIndex(int index);
+	int final_goal = 0;
 
 	void Rotate(double ref_intake[2][1]);
 	double GetAngularVelocity();
 	double GetAngularPosition();
+	double GetPosition();
 
 	bool HaveCube();
 	bool EncodersRunning();
@@ -56,7 +55,7 @@ public:
 
 	void StartIntakeThread();
 	void EndIntakeThread();
-	static void IntakeWrapper(Intake *in, int *profile);
+	static void IntakeWrapper(Intake *in, int *final_goal);
 
 
 
