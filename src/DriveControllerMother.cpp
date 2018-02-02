@@ -843,7 +843,7 @@ void DriveControllerMother::StopAll() {
 //sets the position of all the drive encoders to 0
 void DriveControllerMother::ZeroEncs() {
 
-	canTalonRight1->SetSelectedSensorPosition(0, 0, 0); //Check if this works
+	canTalonRight1->SetSelectedSensorPosition(0, 0, 0);
 	canTalonLeft1->SetSelectedSensorPosition(0, 0, 0);
 	canTalonRight2->SetSelectedSensorPosition(0, 0, 0);
 	canTalonLeft2->SetSelectedSensorPosition(0, 0, 0);

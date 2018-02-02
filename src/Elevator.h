@@ -14,6 +14,7 @@
 #include <chrono>
 #include <Timer.h>
 #include <thread>
+#include <MotionProfiler.h>
 
 class Elevator {
 public:
@@ -31,13 +32,16 @@ public:
 	int elevator_state = DOWN_STATE_H;
 
 	void ElevatorStateMachine();
-	void Move(double ref_elevator_);
+	void Move(double ref_elevator[2][1]);
 	void StopElevator();
 
+	double GetPosition();
+
 	bool EncodersRunning();
+	void ZeroEncs();
 
 	void StartElevatorThread();
-	static void ElevatorWrapper(Elevator *el, double *ref);
+	static void ElevatorWrapper(Elevator *el, MotionProfiler *elevator_profiler);
 	void EndElevatorThread();
 
 };

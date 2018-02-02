@@ -18,9 +18,6 @@
 class MotionProfiler {
 public:
 
-	int profile_index = 0;
-	double final_goal = 0;
-
 	//maximum velocity acceleration of the arm or system and the time step for the controller is needed
 	MotionProfiler(double max_vel, double max_acc, double time_step);
 
@@ -28,7 +25,8 @@ public:
 	std::vector<std::vector<double> > CreateProfile1D(double init_pos, std::vector<double> waypoints);
 
 	//get only next point, generate while moving
-	std::vector<double> GetNextRef(double init_pos);
+	//init pos set in a separate function
+	std::vector<std::vector<double> > GetNextRef();
 
 	double FindAngle(std::vector<double> p1, std::vector<double> p2);
 
@@ -37,8 +35,12 @@ public:
 	//virtual std::vector<std::vector<double>> CreateWCProfile(double init_pos, std::vector<std::vector<double> > waypoints) = 0; //TODO: create this function
 
 	void ZeroProfileIndex();
-	double GetGoal();
+	void SetInitPos(double pos);
 	void SetFinalGoal(double goal);
+
+	//option to change max vel and max acc
+	void SetMaxVel(double max_vel);
+	void SetMaxAcc(double max_acc);
 
 };
 
