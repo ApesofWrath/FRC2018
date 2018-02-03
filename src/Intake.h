@@ -21,6 +21,10 @@ public:
 
 	TalonSRX *talonIntake1, *talonIntake2, *talonIntakeArm;
 
+	MotionProfiler *intake_profiler;
+
+	std::thread IntakeThread;
+
 	const int UP_STATE_H = 0; //arm state machine
 	const int MID_STATE_H = 1;
 	const int DOWN_STATE_H = 2;
@@ -51,7 +55,7 @@ public:
 
 	void StartIntakeThread();
 	void EndIntakeThread();
-	static void IntakeWrapper(Intake *in, MotionProfiler *intake_profiler);
+	static void IntakeWrapper(Intake *in, MotionProfiler *intake_profiler, double *ref_in);
 
 
 

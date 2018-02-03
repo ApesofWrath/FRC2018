@@ -34,11 +34,11 @@ public:
 	//Abstract method that will have to be written in the inherited class
 	//virtual std::vector<std::vector<double>> CreateWCProfile(double init_pos, std::vector<std::vector<double> > waypoints) = 0; //TODO: create this function
 
-	//CreateProfile1D
+	//for CreateProfile1D
 	void ZeroProfileIndex();
 
-	//GetNextRef
-	void SetInitPos(double pos);
+	//for GetNextRef
+	void SetInitPos(double position_init);
 	void SetFinalGoal(double goal);
 
 	//option to change max vel and max acc

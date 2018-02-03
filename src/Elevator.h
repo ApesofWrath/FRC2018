@@ -21,9 +21,11 @@ public:
 
 	Elevator();
 
+	MotionProfiler *elevator_profiler;
+
 	TalonSRX *talonElevator1, *talonElevator2;
 
-	std::thread ElevatorThread;
+	std::thread IntakeThread;
 
 	const int DOWN_STATE_H = 0;
 	const int MID_STATE_H = 1;
@@ -41,7 +43,7 @@ public:
 	void ZeroEncs();
 
 	void StartElevatorThread();
-	static void ElevatorWrapper(Elevator *el, MotionProfiler *elevator_profiler);
+	static void ElevatorWrapper(Elevator *elevator_, MotionProfiler *elevator_profiler);
 	void EndElevatorThread();
 
 };

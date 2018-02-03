@@ -7,10 +7,8 @@
 
 #include "MotionProfiler.h"
 
-int profile_index = 0;
-double final_goal = 0;
-
-double init_pos = 0.0; //for GetNextRef
+double final_goal = 0; //for GetNextRef
+double init_pos = 0.0;
 double acc = 0.0;
 double vel = 0.0;
 double pos = init_pos;
@@ -40,22 +38,20 @@ MotionProfiler::MotionProfiler(double max_vel, double max_acc,
 
 }
 
-void MotionProfiler::ZeroProfileIndex() {
-
-	profile_index = 0;
-
-}
-
 void MotionProfiler::SetFinalGoal(double goal) {
 
 	final_goal = goal;
 
 }
 
-void MotionProfiler::SetInitPos(double pos) {
+void MotionProfiler::SetInitPos(double position_init) { //at every new whole profile
 
-	init_pos = pos;
-	last_vel = 0.0; //need to zero at every new whole profile
+	init_pos = position_init;
+	position_init = init_pos;
+	last_vel = 0.0;
+	last_pos = init_pos;
+	acc = 0.0;
+	vel = 0.0;
 
 }
 

@@ -61,23 +61,21 @@ double X[2][1] = { { 0 }, //state matrix filled with the states of the system
 
 double error[2][1] = { { 0 }, { 0 } };
 
-std::thread IntakeThread;
-
-MotionProfiler *intake_profiler = new MotionProfiler(MAX_VELOCITY,
-		MAX_ACCELERATION, TIME_STEP);
-
 std::vector<double> down_ang = { { DOWN_ANGLE } }; //is a vector because there is more than 1 waypoint for other profiles
 std::vector<double> mid_ang = { { MID_ANGLE } };
 std::vector<double> up_ang = { { UP_ANGLE } };
 
-double ref_in[2][1] = { {}, {} };
+double ref_in[2][1] = { {5.0}, {6.0} };
 
-double *ref_pos = &ref_in;
+//double (*ref_in_)[2][1] = &ref_in;
 //double *ref_vel = &(ref_in + 1);
 
 Timer *intakeTimer = new Timer();
 
 Intake::Intake() {
+
+	intake_profiler = new MotionProfiler(MAX_VELOCITY,
+			MAX_ACCELERATION, TIME_STEP);
 
 	talonIntake1 = new TalonSRX(2);
 	talonIntake2 = new TalonSRX(3);
@@ -159,6 +157,8 @@ void Intake::Rotate(double ref_intake[2][1]) {
 	//talonElevator2 is slaved to this talon and does not need to be set
 	talonIntake1->Set(ControlMode::PercentOutput, u);
 
+	//SmartDashboard::PutNumber("REF_IN", ref_intake[0][0]);
+
 }
 
 void Intake::StopArm() {
@@ -177,6 +177,8 @@ void Intake::IntakeArmStateMachine() {
 		intake_profiler->SetFinalGoal(UP_ANGLE);
 		intake_profiler->SetInitPos(GetAngularPosition());
 		}
+//		int arr[2][1] = { {9.0}, {10.0} };
+//		Rotate(arr);
 		break;
 
 	case MID_STATE:
@@ -233,7 +235,7 @@ bool Intake::EncodersRunning() { //TODO: put real values
 
 	if (talonIntake1->GetOutputCurrent() > 3.0
 			&& talonIntake1->GetSelectedSensorVelocity(0) == std::abs(0.2)
-			&& std::abs(ref_intake[0][0] - current_pos) > 0.2) { //outputting current, not moving, should be moving //figure out pointers for this
+			&& std::abs(ref_in[0][0] - current_pos) > 0.2) { //outputting current, not moving, should be moving //figure out pointers for this
 		return false;
 	}
 	return true;
@@ -249,7 +251,7 @@ bool Intake::HaveCube() {
 
 }
 
-void Intake::IntakeWrapper(Intake *in, MotionProfiler *intake_profiler) {
+void Intake::IntakeWrapper(Intake *in, MotionProfiler *intake_profiler, double *ref_in_) {
 
 	intakeTimer->Start();
 
@@ -262,13 +264,16 @@ void Intake::IntakeWrapper(Intake *in, MotionProfiler *intake_profiler) {
 
 				std::vector<std::vector<double>> profile_intake = intake_profiler->GetNextRef();
 
-				double indeces[2][1] = { { profile_intake.at(0).at(0) }, { profile_intake.at(1).at(0) } }; //Rotate() takes an array, not a vector
+//				(*ref_in_)[0][0] = profile_intake.at(0).at(0);
+//				(*ref_in_)[1][0] = profile_intake.at(1).at(0);
 
-				if (!in->EncodersRunning()) {
-					in->StopArm();
-				} else {
-					in->Rotate(indeces);
-				}
+				//double indeces[2][1] = { {ref_pos}, {ref_vel} }; //Rotate() takes an array, not a vector
+
+//				if (!in->EncodersRunning()) {
+//					in->StopArm();
+//				} else {
+//					in->Rotate(ref_in);
+//				}
 
 				intakeTimer->Reset();
 
@@ -280,10 +285,9 @@ void Intake::IntakeWrapper(Intake *in, MotionProfiler *intake_profiler) {
 
 void Intake::StartIntakeThread() {
 
-	Intake *in = this;
+	Intake *intake_ = this;
 
-
-	IntakeThread = std::thread(&Intake::IntakeWrapper, in, intake_profiler);
+	IntakeThread = std::thread(&Intake::IntakeWrapper, intake_, intake_profiler, &ref_in);
 	IntakeThread.detach();
 
 }

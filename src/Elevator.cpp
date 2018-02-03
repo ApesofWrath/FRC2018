@@ -40,12 +40,12 @@ const double DOWN_ANGLE = 0.0;
 const double MID_ANGLE = 0.0;
 const double UP_ANGLE = 0.0;
 
-MotionProfiler *elevator_profiler = new MotionProfiler(MAX_VELOCITY_E,
-		MAX_ACCELERATION_E, TIME_STEP_E);
-
 Timer *elevatorTimer = new Timer();
 
 Elevator::Elevator() {
+
+	elevator_profiler = new MotionProfiler(MAX_VELOCITY_E,
+			MAX_ACCELERATION_E, TIME_STEP_E);
 
 	talonElevator1 = new TalonSRX(8);
 	talonElevator2 = new TalonSRX(9);
@@ -67,11 +67,11 @@ void Elevator::StopElevator() {
 bool Elevator::EncodersRunning() {
 
 	double current_pos = GetPosition();
-	if (talonElevator1->GetOutputCurrent() > 3.0
-			&& talonElevator1->GetSelectedSensorVelocity(0) == std::abs(0.2)
-			&& std::abs(ref_elevator[0][0] - current_pos) > 0.2) { //figure out pointers for this
-		return false;
-	}
+//	if (talonElevator1->GetOutputCurrent() > 3.0
+//			&& talonElevator1->GetSelectedSensorVelocity(0) == std::abs(0.2)
+//			&& std::abs(ref_elevator[0][0] - current_pos) > 0.2) { //figure out pointers for this
+//		return false;
+//	}
 	return true;
 }
 
@@ -121,9 +121,10 @@ void Elevator::ElevatorStateMachine() {
 
 void Elevator::StartElevatorThread() {
 
-	Elevator *el = this;
-	ElevatorThread = std::thread(&Elevator::ElevatorWrapper, el, elevator_profiler                                                                                                                                                              );
-	ElevatorThread.detach();
+	Elevator *elevator_ = this;
+
+//	ElevatorThread = std::thread(&Elevator::ElevatorWrapper, elevator_, elevator_profiler);                                                                                                                                                              );
+//	ElevatorThread.detach();
 
 }
 
@@ -138,18 +139,18 @@ void Elevator::ElevatorWrapper(Elevator *el,
 					std::chrono::milliseconds(ELEVATOR_SLEEP_TIME));
 
 			if (elevatorTimer->HasPeriodPassed(ELEVATOR_WAIT_TIME)) {
-
-				std::vector<std::vector<double>> profile_elevator =
-						elevator_profiler->GetNextRef();
-
-				double indeces[2][1] = { { profile_elevator.at(0).at(0) }, {
-						profile_elevator.at(1).at(0) } }; //Rotate() takes an array, not a vector
-
-				if (!el->EncodersRunning()) {
-					el->StopElevator();
-				} else {
-					el->Move(indeces);
-				}
+//
+//				std::vector<std::vector<double>> profile_elevator =
+//						elevator_profiler->GetNextRef();
+//
+//				double indeces[2][1] = { { profile_elevator.at(0).at(0) }, {
+//						profile_elevator.at(1).at(0) } }; //Rotate() takes an array, not a vector
+//
+//				if (!el->EncodersRunning()) {
+//					el->StopElevator();
+//				} else {
+//					el->Move(indeces);
+//				}
 
 				elevatorTimer->Reset();
 
@@ -161,7 +162,7 @@ void Elevator::ElevatorWrapper(Elevator *el,
 
 void Elevator::EndElevatorThread() {
 
-	ElevatorThread.~thread();
+	//ElevatorThread.~thread();
 
 }
 
