@@ -10,11 +10,15 @@
 int profile_index = 0;
 double final_goal = 0;
 
-double init_pos = 0.0;
+double init_pos = 0.0; //for GetNextRef
+double acc = 0.0;
+double vel = 0.0;
+double pos = init_pos;
+double last_vel = 0.0;
+double last_pos = init_pos;
 
-double ramp_time = 0.0;
+double ramp_time = 0.0; //for both
 double ramp_dis = 0.0;
-
 double max_acceleration = 0.0;
 double max_velocity = 0.0;
 
@@ -51,6 +55,7 @@ void MotionProfiler::SetFinalGoal(double goal) {
 void MotionProfiler::SetInitPos(double pos) {
 
 	init_pos = pos;
+	last_vel = 0.0; //need to zero at every new whole profile
 
 }
 
@@ -70,21 +75,12 @@ std::vector<std::vector<double>> MotionProfiler::GetNextRef() {
 
 	double ref = 0;
 
-	double acc = 0.0;
-	double vel = 0.0;
-	double pos = init_pos;
-
-	int counter = 0;
-
-	double time = 0.0;
-
-	double last_vel = 0.0;
-	double last_pos = init_pos;
+	time_dt = 0.01; //seconds //lower res without 0.000001 and counter, but still ok
 
 	//cant initialize any vectors outside of the function or their previous values will carry over into the next profiles made. Don't pull a ChezyChamps2k17
 	std::vector<std::vector<double> > matrix; //new matrix every time because .push_back adds rows, moved from the top of the class
 	std::vector<double> positions; //first points will be 0
-	std::vector<double> velocity;
+	std::vector<double> velocities;
 
 	ref = final_goal;
 
@@ -94,7 +90,7 @@ std::vector<std::vector<double>> MotionProfiler::GetNextRef() {
 			ramp_time = vel / max_acceleration;
 			ramp_dis = 0.5 * (vel * ramp_time);
 
-			if ((ref - ramp_dis) <= pos) { //should
+			if ((ref - ramp_dis) <= pos) {
 				acc = -1.0 * max_acceleration;
 			} else if (vel < max_velocity) {
 				acc = max_acceleration;
@@ -107,15 +103,6 @@ std::vector<std::vector<double>> MotionProfiler::GetNextRef() {
 
 			vel = last_vel + (acc * time_dt);
 			last_vel = vel;
-
-			counter++;
-			time += time_dt; //time not used, can be used to graph (not supported)
-
-			if (counter % (int) interval == 0) { //only add the points to the motion profile every so often to keep the profile at the desired tick rate
-				positions.push_back(pos); //interval is the frequency of when points should be recorded.
-				velocity.push_back(vel);
-				counter = 0;
-			}
 
 		}
 	} else if (ref < init_pos) {
@@ -138,22 +125,11 @@ std::vector<std::vector<double>> MotionProfiler::GetNextRef() {
 			vel = last_vel + (acc * time_dt);
 			last_vel = vel;
 
-			counter++;
-			time += time_dt; //time not used, can be used to graph (not supported)
-
-			if (counter % (int) interval == 0) { //only add the points to the motion profile every so often to keep the profile at the desired tick rate
-				positions.push_back(pos); //interval is the frequency of when points should be recorded.
-				velocity.push_back(vel);
-				counter = 0;
-			}
-
 		}
 	}
 
-	init_pos = ref; //have to redefine the initial position after each waypoint as the waypoint (which is equal to the reference [ref])
-
 	matrix.push_back(positions); //first vector,  row 0
-	matrix.push_back(velocity); //second vector, row 1
+	matrix.push_back(velocities); //second vector, row 1
 
 	return matrix;
 
@@ -166,12 +142,11 @@ std::vector<std::vector<double> > MotionProfiler::CreateProfile1D(
 
 	double ref = 0;
 
-	double acc = 0.0;
-	double vel = 0.0;
-	double pos = init_pos;
-
-	double last_vel = 0.0;
-	double last_pos = init_pos;
+	double acceleration = 0.0;
+	double velocity = 0.0;
+	double position = init_pos;
+	double last_velocity = 0.0;
+	double last_position = init_pos;
 
 	double time = 0.0;
 
@@ -180,7 +155,7 @@ std::vector<std::vector<double> > MotionProfiler::CreateProfile1D(
 	//cant initialize any vectors outside of the function or their previous values will carry over into the next profiles made. Don't pull a ChezyChamps2k17
 	std::vector<std::vector<double> > matrix; //new matrix every time because .push_back adds rows, moved from the top of the class
 	std::vector<double> positions; //first points will be 0
-	std::vector<double> velocity;
+	std::vector<double> velocities;
 
 	int length_waypoint = waypoints.size();
 
@@ -189,60 +164,60 @@ std::vector<std::vector<double> > MotionProfiler::CreateProfile1D(
 		ref = waypoints.at(i);
 
 		if (ref >= init_pos) {
-			while (pos < ref) {
+			while (position < ref) {
 
-				ramp_time = vel / max_acceleration;
-				ramp_dis = 0.5 * (vel * ramp_time);
+				ramp_time = velocity / max_acceleration;
+				ramp_dis = 0.5 * (velocity * ramp_time);
 
-				if ((ref - ramp_dis) <= pos) { //should
-					acc = -1.0 * max_acceleration;
-				} else if (vel < max_velocity) {
-					acc = max_acceleration;
+				if ((ref - ramp_dis) <= position) { //should
+					acceleration = -1.0 * max_acceleration;
+				} else if (velocity < max_velocity) {
+					acceleration = max_acceleration;
 				} else {
-					acc = 0.0;
+					acceleration = 0.0;
 				}
 
-				pos = last_pos + (vel * time_dt);
-				last_pos = pos;
+				position = last_position + (velocity * time_dt);
+				last_position = position;
 
-				vel = last_vel + (acc * time_dt);
-				last_vel = vel;
+				velocity = last_velocity + (acceleration * time_dt);
+				last_velocity = velocity;
 
 				counter++;
 				time += time_dt; //time not used, can be used to graph (not supported)
 
 				if (counter % (int) interval == 0) { //only add the points to the motion profile every so often to keep the profile at the desired tick rate
-					positions.push_back(pos); //interval is the frequency of when points should be recorded.
-					velocity.push_back(vel);
+					positions.push_back(position); //interval is the frequency of when points should be recorded.
+					velocities.push_back(velocity);
 					counter = 0;
 				}
 			}
 		} else if (ref < init_pos) {
-			while (pos > ref) {
+			while (position > ref) {
 
-				ramp_time = vel / max_acceleration;
-				ramp_dis = 0.5 * (vel * ramp_time);
+				ramp_time = velocity / max_acceleration;
+				ramp_dis = 0.5 * (velocity * ramp_time);
 
-				if ((ramp_dis - ref) >= pos) {
-					acc = 1.0 * max_acceleration;
-				} else if (vel > (-1.0 * max_velocity)) {
-					acc = -1.0 * max_acceleration;
+				if ((ramp_dis - ref) >= position) {
+					acceleration = 1.0 * max_acceleration;
+				} else if (velocity > (-1.0 * max_velocity)) {
+					acceleration = -1.0 * max_acceleration;
 				} else {
-					acc = 0.0;
+					acceleration = 0.0;
 				}
 
-				pos = last_pos + (vel * time_dt);
-				last_pos = pos;
+				position = last_position + (velocity * time_dt);
+				last_position = position;
 
-				vel = last_vel + (acc * time_dt);
-				last_vel = vel;
+				velocity = last_velocity + (acceleration * time_dt);
+				last_velocity = velocity;
 
 				counter++;
 				time += time_dt; //time not used, can be used to graph (not supported)
 
 				if (counter % (int) interval == 0) {
-					positions.push_back(pos);
-					velocity.push_back(vel);
+					positions.push_back(position);
+					velocities.push_back(velocity);
 					counter = 0;
 				}
 			}
@@ -253,7 +228,7 @@ std::vector<std::vector<double> > MotionProfiler::CreateProfile1D(
 	}
 
 	matrix.push_back(positions); //first vector,  row 0
-	matrix.push_back(velocity); //second vector, row 1
+	matrix.push_back(velocities); //second vector, row 1
 
 	return matrix;
 

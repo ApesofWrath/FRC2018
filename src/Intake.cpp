@@ -70,6 +70,11 @@ std::vector<double> down_ang = { { DOWN_ANGLE } }; //is a vector because there i
 std::vector<double> mid_ang = { { MID_ANGLE } };
 std::vector<double> up_ang = { { UP_ANGLE } };
 
+double ref_in[2][1] = { {}, {} };
+
+double *ref_pos = &ref_in;
+//double *ref_vel = &(ref_in + 1);
+
 Timer *intakeTimer = new Timer();
 
 Intake::Intake() {
