@@ -15,6 +15,9 @@
 #include <MotionProfiler.h>
 #include <thread>
 #include <chrono>
+#include <vector>
+#include <cmath>
+#include <list>
 
 class Intake {
 public:
@@ -50,12 +53,14 @@ public:
 	bool HaveCube();
 	bool EncodersRunning();
 
+	void ZeroEnc();
+
 	void IntakeWheelStateMachine();
 	void IntakeArmStateMachine();
 
 	void StartIntakeThread();
 	void EndIntakeThread();
-	static void IntakeWrapper(Intake *in, MotionProfiler *intake_profiler, double *ref_in);
+	static void IntakeWrapper(Intake *in, MotionProfiler *intake_profiler); //double *ref_in
 
 
 

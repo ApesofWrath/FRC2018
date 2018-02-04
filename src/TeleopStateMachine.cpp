@@ -49,7 +49,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		state_intake_wheel = true;
 	}
 
-	if(!intake->EncodersRunning()) { //will stop regardless of what operator does
+	if(!intake->EncodersRunning()) { //will stop regardless of what operator does //
 		state_intake_arm = false;
 		intake->intake_arm_state = intake->STOP_ARM_STATE_H;
 	} else if (intake_arm_up) {
@@ -62,15 +62,15 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		state_intake_arm = true;
 	}
 
-	if(!elevator->EncodersRunning()) {  //will stop regardless of what operator does
+	if(!elevator->ElevatorEncodersRunning()) {  //will stop regardless of what operator does //
 		state_elevator = false;
-		elevator->elevator_state = elevator->STOP_STATE_H;
+		elevator->elevator_state = elevator->STOP_STATE_E_H;
 	} else if (elevator_up) {
 		state_elevator = false;
-		elevator->elevator_state = elevator->UP_STATE_H;
+		elevator->elevator_state = elevator->UP_STATE_E_H;
 	} else if (elevator_down) {
 		state_elevator = false;
-		elevator->elevator_state = elevator->DOWN_STATE_H;
+		elevator->elevator_state = elevator->DOWN_STATE_E_H;
 	} else {
 		state_elevator = true;
 	}
@@ -83,7 +83,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 
 	case INIT_STATE:
 		SmartDashboard::PutString("STATE", "INIT");
-		elevator->elevator_state = elevator->DOWN_STATE_H;
+		elevator->elevator_state = elevator->DOWN_STATE_E_H;
 		intake->intake_arm_state = intake->UP_STATE_H;
 		intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
 		state = WAIT_FOR_BUTTON_STATE;
@@ -115,7 +115,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 	case GET_CUBE_GROUND_STATE:
 		SmartDashboard::PutString("STATE", "GET CUBE GROUND");
 		if (state_elevator) {
-			elevator->elevator_state = elevator->DOWN_STATE_H;
+			elevator->elevator_state = elevator->DOWN_STATE_E_H;
 		}
 		if (state_intake_wheel) {
 			intake->intake_wheel_state = intake->IN_STATE_H;
@@ -131,7 +131,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 	case GET_CUBE_STATION_STATE: //human player station
 		SmartDashboard::PutString("STATE", "GET CUBE STATION");
 		if (state_elevator) {
-			elevator->elevator_state = elevator->DOWN_STATE_H;
+			elevator->elevator_state = elevator->DOWN_STATE_E_H;
 		}
 		if (state_intake_wheel) {
 			intake->intake_wheel_state = intake->IN_STATE_H;
@@ -146,7 +146,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 
 	case POST_INTAKE_STATE: //have cube, waiting to place cube
 		if (state_elevator) {
-			elevator->elevator_state = elevator->DOWN_STATE_H;
+			elevator->elevator_state = elevator->DOWN_STATE_E_H;
 		}
 		if (state_intake_arm) {
 			intake->intake_arm_state = intake->UP_STATE_H;
@@ -168,7 +168,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 			intake->intake_arm_state = intake->UP_STATE_H;
 		}
 		if (state_elevator) {
-			elevator->elevator_state = elevator->UP_STATE_H;
+			elevator->elevator_state = elevator->UP_STATE_E_H;
 		}
 		//intake is stopped
 		//stay in this state when spitting cube, then return to WFB
@@ -177,7 +177,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 	case PLACE_SWITCH_STATE:
 		SmartDashboard::PutString("STATE", "SWITCH");
 		if (state_elevator) {
-			elevator->elevator_state = elevator->DOWN_STATE_H;
+			elevator->elevator_state = elevator->DOWN_STATE_E_H;
 		}
 		if (state_intake_arm) {
 			intake->intake_arm_state = intake->UP_STATE_H;

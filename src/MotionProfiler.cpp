@@ -67,6 +67,10 @@ void MotionProfiler::SetMaxAcc(double max_acc) {
 
 }
 
+void MotionProfiler::Test() {
+
+}
+
 std::vector<std::vector<double>> MotionProfiler::GetNextRef() {
 
 	double ref = 0;
@@ -124,6 +128,11 @@ std::vector<std::vector<double>> MotionProfiler::GetNextRef() {
 		}
 	}
 
+	positions.push_back(pos);
+	velocities.push_back(vel);
+
+	//can't directly push the pos and vel doubles into matrix because matrix is an array of arrays
+
 	matrix.push_back(positions); //first vector,  row 0
 	matrix.push_back(velocities); //second vector, row 1
 
@@ -145,6 +154,8 @@ std::vector<std::vector<double> > MotionProfiler::CreateProfile1D(
 	double last_position = init_pos;
 
 	double time = 0.0;
+
+	time_dt = 0.00001;
 
 	int counter = 0;
 

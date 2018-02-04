@@ -37,6 +37,8 @@ public:
 	//for CreateProfile1D
 	void ZeroProfileIndex();
 
+	void Test();
+
 	//for GetNextRef
 	void SetInitPos(double position_init);
 	void SetFinalGoal(double goal);

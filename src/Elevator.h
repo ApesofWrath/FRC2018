@@ -25,21 +25,22 @@ public:
 
 	TalonSRX *talonElevator1, *talonElevator2;
 
-	std::thread IntakeThread;
+	std::thread ElevatorThread;
 
-	const int DOWN_STATE_H = 0;
-	const int MID_STATE_H = 1;
-	const int UP_STATE_H = 2;
-	const int STOP_STATE_H = 3;
-	int elevator_state = DOWN_STATE_H;
+	const int DOWN_STATE_E_H = 0;
+	const int MID_STATE_E_H = 1;
+	const int UP_STATE_E_H = 2;
+	const int STOP_STATE_E_H = 3;
+	int elevator_state = DOWN_STATE_E_H;
 
 	void ElevatorStateMachine();
 	void Move(double ref_elevator[2][1]);
 	void StopElevator();
 
-	double GetPosition();
+	double GetElevatorPosition();
+	double GetElevatorVelocity();
 
-	bool EncodersRunning();
+	bool ElevatorEncodersRunning();
 	void ZeroEncs();
 
 	void StartElevatorThread();

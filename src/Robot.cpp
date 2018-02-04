@@ -34,7 +34,7 @@ public:
 	const int WAIT_FOR_BUTTON = 5; //choose buttons
 	const int GET_CUBE_GROUND = 9;
 	const int GET_CUBE_STATION = 4;
-	const int POST_INTAKE = 99;
+	const int POST_INTAKE = 3;
 	const int RAISE_TO_SWITCH = 10;
 	const int RAISE_TO_SCALE = 11;
 
@@ -85,9 +85,13 @@ public:
 		drive_controller->ZeroI(true);
 		drive_controller->ZeroEncs();
 		drive_controller->ZeroYaw();
+		intake_->ZeroEnc();
+		elevator_->ZeroEncs();
+
+		teleop_state_machine->Initialize();
 
 		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
-				&is_vision, &is_fc);
+				&is_vision, &is_fc); //pass by reference through the wrapper
 		intake_->StartIntakeThread();
 		elevator_->StartElevatorThread();
 
