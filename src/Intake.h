@@ -39,14 +39,14 @@ public:
 	const int OUT_STATE_H = 2;
 	int intake_wheel_state = STOP_WHEEL_STATE_H;
 
-	Intake();
+	Intake(PowerDistributionPanel *pdp);
 
 	void In();
 	void Out();
 	void StopWheels();
 	void StopArm();
 
-	void Rotate(double ref_intake[2][1]);
+	void Rotate(std::vector<std::vector<double> > ref_intake);
 	double GetAngularVelocity();
 	double GetAngularPosition();
 
@@ -54,6 +54,8 @@ public:
 	bool EncodersRunning();
 
 	void ZeroEnc();
+	void ManualArm(Joystick *joyOpArm);
+	void ManualWheels(Joystick *joyOpWheels);
 
 	void IntakeWheelStateMachine();
 	void IntakeArmStateMachine();

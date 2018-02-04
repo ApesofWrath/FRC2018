@@ -30,11 +30,12 @@ TeleopStateMachine::TeleopStateMachine(Elevator *elevator_, Intake *intake_) {
 
 }
 
-void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in, //look this over
+void TeleopStateMachine::StateMachine(bool wait_for_button,
+		bool intake_spin_in, //look this over
 		bool intake_spin_out, bool intake_spin_stop, bool get_cube_ground,
-		bool get_cube_station, bool post_intake, bool raise_to_switch, bool raise_to_scale,
-		bool intake_arm_up, bool intake_arm_down, bool elevator_up,
-		bool elevator_down) {
+		bool get_cube_station, bool post_intake, bool raise_to_switch,
+		bool raise_to_scale, bool intake_arm_up, bool intake_arm_down,
+		bool elevator_up, bool elevator_down) {
 
 	if (intake_spin_out) {
 		state_intake_wheel = false;
@@ -49,7 +50,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		state_intake_wheel = true;
 	}
 
-	if(!intake->EncodersRunning()) { //will stop regardless of what operator does //
+	if (!intake->EncodersRunning()) { //will stop regardless of what operator does //
 		state_intake_arm = false;
 		intake->intake_arm_state = intake->STOP_ARM_STATE_H;
 	} else if (intake_arm_up) {
@@ -62,7 +63,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		state_intake_arm = true;
 	}
 
-	if(!elevator->ElevatorEncodersRunning()) {  //will stop regardless of what operator does //
+	if (!elevator->ElevatorEncodersRunning()) { //will stop regardless of what operator does //
 		state_elevator = false;
 		elevator->elevator_state = elevator->STOP_STATE_E_H;
 	} else if (elevator_up) {
@@ -156,8 +157,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		}
 		if (raise_to_scale) {
 			state = PLACE_SCALE_STATE;
-		}
-		else if (raise_to_switch) {
+		} else if (raise_to_switch) {
 			state = PLACE_SWITCH_STATE;
 		} //can always go back to wait for button state
 		break;
@@ -183,7 +183,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 			intake->intake_arm_state = intake->UP_STATE_H;
 		}
 		//intake is stopped
-		 //stay in this state when spitting cube, then return to WFB
+		//stay in this state when spitting cube, then return to WFB
 		break;
 
 	}

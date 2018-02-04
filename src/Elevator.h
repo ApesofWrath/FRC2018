@@ -19,7 +19,7 @@
 class Elevator {
 public:
 
-	Elevator();
+	Elevator(PowerDistributionPanel *pdp);
 
 	MotionProfiler *elevator_profiler;
 
@@ -34,8 +34,10 @@ public:
 	int elevator_state = DOWN_STATE_E_H;
 
 	void ElevatorStateMachine();
-	void Move(double ref_elevator[2][1]);
+	void Move(std::vector<std::vector<double> > ref_elevator);
 	void StopElevator();
+
+	void ManualElevator(Joystick *joyOpElev);
 
 	double GetElevatorPosition();
 	double GetElevatorVelocity();

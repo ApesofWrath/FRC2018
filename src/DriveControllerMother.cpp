@@ -139,6 +139,9 @@ double Kv = 0; //scale from -1 to 1
 const double MAX_KICK_FPS = ((MAX_X_RPM * WHEEL_DIAMETER * PI) / 12.0) / 60.0;
 const int Kv_KICK = 1 / MAX_KICK_FPS;
 
+const double UP_SHIFT_VEL = 0.0;
+const double DOWN_SHIFT_VEL = 0.0; //will be less than up shift vel
+
 double P_RIGHT_DIS = 0;
 double I_RIGHT_DIS = 0;
 double D_RIGHT_DIS = 0;
@@ -251,6 +254,7 @@ DriveControllerMother::DriveControllerMother(int fl, int fr, int rl, int rr,
 	canTalonLeft3 = new TalonSRX(-1);
 	canTalonLeft4 = new TalonSRX(-1);
 	solenoid = new DoubleSolenoid(-1, -1, -1);
+
 
 }
 
@@ -693,6 +697,17 @@ void DriveControllerMother::SetGainsLow() {
 }
 
 void DriveControllerMother::AutoShift() {
+
+	double current_rpm_l = (canTalonLeft1->GetSelectedSensorVelocity(0) / TICKS_PER_ROT) * MINUTE_CONVERSION;
+	double current_rpm_r = (canTalonRight1->GetSelectedSensorVelocity(0) / TICKS_PER_ROT) * MINUTE_CONVERSION;
+
+	if(current_rpm_l > UP_SHIFT_VEL && current_rpm_r > UP_SHIFT_VEL) {
+		ShiftUp();
+	}
+	//if in between, will stay in the gear it is in. in order to not shift back and forth at one point
+	else if(current_rpm_l < DOWN_SHIFT_VEL && current_rpm_r < DOWN_SHIFT_VEL) {
+		ShiftDown();
+	}
 
 }
 

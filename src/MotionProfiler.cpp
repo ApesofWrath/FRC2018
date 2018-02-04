@@ -128,6 +128,9 @@ std::vector<std::vector<double>> MotionProfiler::GetNextRef() {
 		}
 	}
 
+	pos = 4.0;
+	vel = 2.0;
+
 	positions.push_back(pos);
 	velocities.push_back(vel);
 

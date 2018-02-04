@@ -54,23 +54,25 @@ int last_intake_state = 1; //cannot equal the first state or profile will not se
 double u_i = 0; //this is the input in volts to the motor
 double v_bat_i = 12.0; //this will be the voltage of the battery at every loop
 
-double K_i[2][2] = { { 0, 0 }, //controller matrix that is calculated in the Python simulation, pos and vel
-		{ 0, 0 } };
+std::vector<std::vector<double> > K_i = { { 0.0, 0.0 }, //controller matrix that is calculated in the Python simulation, pos and vel
+		{ 0.0, 0.0 } };
 
-double X_i[2][1] = { { 0 }, //state matrix filled with the states of the system
-		{ 0 } };
+std::vector<std::vector<double> > X_i = { { 0.0 }, //state matrix filled with the states of the system //not used
+		{ 0.0 } };
 
-double error_i[2][1] = { { 0 }, { 0 } };
+std::vector<std::vector<double> > error_i = { { 0.0 }, { 0.0 } };
 
 std::vector<double> down_ang = { { DOWN_ANGLE } }; //is a vector because there is more than 1 waypoint for other profiles
 std::vector<double> mid_ang = { { MID_ANGLE } };
 std::vector<double> up_ang = { { UP_ANGLE } };
 
-double ref_intake[2][1] = { { }, { } };
+std::vector<std::vector<double> > ref_intake = { { }, { } };
 
 Timer *intakeTimer = new Timer();
 
-Intake::Intake() {
+PowerDistributionPanel *pdp_i;
+
+Intake::Intake(PowerDistributionPanel *pdp) {
 
 	intake_profiler = new MotionProfiler(MAX_VELOCITY_I, MAX_ACCELERATION_I, TIME_STEP_I);
 
@@ -85,6 +87,8 @@ Intake::Intake() {
 	talonIntakeArm->ConfigPeakCurrentLimit(5, 0); //for now
 	talonIntake1->ConfigPeakCurrentLimit(40, 0);
 	talonIntake2->ConfigPeakCurrentLimit(40, 0);
+
+	pdp_i = pdp;
 
 }
 
@@ -128,7 +132,25 @@ double Intake::GetAngularPosition() {
 
 }
 
-void Intake::Rotate(double ref_intake[2][1]) {
+void Intake::ManualWheels(Joystick *joyOpWheels) {
+
+	SmartDashboard::PutNumber("WHEELS", talonIntake1->GetOutputCurrent());
+
+	double out = joyOpWheels->GetRawAxis(3);
+	talonIntake1->Set(ControlMode::PercentOutput, out);
+
+}
+
+void Intake::ManualArm(Joystick *joyOpArm) {
+
+	SmartDashboard::PutNumber("ARM", talonIntakeArm->GetOutputCurrent());
+
+	double output = joyOpArm->GetX() / 10.0;
+	talonIntakeArm->Set(ControlMode::PercentOutput, output);
+
+}
+
+void Intake::Rotate(std::vector<std::vector<double> > ref_intake) {
 
 	//top is position, bottom is velocity
 
@@ -150,13 +172,13 @@ void Intake::Rotate(double ref_intake[2][1]) {
 	}
 
 	//get the input into the -1 to +1 range for the talon
-	//TODO: change v_bat into a dynamic value that tracks the battery's current voltage
+
+	v_bat_i = pdp_i->GetVoltage();
+
 	u_i = u_i / (v_bat_i);
 
 	//talonElevator2 is slaved to this talon and does not need to be set
 	talonIntakeArm->Set(ControlMode::PercentOutput, u_i);
-
-	//SmartDashboard::PutNumber("REF_IN", ref_intake[0][0]);
 
 }
 

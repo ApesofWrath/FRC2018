@@ -51,6 +51,7 @@ public:
 	bool is_heading, is_vision, is_fc;
 
 	DriveController *drive_controller;
+	PowerDistributionPanel *pdp_;
 	Elevator *elevator_;
 	Intake *intake_;
 	Autonomous *autonomous_;
@@ -60,9 +61,10 @@ public:
 
 	void RobotInit() {
 
+		pdp_ = new PowerDistributionPanel(0);
 		drive_controller = new DriveController();
-		elevator_ = new Elevator();
-		intake_ = new Intake();
+		elevator_ = new Elevator(pdp_);
+		intake_ = new Intake(pdp_);
 		autonomous_ = new Autonomous(drive_controller, elevator_, intake_);
 		teleop_state_machine = new TeleopStateMachine(elevator_, intake_);
 
@@ -88,62 +90,69 @@ public:
 		intake_->ZeroEnc();
 		elevator_->ZeroEncs();
 
-		teleop_state_machine->Initialize();
-
-		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
-				&is_vision, &is_fc); //pass by reference through the wrapper
-		intake_->StartIntakeThread();
-		elevator_->StartElevatorThread();
+//		teleop_state_machine->Initialize();
+//
+//		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
+//				&is_vision, &is_fc); //pass by reference through the wrapper
+//		intake_->StartIntakeThread();
+//		elevator_->StartElevatorThread();
 
 	}
 
 	void TeleopPeriodic() {
 
-		bool low_gear = joyThrottle->GetRawButton(LOW_GEAR_BUTTON);
-		bool high_gear = joyThrottle->GetRawButton(HIGH_GEAR_BUTTON);
+		intake_->ManualArm(joyOp);
+		intake_->ManualWheels(joyOp);
+		elevator_->ManualElevator(joyOp);
 
-		bool wait_for_button = joyOp->GetRawButton(WAIT_FOR_BUTTON);
-		bool intake_spin_in = joyOp->GetRawButton(INTAKE_SPIN_IN);
-		bool intake_spin_out = joyOp->GetRawButton(INTAKE_SPIN_OUT);
-		bool intake_spin_stop = joyOp->GetRawButton(INTAKE_SPIN_STOP);
-		bool get_cube_ground = joyOp->GetRawButton(GET_CUBE_GROUND);
-		bool get_cube_station = joyOp->GetRawButton(GET_CUBE_STATION);
-		bool post_intake = joyOp->GetRawButton(POST_INTAKE);
-		bool raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
-		bool raise_to_scale = joyOp->GetRawButton(RAISE_TO_SCALE);
-		bool intake_arm_up = joyOp->GetRawButton(INTAKE_ARM_UP);
-		bool intake_arm_down = joyOp->GetRawButton(INTAKE_ARM_DOWN);
-		bool elevator_up = joyOp->GetRawButton(ELEVATOR_UP);
-		bool elevator_down = joyOp->GetRawButton(ELEVATOR_DOWN);
+		SmartDashboard::PutNumber("ARM", intake_->talonIntakeArm->GetOutputCurrent());
+		SmartDashboard::PutNumber("ELEVATOR", elevator_->talonElevator1->GetOutputCurrent());
 
-		teleop_state_machine->StateMachine(wait_for_button, intake_spin_in,
-				intake_spin_out, intake_spin_stop, get_cube_ground,
-				get_cube_station, post_intake, raise_to_switch, raise_to_scale,
-				intake_arm_up, intake_arm_down, elevator_up, elevator_down);
+//		bool low_gear = joyThrottle->GetRawButton(LOW_GEAR_BUTTON);
+//		bool high_gear = joyThrottle->GetRawButton(HIGH_GEAR_BUTTON);
+//
+//		bool wait_for_button = joyOp->GetRawButton(WAIT_FOR_BUTTON);
+//		bool intake_spin_in = joyOp->GetRawButton(INTAKE_SPIN_IN);
+//		bool intake_spin_out = joyOp->GetRawButton(INTAKE_SPIN_OUT);
+//		bool intake_spin_stop = joyOp->GetRawButton(INTAKE_SPIN_STOP);
+//		bool get_cube_ground = joyOp->GetRawButton(GET_CUBE_GROUND);
+//		bool get_cube_station = joyOp->GetRawButton(GET_CUBE_STATION);
+//		bool post_intake = joyOp->GetRawButton(POST_INTAKE);
+//		bool raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
+//		bool raise_to_scale = joyOp->GetRawButton(RAISE_TO_SCALE);
+//		bool intake_arm_up = joyOp->GetRawButton(INTAKE_ARM_UP);
+//		bool intake_arm_down = joyOp->GetRawButton(INTAKE_ARM_DOWN);
+//		bool elevator_up = joyOp->GetRawButton(ELEVATOR_UP);
+//		bool elevator_down = joyOp->GetRawButton(ELEVATOR_DOWN);
 
-		elevator_->ElevatorStateMachine();
-		intake_->IntakeArmStateMachine();
-		intake_->IntakeWheelStateMachine();
+//		teleop_state_machine->StateMachine(wait_for_button, intake_spin_in,
+//				intake_spin_out, intake_spin_stop, get_cube_ground,
+//				get_cube_station, post_intake, raise_to_switch, raise_to_scale,
+//				intake_arm_up, intake_arm_down, elevator_up, elevator_down);
+//
+//		elevator_->ElevatorStateMachine();
+//		intake_->IntakeArmStateMachine();
+//		intake_->IntakeWheelStateMachine();
 
-		is_heading = false;
-		is_vision = false;
-		is_fc = false;
-
-		if (low_gear) {
-			drive_controller->ShiftDown();
-		} else if (high_gear) {
-			drive_controller->ShiftUp();
-		}
+//		is_heading = false;
+//		is_vision = false;
+//		is_fc = false;
+//
+//		if (low_gear) {
+//			drive_controller->ShiftDown();
+//		} else if (high_gear) {
+//			drive_controller->ShiftUp();
+//		}
 
 	}
 
 	void DisabledInit() override {
 
-		drive_controller->EndTeleopThreads();
-		intake_->EndIntakeThread();
-		elevator_->EndElevatorThread();
-
-		teleop_state_machine->Initialize();
+//		drive_controller->EndTeleopThreads();
+//		intake_->EndIntakeThread();
+//		elevator_->EndElevatorThread();
+//
+//		teleop_state_machine->Initialize();
 
 	}
 

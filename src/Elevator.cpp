@@ -46,17 +46,20 @@ const double UP_ANGLE_E = 0.0;
 double u_e = 0; //this is the input in volts to the motor
 double v_bat_e = 12.0; //this will be the voltage of the battery at every loop
 
-double K_e[2][2] = { { 0, 0 }, //controller matrix that is calculated in the Python simulation
-		{ 0, 0 } };
+std::vector<std::vector<double> > K_e = { { 0.0, 0.0 }, { 0.0, 0.0 } }; //controller matrix that is calculated in the Python simulation
 
-double X_e[2][1] = { { 0 }, //state matrix filled with the state of the states of the system
-		{ 0 } };
+std::vector<std::vector<double> > X_e = { { 0.0 }, //state matrix filled with the state of the states of the system //not used
+		{ 0.0 } };
 
-double error_e[2][1] = { { 0 }, { 0 } };
+std::vector<std::vector<double> > ref_elevator;
+
+std::vector<std::vector<double> > error_e = { { 0.0 }, { 0.0 } };
+
+PowerDistributionPanel *pdp_e;
 
 Timer *elevatorTimer = new Timer();
 
-Elevator::Elevator() {
+Elevator::Elevator(PowerDistributionPanel *pdp) {
 
 	elevator_profiler = new MotionProfiler(MAX_VELOCITY_E, MAX_ACCELERATION_E,
 			TIME_STEP_E);
@@ -70,9 +73,11 @@ Elevator::Elevator() {
 	talonElevator1->ConfigPeakCurrentLimit(30, 0);
 	talonElevator2->ConfigPeakCurrentLimit(30, 0);
 
+	pdp_e = pdp;
+
 }
 
-void Elevator::Move(double ref_elevator[2][1]) {
+void Elevator::Move(std::vector<std::vector<double> > ref_elevator) {
 
 	double current_pos_e = GetElevatorPosition();
 	double current_vel_e = GetElevatorVelocity();
@@ -91,8 +96,10 @@ void Elevator::Move(double ref_elevator[2][1]) {
 		u_e = MIN_VOLTAGE_E;
 	}
 
+	v_bat_e = pdp_e->GetVoltage();
+
 	//get the input into the -1 to +1 range for the talon
-	//TODO: change v_bat into a dynamic value that tracks the battery's current voltage
+
 	u_e = u_e / (v_bat_e);
 
 	//talonElevator2 is slaved to this talon and does not need to be set
@@ -109,11 +116,11 @@ void Elevator::StopElevator() {
 bool Elevator::ElevatorEncodersRunning() {
 
 	double current_pos_e = GetElevatorPosition();
-//	double current_ref_e = elevator_profiler->GetNextRef().at(0).at(0);
+	double current_ref_e = elevator_profiler->GetNextRef().at(0).at(0);
 
 	if (talonElevator1->GetOutputCurrent() > 3.0
 			&& talonElevator1->GetSelectedSensorVelocity(0) == std::abs(0.2)
-			&& std::abs(0.0 - current_pos_e) > 0.2) { //figure out pointers for this
+			&& std::abs(current_ref_e - current_pos_e) > 0.2) {
 		return false;
 	}
 	return true;
@@ -123,7 +130,7 @@ double Elevator::GetElevatorPosition() {
 
 	//divide by the native ticks per rotation then multiply by the circumference of the pulley
 	double elevator_pos = (talonElevator1->GetSelectedSensorPosition(0.0)
-			/ TICKS_PER_ROT_E) * (2.0 * PI * PULLEY_RADIUS); //?
+			/ TICKS_PER_ROT_E) * (2.0 * PI * PULLEY_RADIUS);
 	return elevator_pos;
 
 }
@@ -134,6 +141,15 @@ double Elevator::GetElevatorVelocity(){
 	//RPS then muliply by circumference for m/s
 	double elevator_vel = (talonElevator1->GetSelectedSensorVelocity(0.0) / (TICKS_PER_ROT_E)) * (2.0 * PULLEY_RADIUS * PI) * (10.0);
 	return elevator_vel;
+
+}
+
+void Elevator::ManualElevator(Joystick *joyOpElev) {
+
+	SmartDashboard::PutNumber("ELEV", talonElevator1->GetOutputCurrent());
+
+	double output = joyOpElev->GetY() / 10.0;
+	talonElevator1->Set(ControlMode::PercentOutput, output);
 
 }
 
@@ -196,17 +212,14 @@ void Elevator::ElevatorWrapper(Elevator *el,
 
 			if (elevatorTimer->HasPeriodPassed(ELEVATOR_WAIT_TIME)) {
 
-//				std::vector<std::vector<double>> profile_elevator = {{0.0},{0,0}};
-//						//elevator_profiler->GetNextRef();
-//
-//
-//
-//				double indeces[2][1] = { { profile_elevator.at(0).at(0) }, {
-//						profile_elevator.at(1).at(0) } }; //Rotate() takes an array, not a vector
-//
-//				if (el->elevator_state != STOP_STATE_E) { //check if this works
-//					el->Move(indeces);
-//				}
+				std::vector<std::vector<double>> profile_elevator = elevator_profiler->GetNextRef();
+
+				ref_elevator[0][0] = profile_elevator[0][0];
+				ref_elevator[1][0] = profile_elevator[1][0];
+
+				if (el->elevator_state != STOP_STATE_E) { //check if this works
+					el->Move(ref_elevator);
+				}
 
 				elevatorTimer->Reset();
 
