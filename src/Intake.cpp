@@ -5,7 +5,7 @@
  *      Author: DriversStation
  */
 
-//Talon id's
+//Talon id's, max intake wheel current, encoderrunning numbers,
 #include <Intake.h>
 #include <ctre/Phoenix.h> //double included
 #include <WPILib.h>
@@ -24,29 +24,25 @@ const int IN_STATE = 1;
 const int OUT_STATE = 2;
 
 const double TICKS_PER_ROT_I = 4096.0;
-const double MAX_VOLTAGE_I = 12.0; //CANNOT EXCEED abs(12)
-const double MIN_VOLTAGE_I = -12.0;
+const double MAX_VOLTAGE_I = 2.0; //CANNOT EXCEED abs(12)
+const double MIN_VOLTAGE_I = -2.0;
 
-//TO CHANGE, and K matrix
-const double free_speed_i = 1967.0; //rad/s
-const double m_i = 2.1;
-const double l_i = 0.2;
-const double Kt_i = 0.00595;
-const double G_i = ((60.0 / 1.0) * (48.0 / 38.0));
+const double free_speed_i = 18730.0; //rad/s
+const double G_i = (831.0/1.0);
 
-const double MAX_THEORETICAL_VELOCITY_I = (free_speed_i / G_i);
-const double MAX_VELOCITY_I = 28.0;
-const double MAX_ACCELERATION_I = 38.0;
+const double MAX_THEORETICAL_VELOCITY_I = ((free_speed_i / G_i)) * 2.0 * PI * 10;
+const double MAX_VELOCITY_I = 1.0;
+const double MAX_ACCELERATION_I = 1.0;
 const double TIME_STEP_I = 0.01; //sec
 const double Kv_i = 1 / MAX_THEORETICAL_VELOCITY_I;
 
-const int MAX_INTAKE_CURRENT = 0.0;
+const double MAX_INTAKE_CURRENT = 50.0;
 
 const int INTAKE_SLEEP_TIME = 0;
 const double INTAKE_WAIT_TIME = 0.01; //sec
 
 const double DOWN_ANGLE = 0.0;
-const double MID_ANGLE = 0.0;
+const double MID_ANGLE = 1.0; //TEST
 const double UP_ANGLE = 0.0;
 
 int last_intake_state = 1; //cannot equal the first state or profile will not set the first time
@@ -54,27 +50,23 @@ int last_intake_state = 1; //cannot equal the first state or profile will not se
 double u_i = 0; //this is the input in volts to the motor
 double v_bat_i = 12.0; //this will be the voltage of the battery at every loop
 
-std::vector<std::vector<double> > K_i = { { 0.0, 0.0 }, //controller matrix that is calculated in the Python simulation, pos and vel
-		{ 0.0, 0.0 } };
+std::vector<std::vector<double> > K_i = { { 55.15, 0.428 }, //controller matrix that is calculated in the Python simulation, pos and vel
+		{ 55.15, 0.428 } };
 
 std::vector<std::vector<double> > X_i = { { 0.0 }, //state matrix filled with the states of the system //not used
 		{ 0.0 } };
 
 std::vector<std::vector<double> > error_i = { { 0.0 }, { 0.0 } };
 
-std::vector<double> down_ang = { { DOWN_ANGLE } }; //is a vector because there is more than 1 waypoint for other profiles
-std::vector<double> mid_ang = { { MID_ANGLE } };
-std::vector<double> up_ang = { { UP_ANGLE } };
-
-std::vector<std::vector<double> > ref_intake = { { }, { } };
-
 Timer *intakeTimer = new Timer();
 
 PowerDistributionPanel *pdp_i;
 
-Intake::Intake(PowerDistributionPanel *pdp) {
+MotionProfiler *intake_profiler;
 
-	intake_profiler = new MotionProfiler(MAX_VELOCITY_I, MAX_ACCELERATION_I, TIME_STEP_I);
+Intake::Intake(PowerDistributionPanel *pdp, MotionProfiler *intake_profiler_) {
+
+	intake_profiler = intake_profiler_;
 
 	talonIntake1 = new TalonSRX(2);
 
@@ -124,7 +116,7 @@ double Intake::GetAngularVelocity() {
 double Intake::GetAngularPosition() {
 
 	//Native position in ticks, divide by ticks per rot to get into revolutions multiply by 2pi to get into radians
-	//spi radians per rotations
+	//2pi radians per rotations
 	double ang_pos = (talonIntakeArm->GetSelectedSensorPosition(0.0)
 			/ (TICKS_PER_ROT_I)) * (2.0 * PI);
 
@@ -134,19 +126,22 @@ double Intake::GetAngularPosition() {
 
 void Intake::ManualWheels(Joystick *joyOpWheels) {
 
-	SmartDashboard::PutNumber("WHEELS", talonIntake1->GetOutputCurrent());
+	SmartDashboard::PutNumber("WHEELS CUR", talonIntake1->GetOutputCurrent());
+	SmartDashboard::PutNumber("WHEELS ENC", talonIntake1->GetSelectedSensorPosition(0));
 
-	double out = joyOpWheels->GetRawAxis(3);
+	double out = joyOpWheels->GetRawAxis(3) * -1.0;
 	talonIntake1->Set(ControlMode::PercentOutput, out);
 
 }
 
 void Intake::ManualArm(Joystick *joyOpArm) {
 
-	SmartDashboard::PutNumber("ARM", talonIntakeArm->GetOutputCurrent());
+	SmartDashboard::PutNumber("ARM CUR", talonIntakeArm->GetOutputCurrent());
+	SmartDashboard::PutNumber("ARM ENC", talonIntakeArm->GetSelectedSensorPosition(0)); //left is negative, right is positive
 
 	double output = joyOpArm->GetX() / 10.0;
 	talonIntakeArm->Set(ControlMode::PercentOutput, output);
+
 
 }
 
@@ -162,7 +157,7 @@ void Intake::Rotate(std::vector<std::vector<double> > ref_intake) {
 	error_i[0][0] = goal_pos - current_pos;
 	error_i[1][0] = goal_vel - current_vel;
 
-	u_i = (K_i[0][0] * error_i[0][0]) + (K_i[0][1] * error_i[1][0]) + Kv_i; // for this system the second row of the K matrix is a copy and does not matter.
+	u_i = (K_i[0][0] * error_i[0][0]) + (K_i[0][1] * error_i[1][0]) + Kv_i * goal_vel; // for this system the second row of the K matrix is a copy and does not matter.
 
 	//scaling the input value not to exceed the set parameters
 	if (u_i > MAX_VOLTAGE_I) {
@@ -176,6 +171,8 @@ void Intake::Rotate(std::vector<std::vector<double> > ref_intake) {
 	v_bat_i = pdp_i->GetVoltage();
 
 	u_i = u_i / (v_bat_i);
+
+	SmartDashboard::PutNumber("INTAKE OUTPUT", u_i);
 
 	//talonElevator2 is slaved to this talon and does not need to be set
 	talonIntakeArm->Set(ControlMode::PercentOutput, u_i);
@@ -279,7 +276,7 @@ void Intake::ZeroEnc() {
 
 }
 
-void Intake::IntakeWrapper(Intake *in, MotionProfiler *intake_profiler) {
+void Intake::IntakeWrapper(Intake *in) {
 
 	intakeTimer->Start();
 
@@ -292,11 +289,10 @@ void Intake::IntakeWrapper(Intake *in, MotionProfiler *intake_profiler) {
 
 				std::vector<std::vector<double>> profile_intake = intake_profiler->GetNextRef();
 
-				ref_intake[0][0] = profile_intake[0][0];
-				ref_intake[1][0] = profile_intake[1][0];
+				std::cout << "pos: " << profile_intake.at(0).at(0) << "  " << "vel: " << profile_intake.at(1).at(0) << "   " << "acc: " << profile_intake.at(2).at(0) << std::endl;
 
 				if (in->intake_arm_state != STOP_ARM_STATE) {
-					in->Rotate(ref_intake);
+					in->Rotate(profile_intake);
 				}
 
 				intakeTimer->Reset();
@@ -311,8 +307,7 @@ void Intake::StartIntakeThread() {
 
 	Intake *intake_ = this;
 
-	IntakeThread = std::thread(&Intake::IntakeWrapper, intake_,
-			intake_profiler);
+	IntakeThread = std::thread(&Intake::IntakeWrapper, intake_);
 	IntakeThread.detach();
 
 }

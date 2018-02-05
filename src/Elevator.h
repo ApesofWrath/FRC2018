@@ -19,9 +19,7 @@
 class Elevator {
 public:
 
-	Elevator(PowerDistributionPanel *pdp);
-
-	MotionProfiler *elevator_profiler;
+	Elevator(PowerDistributionPanel *pdp, MotionProfiler *elevator_profiler_);
 
 	TalonSRX *talonElevator1, *talonElevator2;
 
@@ -46,7 +44,7 @@ public:
 	void ZeroEncs();
 
 	void StartElevatorThread();
-	static void ElevatorWrapper(Elevator *elevator_, MotionProfiler *elevator_profiler);
+	static void ElevatorWrapper(Elevator *elevator_);
 	void EndElevatorThread();
 
 };

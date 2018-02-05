@@ -21,6 +21,9 @@
 #include <Joystick.h>
 #include <TeleopStateMachine.h>
 
+#define THREADS 0
+#define STATEMACHINE 0
+
 class Robot: public frc::IterativeRobot {
 public:
 
@@ -31,20 +34,22 @@ public:
 	const int LOW_GEAR_BUTTON = 4;
 	const int HIGH_GEAR_BUTTON = 5;
 
-	const int WAIT_FOR_BUTTON = 5; //choose buttons
-	const int GET_CUBE_GROUND = 9;
-	const int GET_CUBE_STATION = 4;
-	const int POST_INTAKE = 3;
-	const int RAISE_TO_SWITCH = 10;
-	const int RAISE_TO_SCALE = 11;
+	const int WAIT_FOR_BUTTON = 1;
+	const int GET_CUBE_GROUND = 2;
+	const int GET_CUBE_STATION = 33;
+	const int POST_INTAKE = 44;
+	const int RAISE_TO_SWITCH = 5;
+	const int RAISE_TO_SCALE = 6;
 
 	const int INTAKE_SPIN_IN = 99;
 	const int INTAKE_SPIN_OUT = 99;
 	const int INTAKE_SPIN_STOP = 99;
-	const int INTAKE_ARM_UP = 12;
-	const int INTAKE_ARM_DOWN = 6;
-	const int ELEVATOR_UP = 7;
-	const int ELEVATOR_DOWN = 8;
+	const int INTAKE_ARM_UP = 3;
+	const int INTAKE_ARM_MID = 4;
+	const int INTAKE_ARM_DOWN = 5;
+	const int ELEVATOR_UP = 9;
+	const int ELEVATOR_MID = 10;
+	const int ELEVATOR_DOWN = 11;
 
 	bool acceptable_current_r, acceptable_current_l; //testperiodic
 
@@ -56,15 +61,20 @@ public:
 	Intake *intake_;
 	Autonomous *autonomous_;
 	TeleopStateMachine *teleop_state_machine;
+	MotionProfiler *intake_profiler_;
+	MotionProfiler *elevator_profiler_;
 
 	Joystick *joyThrottle, *joyWheel, *joyOp;
 
 	void RobotInit() {
 
+		elevator_profiler_ = new MotionProfiler(10.0, 5.0, 0.0001); //acc for elevator was 2
+		intake_profiler_ = new MotionProfiler(2.0, 1.0, 0.001);
+
 		pdp_ = new PowerDistributionPanel(0);
 		drive_controller = new DriveController();
-		elevator_ = new Elevator(pdp_);
-		intake_ = new Intake(pdp_);
+		intake_ = new Intake(pdp_, intake_profiler_);
+		elevator_ = new Elevator(pdp_, elevator_profiler_);
 		autonomous_ = new Autonomous(drive_controller, elevator_, intake_);
 		teleop_state_machine = new TeleopStateMachine(elevator_, intake_);
 
@@ -90,49 +100,53 @@ public:
 		intake_->ZeroEnc();
 		elevator_->ZeroEncs();
 
-//		teleop_state_machine->Initialize();
-//
-//		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
-//				&is_vision, &is_fc); //pass by reference through the wrapper
-//		intake_->StartIntakeThread();
-//		elevator_->StartElevatorThread();
+		teleop_state_machine->Initialize();
+
+//#ifndef THREADS
+		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
+				&is_vision, &is_fc); //pass by reference through the wrapper
+		intake_->StartIntakeThread();
+		elevator_->StartElevatorThread();
+//#endif
 
 	}
 
 	void TeleopPeriodic() {
 
-		intake_->ManualArm(joyOp);
-		intake_->ManualWheels(joyOp);
-		elevator_->ManualElevator(joyOp);
+//		intake_->ManualArm(joyOp);
+//		intake_->ManualWheels(joyOp);
+//		elevator_->ManualElevator(joyOp);
 
-		SmartDashboard::PutNumber("ARM", intake_->talonIntakeArm->GetOutputCurrent());
-		SmartDashboard::PutNumber("ELEVATOR", elevator_->talonElevator1->GetOutputCurrent());
+//#ifndef STATEMACHINE
 
-//		bool low_gear = joyThrottle->GetRawButton(LOW_GEAR_BUTTON);
-//		bool high_gear = joyThrottle->GetRawButton(HIGH_GEAR_BUTTON);
-//
-//		bool wait_for_button = joyOp->GetRawButton(WAIT_FOR_BUTTON);
-//		bool intake_spin_in = joyOp->GetRawButton(INTAKE_SPIN_IN);
-//		bool intake_spin_out = joyOp->GetRawButton(INTAKE_SPIN_OUT);
-//		bool intake_spin_stop = joyOp->GetRawButton(INTAKE_SPIN_STOP);
-//		bool get_cube_ground = joyOp->GetRawButton(GET_CUBE_GROUND);
-//		bool get_cube_station = joyOp->GetRawButton(GET_CUBE_STATION);
-//		bool post_intake = joyOp->GetRawButton(POST_INTAKE);
-//		bool raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
-//		bool raise_to_scale = joyOp->GetRawButton(RAISE_TO_SCALE);
-//		bool intake_arm_up = joyOp->GetRawButton(INTAKE_ARM_UP);
-//		bool intake_arm_down = joyOp->GetRawButton(INTAKE_ARM_DOWN);
-//		bool elevator_up = joyOp->GetRawButton(ELEVATOR_UP);
-//		bool elevator_down = joyOp->GetRawButton(ELEVATOR_DOWN);
+		bool low_gear = joyThrottle->GetRawButton(LOW_GEAR_BUTTON);
+		bool high_gear = joyThrottle->GetRawButton(HIGH_GEAR_BUTTON);
 
-//		teleop_state_machine->StateMachine(wait_for_button, intake_spin_in,
-//				intake_spin_out, intake_spin_stop, get_cube_ground,
-//				get_cube_station, post_intake, raise_to_switch, raise_to_scale,
-//				intake_arm_up, intake_arm_down, elevator_up, elevator_down);
-//
-//		elevator_->ElevatorStateMachine();
-//		intake_->IntakeArmStateMachine();
-//		intake_->IntakeWheelStateMachine();
+		bool wait_for_button = joyOp->GetRawButton(WAIT_FOR_BUTTON);
+		bool intake_spin_in = joyOp->GetRawButton(INTAKE_SPIN_IN);
+		bool intake_spin_out = joyOp->GetRawButton(INTAKE_SPIN_OUT);
+		bool intake_spin_stop = joyOp->GetRawButton(INTAKE_SPIN_STOP);
+		bool get_cube_ground = joyOp->GetRawButton(GET_CUBE_GROUND);
+		bool get_cube_station = joyOp->GetRawButton(GET_CUBE_STATION);
+		bool post_intake = joyOp->GetRawButton(POST_INTAKE);
+		bool raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
+		bool raise_to_scale = joyOp->GetRawButton(RAISE_TO_SCALE);
+		bool intake_arm_up = joyOp->GetRawButton(INTAKE_ARM_UP);
+		bool intake_arm_mid = joyOp->GetRawButton(INTAKE_ARM_MID);
+		bool intake_arm_down = joyOp->GetRawButton(INTAKE_ARM_DOWN);
+		bool elevator_up = joyOp->GetRawButton(ELEVATOR_UP);
+		bool elevator_mid = joyOp->GetRawButton(ELEVATOR_MID);
+		bool elevator_down = joyOp->GetRawButton(ELEVATOR_DOWN);
+
+		teleop_state_machine->StateMachine(wait_for_button, intake_spin_in,
+				intake_spin_out, intake_spin_stop, get_cube_ground,
+				get_cube_station, post_intake, raise_to_switch, raise_to_scale,
+				intake_arm_up, intake_arm_mid, intake_arm_down, elevator_up, elevator_mid, elevator_down);
+
+		elevator_->ElevatorStateMachine();
+		intake_->IntakeArmStateMachine();
+		intake_->IntakeWheelStateMachine();
+//#endif
 
 //		is_heading = false;
 //		is_vision = false;
@@ -148,11 +162,11 @@ public:
 
 	void DisabledInit() override {
 
-//		drive_controller->EndTeleopThreads();
-//		intake_->EndIntakeThread();
-//		elevator_->EndElevatorThread();
-//
-//		teleop_state_machine->Initialize();
+		drive_controller->EndTeleopThreads();
+		intake_->EndIntakeThread();
+		elevator_->EndElevatorThread();
+
+		teleop_state_machine->Initialize();
 
 	}
 

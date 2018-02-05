@@ -71,73 +71,80 @@ void MotionProfiler::Test() {
 
 }
 
+//pre: set init pos and final goal for the first point in the whole profile
 std::vector<std::vector<double>> MotionProfiler::GetNextRef() {
 
 	double ref = 0;
 
-	time_dt = 0.01; //seconds //lower res without 0.000001 and counter, but still ok
+	time_dt = 0.0001; //seconds //lower res without 0.000001 and counter, but still ok
 
 	//cant initialize any vectors outside of the function or their previous values will carry over into the next profiles made. Don't pull a ChezyChamps2k17
 	std::vector<std::vector<double> > matrix; //new matrix every time because .push_back adds rows, moved from the top of the class
 	std::vector<double> positions; //first points will be 0
 	std::vector<double> velocities;
+	std::vector<double> accelerations;
 
 	ref = final_goal;
 
-	if (ref >= init_pos) {
-		if (pos < ref) {
+	int counter = 0;
 
-			ramp_time = vel / max_acceleration;
-			ramp_dis = 0.5 * (vel * ramp_time);
+	while (counter < 100) {
+		if (ref >= init_pos) { //profile to go up
+			if (pos < ref) { //still need to go up
 
-			if ((ref - ramp_dis) <= pos) {
-				acc = -1.0 * max_acceleration;
-			} else if (vel < max_velocity) {
-				acc = max_acceleration;
-			} else {
-				acc = 0.0;
+				ramp_time = vel / max_acceleration; //y / slope
+				ramp_dis = 0.5 * (vel * ramp_time); //area
+
+				if ((ref - ramp_dis) <= pos) { //start ramp down
+					acc = -1.0 * max_acceleration;
+				} else if (vel < max_velocity) { //ramp up
+					acc = max_acceleration;
+				} else { //stay at speed
+					acc = 0.0;
+				}
+
+				pos = last_pos + (vel * time_dt); //update states
+				last_pos = pos;
+
+				vel = last_vel + (acc * time_dt);
+				last_vel = vel;
+
 			}
+		} else if (ref < init_pos) {
+			if (pos > ref) {
 
-			pos = last_pos + (vel * time_dt);
-			last_pos = pos;
+				ramp_time = vel / max_acceleration;
+				ramp_dis = 0.5 * (vel * ramp_time);
 
-			vel = last_vel + (acc * time_dt);
-			last_vel = vel;
+				if ((ramp_dis - ref) >= pos) {
+					acc = 1.0 * max_acceleration;
+				} else if (vel > (-1.0 * max_velocity)) {
+					acc = -1.0 * max_acceleration;
+				} else {
+					acc = 0.0;
+				}
 
-		}
-	} else if (ref < init_pos) {
-		if (pos > ref) {
+				pos = last_pos + (vel * time_dt);
+				last_pos = pos;
 
-			ramp_time = vel / max_acceleration;
-			ramp_dis = 0.5 * (vel * ramp_time);
+				vel = last_vel + (acc * time_dt);
+				last_vel = vel;
 
-			if ((ramp_dis - ref) >= pos) {
-				acc = 1.0 * max_acceleration;
-			} else if (vel > (-1.0 * max_velocity)) {
-				acc = -1.0 * max_acceleration;
-			} else {
-				acc = 0.0;
 			}
-
-			pos = last_pos + (vel * time_dt);
-			last_pos = pos;
-
-			vel = last_vel + (acc * time_dt);
-			last_vel = vel;
-
 		}
+
+		counter++;
 	}
-
-	pos = 4.0;
-	vel = 2.0;
 
 	positions.push_back(pos);
 	velocities.push_back(vel);
+	accelerations.push_back(acc);
 
 	//can't directly push the pos and vel doubles into matrix because matrix is an array of arrays
 
 	matrix.push_back(positions); //first vector,  row 0
 	matrix.push_back(velocities); //second vector, row 1
+	matrix.push_back(accelerations);
 
 	return matrix;
 

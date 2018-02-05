@@ -31,11 +31,11 @@ TeleopStateMachine::TeleopStateMachine(Elevator *elevator_, Intake *intake_) {
 }
 
 void TeleopStateMachine::StateMachine(bool wait_for_button,
-		bool intake_spin_in, //look this over
+		bool intake_spin_in, //look this over //nothing automatically sets intake arm or elevator to mid state
 		bool intake_spin_out, bool intake_spin_stop, bool get_cube_ground,
 		bool get_cube_station, bool post_intake, bool raise_to_switch,
-		bool raise_to_scale, bool intake_arm_up, bool intake_arm_down,
-		bool elevator_up, bool elevator_down) {
+		bool raise_to_scale, bool intake_arm_up, bool intake_arm_mid, bool intake_arm_down,
+		bool elevator_up, bool elevator_mid, bool elevator_down) {
 
 	if (intake_spin_out) {
 		state_intake_wheel = false;
@@ -56,6 +56,9 @@ void TeleopStateMachine::StateMachine(bool wait_for_button,
 	} else if (intake_arm_up) {
 		state_intake_arm = false;
 		intake->intake_arm_state = intake->UP_STATE_H;
+	} else if (intake_arm_mid) {
+		state_intake_arm = false;
+		intake->intake_arm_state = intake->MID_STATE_H;
 	} else if (intake_arm_down) {
 		state_intake_arm = false;
 		intake->intake_arm_state = intake->DOWN_STATE_H;
@@ -69,6 +72,9 @@ void TeleopStateMachine::StateMachine(bool wait_for_button,
 	} else if (elevator_up) {
 		state_elevator = false;
 		elevator->elevator_state = elevator->UP_STATE_E_H;
+	} else if (elevator_mid) {
+		state_elevator = false;
+		elevator->elevator_state = elevator->MID_STATE_E_H;
 	} else if (elevator_down) {
 		state_elevator = false;
 		elevator->elevator_state = elevator->DOWN_STATE_E_H;

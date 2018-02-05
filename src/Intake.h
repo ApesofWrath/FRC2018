@@ -24,8 +24,6 @@ public:
 
 	TalonSRX *talonIntake1, *talonIntake2, *talonIntakeArm;
 
-	MotionProfiler *intake_profiler;
-
 	std::thread IntakeThread;
 
 	const int UP_STATE_H = 0; //arm state machine
@@ -39,7 +37,7 @@ public:
 	const int OUT_STATE_H = 2;
 	int intake_wheel_state = STOP_WHEEL_STATE_H;
 
-	Intake(PowerDistributionPanel *pdp);
+	Intake(PowerDistributionPanel *pdp, MotionProfiler *intake_profiler_);
 
 	void In();
 	void Out();
@@ -62,7 +60,7 @@ public:
 
 	void StartIntakeThread();
 	void EndIntakeThread();
-	static void IntakeWrapper(Intake *in, MotionProfiler *intake_profiler); //double *ref_in
+	static void IntakeWrapper(Intake *in); //double *ref_in
 
 
 
