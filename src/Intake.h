@@ -18,11 +18,14 @@
 #include <vector>
 #include <cmath>
 #include <list>
+#include <DigitalInput.h>
 
 class Intake {
 public:
 
 	TalonSRX *talonIntake1, *talonIntake2, *talonIntakeArm;
+
+	DigitalInput *hallEffectIntake; //for bottom //one top for elevator one bottom for elevator
 
 	std::thread IntakeThread;
 
@@ -50,6 +53,8 @@ public:
 
 	bool HaveCube();
 	bool EncodersRunning();
+
+	void SetVoltage(double voltage_e);
 
 	void ZeroEnc();
 	void ManualArm(Joystick *joyOpArm);

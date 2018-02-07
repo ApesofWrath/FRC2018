@@ -7,27 +7,6 @@
 
 #include "MotionProfiler.h"
 
-double final_goal = 0; //for GetNextRef
-double init_pos = 0.0;
-double acc = 0.0;
-double vel = 0.0;
-double pos = init_pos;
-double last_vel = 0.0;
-double last_pos = init_pos;
-
-double ramp_time = 0.0; //for both
-double ramp_dis = 0.0;
-double max_acceleration = 0.0;
-double max_velocity = 0.0;
-
-double iterations = 0.0;
-double time_dt = 0.00001; //this is the interval that the profiler will run the simulation at,
-//needs to be faster for accurate integration (area calculation) since this is a reiman sum, it is in seconds
-double interval = 0.0;
-
-double robot_width = 0;
-double wheel_width = 0;
-
 MotionProfiler::MotionProfiler(double max_vel, double max_acc,
 		double time_step) {
 
@@ -47,7 +26,6 @@ void MotionProfiler::SetFinalGoal(double goal) {
 void MotionProfiler::SetInitPos(double position_init) { //at every new whole profile
 
 	init_pos = position_init;
-	position_init = init_pos;
 	last_vel = 0.0;
 	last_pos = init_pos;
 	acc = 0.0;
@@ -72,9 +50,7 @@ void MotionProfiler::Test() {
 }
 
 //pre: set init pos and final goal for the first point in the whole profile
-std::vector<std::vector<double>> MotionProfiler::GetNextRef() {
-
-	double ref = 0;
+std::vector<std::vector<double>> MotionProfiler::GetNextRef() { //used by both elevator and intake
 
 	time_dt = 0.0001; //seconds //lower res without 0.000001 and counter, but still ok
 
@@ -83,8 +59,9 @@ std::vector<std::vector<double>> MotionProfiler::GetNextRef() {
 	std::vector<double> positions; //first points will be 0
 	std::vector<double> velocities;
 	std::vector<double> accelerations;
+	std::vector<double> references; //DOES go down to 0
 
-	ref = final_goal;
+	ref = final_goal; //swtiches constantly for elevator and intake objects
 
 	int counter = 0;
 
@@ -113,6 +90,8 @@ std::vector<std::vector<double>> MotionProfiler::GetNextRef() {
 		} else if (ref < init_pos) {
 			if (pos > ref) {
 
+				std::cout << "POS > REF" << std::endl;
+
 				ramp_time = vel / max_acceleration;
 				ramp_dis = 0.5 * (vel * ramp_time);
 
@@ -139,12 +118,14 @@ std::vector<std::vector<double>> MotionProfiler::GetNextRef() {
 	positions.push_back(pos);
 	velocities.push_back(vel);
 	accelerations.push_back(acc);
+	references.push_back(ref);
 
 	//can't directly push the pos and vel doubles into matrix because matrix is an array of arrays
 
 	matrix.push_back(positions); //first vector,  row 0
 	matrix.push_back(velocities); //second vector, row 1
 	matrix.push_back(accelerations);
+	matrix.push_back(references);
 
 	return matrix;
 

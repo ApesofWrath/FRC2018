@@ -9,6 +9,7 @@
 #include <vector>
 #include <iostream>
 #include <cmath>
+#include <WPILib.h>
 
 #ifndef SRC_MOTIONPROFILER_H_
 #define SRC_MOTIONPROFILER_H_
@@ -17,6 +18,29 @@
 
 class MotionProfiler {
 public:
+
+	double ref = 0;
+
+	double final_goal = 0; //for GetNextRef
+	double init_pos = 0.0;
+	double acc = 0.0;
+	double vel = 0.0;
+	double pos = init_pos;
+	double last_vel = 0.0;
+	double last_pos = init_pos;
+
+	double ramp_time = 0.0; //for both
+	double ramp_dis = 0.0;
+	double max_acceleration = 0.0;
+	double max_velocity = 0.0;
+
+	double iterations = 0.0;
+	double time_dt = 0.00001; //this is the interval that the profiler will run the simulation at,
+	//needs to be faster for accurate integration (area calculation) since this is a reiman sum, it is in seconds
+	double interval = 0.0;
+
+	double robot_width = 0;
+	double wheel_width = 0;
 
 	//maximum velocity acceleration of the arm or system and the time step for the controller is needed
 	MotionProfiler(double max_vel, double max_acc, double time_step);

@@ -68,10 +68,10 @@ public:
 
 	void RobotInit() {
 
-		elevator_profiler_ = new MotionProfiler(10.0, 5.0, 0.0001); //acc for elevator was 2
-		intake_profiler_ = new MotionProfiler(2.0, 1.0, 0.001);
+		elevator_profiler_ = new MotionProfiler(0.0, 0.0, 0.0001);
+		intake_profiler_ = new MotionProfiler(0.0, 0.0, 0.001);
 
-		pdp_ = new PowerDistributionPanel(0);
+		pdp_ = new PowerDistributionPanel(3);
 		drive_controller = new DriveController();
 		intake_ = new Intake(pdp_, intake_profiler_);
 		elevator_ = new Elevator(pdp_, elevator_profiler_);
@@ -97,27 +97,28 @@ public:
 		drive_controller->ZeroI(true);
 		drive_controller->ZeroEncs();
 		drive_controller->ZeroYaw();
-		intake_->ZeroEnc();
-		elevator_->ZeroEncs();
+	//	intake_->ZeroEnc();
+		//elevator_->ZeroEncs();
 
 		teleop_state_machine->Initialize();
 
 //#ifndef THREADS
-		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
-				&is_vision, &is_fc); //pass by reference through the wrapper
+//		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
+//				&is_vision, &is_fc); //pass by reference through the wrapper
 		intake_->StartIntakeThread();
-		elevator_->StartElevatorThread();
+	//	elevator_->StartElevatorThread();
 //#endif
 
 	}
 
 	void TeleopPeriodic() {
 
-//		intake_->ManualArm(joyOp);
-//		intake_->ManualWheels(joyOp);
-//		elevator_->ManualElevator(joyOp);
+	//	intake_->ManualArm(joyOp);
+	//	intake_->ManualWheels(joyOp);
+	//	elevator_->ManualElevator(joyOp);
 
-//#ifndef STATEMACHINE
+///#ifndef STATEMACHINE
+
 
 		bool low_gear = joyThrottle->GetRawButton(LOW_GEAR_BUTTON);
 		bool high_gear = joyThrottle->GetRawButton(HIGH_GEAR_BUTTON);
@@ -162,11 +163,11 @@ public:
 
 	void DisabledInit() override {
 
-		drive_controller->EndTeleopThreads();
-		intake_->EndIntakeThread();
-		elevator_->EndElevatorThread();
-
-		teleop_state_machine->Initialize();
+//		drive_controller->EndTeleopThreads();
+//		intake_->EndIntakeThread();
+//		elevator_->EndElevatorThread();
+//
+//		teleop_state_machine->Initialize();
 
 	}
 
