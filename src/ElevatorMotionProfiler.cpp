@@ -5,7 +5,7 @@
  *      Author: DriversStation
  */
 
-#include "MotionProfiler.h"
+#include <ElevatorMotionProfiler.h>
 
 MotionProfiler::MotionProfiler(double max_vel, double max_acc,
 		double time_step) {

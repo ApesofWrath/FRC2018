@@ -5,7 +5,7 @@
  *      Author: DriversStation
  */
 
-//Talon id's, max intake wheel current, encoderrunning numbers,
+//NEW K GAINS
 #include <Intake.h>
 #include <ctre/Phoenix.h> //double included
 #include <WPILib.h>
@@ -23,19 +23,20 @@ const int STOP_WHEEL_STATE = 0; //wheel state machine
 const int IN_STATE = 1;
 const int OUT_STATE = 2;
 
-const double TICKS_PER_ROT_I = 4096.0;
-const double MAX_VOLTAGE_I = 10.0; //CANNOT EXCEED abs(12)
-const double MIN_VOLTAGE_I = -10.0;
+const double TICKS_PER_ROT_I = 4096.0; //possibly not
+const double MAX_VOLTAGE_I = 12.0; //CANNOT EXCEED abs(10)
+const double MIN_VOLTAGE_I = -12.0;
 
-const double free_speed_i = 18730.0; //rad/s
-const double G_i = (831.0 / 1.0);
-
+const double free_speed_i = 18730.0; //rpm
+const double G_i = (831.0 / 1.0); //gear ratio
 const double MAX_THEORETICAL_VELOCITY_I = ((free_speed_i / G_i)) * 2.0 * PI
-		* 10;
-const double MAX_VELOCITY_I = 1.0;
-const double MAX_ACCELERATION_I = 1.0;
-const double TIME_STEP_I = 0.01; //sec
+		* 10.0; //rad/s
 const double Kv_i = 1 / MAX_THEORETICAL_VELOCITY_I;
+
+//For motion profiler
+const double MAX_VELOCITY_I = 2.3;
+const double MAX_ACCELERATION_I = 5.0;
+const double TIME_STEP_I = 0.01; //sec
 
 const double MAX_INTAKE_CURRENT = 50.0;
 
@@ -43,16 +44,16 @@ const int INTAKE_SLEEP_TIME = 0;
 const double INTAKE_WAIT_TIME = 0.01; //sec
 
 const double DOWN_ANGLE = 0.0;
-const double MID_ANGLE = 0.7;
+const double MID_ANGLE = 1.2;
 const double UP_ANGLE = 0.0;
 
 int last_intake_state = 1; //cannot equal the first state or profile will not set the first time
 
 double u_i = 0; //this is the input in volts to the motor
-double v_bat_i = 12.0; //this will be the voltage of the battery at every loop
+double v_bat_i = 0.0; //will be set to pdp's voltage
 
-std::vector<std::vector<double> > K_i = { { 55.15, 0.428 }, //controller matrix that is calculated in the Python simulation, pos and vel
-		{ 55.15, 0.428 } };
+std::vector<std::vector<double> > K_i = { { 23.6, 0.11 }, //controller matrix that is calculated in the Python simulation, pos and vel
+		{ 23.6, 0.11 } };
 
 std::vector<std::vector<double> > X_i = { { 0.0 }, //state matrix filled with the states of the system //not used
 		{ 0.0 } };
@@ -66,17 +67,17 @@ PowerDistributionPanel *pdp_i;
 MotionProfiler *intake_profiler;
 
 bool is_at_bottom = false;
-bool last_is_at_bottom = false;
+bool first_time_at_bottom = false;
 int counter_i = 0;
 
 Intake::Intake(PowerDistributionPanel *pdp, MotionProfiler *intake_profiler_) {
 
 	intake_profiler = intake_profiler_;
 
-	intake_profiler->SetMaxAcc(8.0);
-	intake_profiler->SetMaxVel(1.0);
+	intake_profiler->SetMaxAcc(MAX_ACCELERATION_I);
+	intake_profiler->SetMaxVel(MAX_VELOCITY_I);
 
-	hallEffectIntake = new DigitalInput(0); //will return 0 if arm is too close to bottom
+	hallEffectIntake = new DigitalInput(0); //will return 0 if arm is at bottom
 
 	talonIntake1 = new TalonSRX(2);
 
@@ -169,23 +170,25 @@ void Intake::ManualArm(Joystick *joyOpArm) {
 
 	SmartDashboard::PutNumber("ARM OUTPUT", output);
 
-	SetVoltage(output);
+	SetVoltageIntake(output);
 
 }
 
-void Intake::SetVoltage(double voltage_e) {
+void Intake::SetVoltageIntake(double voltage_i) {
 
-	is_at_bottom = !hallEffectIntake->Get();
+	is_at_bottom = !hallEffectIntake->Get(); //hall effect returns 0 when at bottom. we reverse it here
 	SmartDashboard::PutNumber("HALL EFF", is_at_bottom); //actually means not at bottom //0 means up// 1 means down
 
-	if (GetAngularPosition() >= (PI / 2.0) && voltage_e > 0.0) {
-		voltage_e = 0.0;
+	//soft limit
+	if (GetAngularPosition() >= (PI / 2.0) && voltage_i > 0.0) { //at max height and still trying to move up
+		voltage_i = 0.0;
 	}
 
-	if (voltage_e > MAX_VOLTAGE_I) {
-		voltage_e = MAX_VOLTAGE_I;
-	} else if (voltage_e < MIN_VOLTAGE_I) {
-		voltage_e = MIN_VOLTAGE_I;
+	//voltage limit
+	if (voltage_i > MAX_VOLTAGE_I) {
+		voltage_i = MAX_VOLTAGE_I;
+	} else if (voltage_i < MIN_VOLTAGE_I) {
+		voltage_i = MIN_VOLTAGE_I;
 	}
 
 	if (is_at_bottom) {
@@ -193,19 +196,20 @@ void Intake::SetVoltage(double voltage_e) {
 			ZeroEnc();
 			counter_i++;
 		}
-		if (voltage_e < 0.0) {
-			voltage_e = 0.0;
+		if (voltage_i < 0.0) {
+			voltage_i = 0.0;
 		}
 	} else {
 		counter_i = 0;
 	}
 
-	SmartDashboard::PutNumber("VOLTAGE", voltage_e);
+	SmartDashboard::PutNumber("VOLTAGE", voltage_i);
 
-	voltage_e *= -1.0;
-	voltage_e /= pdp_i->GetVoltage();
+	voltage_i /= pdp_i->GetVoltage(); //scale from -1 to 1 for the talon
 
-	talonIntakeArm->Set(ControlMode::PercentOutput, voltage_e);
+	voltage_i *= -1.0; //set AT END
+
+	talonIntakeArm->Set(ControlMode::PercentOutput, voltage_i);
 
 }
 
@@ -221,32 +225,23 @@ void Intake::Rotate(std::vector<std::vector<double> > ref_intake) {
 	SmartDashboard::PutNumber("INTAKE POS", current_pos);
 	SmartDashboard::PutNumber("INTAKE VEL", current_vel);
 
+	SmartDashboard::PutNumber("INTAKE REF POS", goal_pos);
+	SmartDashboard::PutNumber("INTAKE REF VEL", goal_vel);
+
 	error_i[0][0] = goal_pos - current_pos;
 	error_i[1][0] = goal_vel - current_vel;
 
 	SmartDashboard::PutNumber("INTAKE ERR POS", error_i[0][0]);
 	SmartDashboard::PutNumber("INTAKE ERR VEL", error_i[1][0]);
 
-	u_i = (K_i[0][0] * error_i[0][0]) + (K_i[0][1] * error_i[1][0])
-			+ (Kv_i * goal_vel); // for this system the second row of the K matrix is a copy and does not matter.
+	v_bat_i = pdp_i->GetVoltage();
 
-//	v_bat_i = pdp_i->GetVoltage();
-//
-//	//get the input into the -1 to +1 range for the talon
-//	u_i = u_i / (v_bat_i);
-//
-//	//scaling the input value not to exceed the set parameters
-//	if (u_i > MAX_VOLTAGE_I) {
-//		u_i = MAX_VOLTAGE_I;
-//	} else if (u_i < MIN_VOLTAGE_I) {
-//		u_i = MIN_VOLTAGE_I;
-//	}
+	u_i = (K_i[0][0] * error_i[0][0]) + (K_i[0][1] * error_i[1][0]) //u_i is in voltage, * by v_bat_i
+			+ (Kv_i * goal_vel * v_bat_i); // for this system the second row of the K matrix is a copy and does not matter.
 
 	SmartDashboard::PutNumber("INTAKE OUTPUT", u_i);
 
-	//talonIntakeArm->Set(ControlMode::PercentOutput, u_i);
-
-	SetVoltage(u_i);
+	SetVoltageIntake(u_i);
 
 }
 
@@ -263,19 +258,20 @@ void Intake::IntakeArmStateMachine() {
 	case UP_STATE:
 		SmartDashboard::PutString("INTAKE ARM", "UP");
 		if (last_intake_state != UP_STATE) { //first time in state
-			intake_profiler->SetMaxAcc(8.0); //these must be reset in each state, not sure why
-			intake_profiler->SetMaxVel(1.0);
+			intake_profiler->SetMaxAcc(MAX_ACCELERATION_I); //these must be reset in each state
+			intake_profiler->SetMaxVel(MAX_VELOCITY_I);
 			intake_profiler->SetFinalGoal(UP_ANGLE);
 			intake_profiler->SetInitPos(GetAngularPosition()); //is 0
 			//std::cout << "HERE" << std::endl;
+			//SmartDashboard::PutString("IN RESET TO DOWN", "YES");
 		}
 		break;
 
 	case MID_STATE:
 		SmartDashboard::PutString("INTAKE ARM", "MID");
 		if (last_intake_state != MID_STATE) {
-			intake_profiler->SetMaxAcc(8.0);
-			intake_profiler->SetMaxVel(1.0);
+			intake_profiler->SetMaxAcc(MAX_ACCELERATION_I); //these must be reset in each state
+			intake_profiler->SetMaxVel(MAX_VELOCITY_I);
 			intake_profiler->SetInitPos(GetAngularPosition());
 			intake_profiler->SetFinalGoal(MID_ANGLE);
 		}
@@ -284,15 +280,14 @@ void Intake::IntakeArmStateMachine() {
 	case DOWN_STATE:
 		SmartDashboard::PutString("INTAKE ARM", "DOWN");
 		if (last_intake_state != DOWN_STATE) {
-			intake_profiler->SetMaxAcc(8.0);
-			intake_profiler->SetMaxVel(1.0);
+			intake_profiler->SetMaxAcc(MAX_ACCELERATION_I); //these must be reset in each state
+			intake_profiler->SetMaxVel(MAX_VELOCITY_I);
 			intake_profiler->SetFinalGoal(DOWN_ANGLE);
 			intake_profiler->SetInitPos(GetAngularPosition());
 		}
 		break;
 
 	case STOP_ARM_STATE:
-
 		SmartDashboard::PutString("INTAKE ARM", "STOP");
 		StopArm();
 		break;
@@ -325,16 +320,16 @@ void Intake::IntakeWheelStateMachine() {
 
 }
 
-bool Intake::EncodersRunning() { //TODO: put real values //will stop the controller from run
+bool Intake::EncodersRunning() { //will stop the controller from run
 
 	double current_pos = GetAngularPosition(); //radians
 	double current_ref = intake_profiler->GetNextRef().at(0).at(0);
 
-	if (talonIntakeArm->GetOutputCurrent() > 3.0
-			&& std::abs(talonIntakeArm->GetSelectedSensorVelocity(0)) <= 0.2
-			&& std::abs(current_ref - current_pos) > 0.2) { //outputting current, not moving, should be moving
-		return false;
-	}
+//	if (talonIntakeArm->GetOutputCurrent() > 3.0
+//			&& std::abs(talonIntakeArm->GetSelectedSensorVelocity(0)) <= 0.2
+//			&& std::abs(current_ref - current_pos) > 0.2) { //outputting current, not moving, should be moving
+//		return false;
+//	}
 	return true;
 }
 
@@ -351,6 +346,7 @@ bool Intake::HaveCube() {
 void Intake::ZeroEnc() {
 
 	talonIntakeArm->SetSelectedSensorPosition(0, 0, 0);
+	is_arm_init = true;
 
 }
 
@@ -368,9 +364,9 @@ void Intake::IntakeWrapper(Intake *in) {
 				std::vector<std::vector<double>> profile_intake =
 						intake_profiler->GetNextRef();
 
-				std::cout << "pos: " << profile_intake.at(0).at(0) << "  "
-						<< "vel: " << profile_intake.at(1).at(0) << "   "
-						<< "acc: " << profile_intake.at(2).at(0) << std::endl;
+//				std::cout << "pos: " << profile_intake.at(0).at(0) << "  "
+//						<< "vel: " << profile_intake.at(1).at(0) << "   "
+//						<< "acc: " << profile_intake.at(2).at(0) << std::endl;
 
 				if (in->intake_arm_state != STOP_ARM_STATE) {
 					in->Rotate(profile_intake);

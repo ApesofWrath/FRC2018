@@ -5,6 +5,8 @@
  *      Author: maxkwon
  */
 
+//TODO: Check encoder counts for drive encoders
+
 #include <DriveControllerMother.h>
 #include <WPILib.h>
 #include "ctre/Phoenix.h" //needed to be double included

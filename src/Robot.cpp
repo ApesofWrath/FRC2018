@@ -68,7 +68,7 @@ public:
 
 	void RobotInit() {
 
-		elevator_profiler_ = new MotionProfiler(0.0, 0.0, 0.0001);
+		elevator_profiler_ = new MotionProfiler(0.0, 0.0, 0.0001); //will be set in intake and elevator classes for now
 		intake_profiler_ = new MotionProfiler(0.0, 0.0, 0.001);
 
 		pdp_ = new PowerDistributionPanel(3);
@@ -97,28 +97,55 @@ public:
 		drive_controller->ZeroI(true);
 		drive_controller->ZeroEncs();
 		drive_controller->ZeroYaw();
-	//	intake_->ZeroEnc();
-		//elevator_->ZeroEncs();
+		//	intake_->ZeroEnc();
+		//elevator_->ZeroEncs
+
+		/*		intake_->ZeroEnc();
+		 intake_->is_arm_init = false;
+
+		 while (intake_->hallEffectIntake->Get()) {
+		 double intake_volt = 2.0 / pdp_->GetVoltage();
+		 intake_->talonIntakeArm->Set(ControlMode::PercentOutput,
+		 intake_volt);
+		 }
+
+		 intake_->talonIntakeArm->Set(ControlMode::PercentOutput, 0.0);
+		 intake_->ZeroEnc();
+		 */
+
+
+		 elevator_->ZeroEncs();
+		 elevator_->is_elevator_init = false;
+
+		 while(elevator_->hallEffectBottom->Get()) {
+		 double elevator_volt = 2.0 / pdp_->GetVoltage() * -1.0;
+		 elevator_->talonElevator1->Set(ControlMode::PercentOutput, elevator_volt);
+		 elevator_->talonElevator2->Set(ControlMode::PercentOutput, elevator_volt);
+
+		 }
+
+		 elevator_->talonElevator1->Set(ControlMode::PercentOutput, 0.0);
+		 elevator_->ZeroEncs();
+
 
 		teleop_state_machine->Initialize();
 
 //#ifndef THREADS
 //		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
 //				&is_vision, &is_fc); //pass by reference through the wrapper
-		intake_->StartIntakeThread();
-	//	elevator_->StartElevatorThread();
+//		intake_->StartIntakeThread();
+		//	elevator_->StartElevatorThread();
 //#endif
 
 	}
 
 	void TeleopPeriodic() {
 
-	//	intake_->ManualArm(joyOp);
-	//	intake_->ManualWheels(joyOp);
-	//	elevator_->ManualElevator(joyOp);
+		//intake_->ManualArm(joyOp);
+		//	intake_->ManualWheels(joyOp);
+		elevator_->ManualElevator(joyThrottle);
 
-///#ifndef STATEMACHINE
-
+#ifndef STATEMACHINE
 
 		bool low_gear = joyThrottle->GetRawButton(LOW_GEAR_BUTTON);
 		bool high_gear = joyThrottle->GetRawButton(HIGH_GEAR_BUTTON);
@@ -142,12 +169,13 @@ public:
 		teleop_state_machine->StateMachine(wait_for_button, intake_spin_in,
 				intake_spin_out, intake_spin_stop, get_cube_ground,
 				get_cube_station, post_intake, raise_to_switch, raise_to_scale,
-				intake_arm_up, intake_arm_mid, intake_arm_down, elevator_up, elevator_mid, elevator_down);
+				intake_arm_up, intake_arm_mid, intake_arm_down, elevator_up,
+				elevator_mid, elevator_down);
 
 		elevator_->ElevatorStateMachine();
 		intake_->IntakeArmStateMachine();
 		intake_->IntakeWheelStateMachine();
-//#endif
+#endif
 
 //		is_heading = false;
 //		is_vision = false;

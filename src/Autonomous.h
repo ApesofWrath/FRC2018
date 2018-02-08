@@ -9,11 +9,11 @@
 #define SRC_AUTONOMOUS_H_
 
 #include <WPILib.h>
-#include <MotionProfiler.h>
 #include <Elevator.h>
 #include <Intake.h>
 //#include <thread>
 #include <DriveController.h>
+#include <ElevatorMotionProfiler.h>
 
 class Autonomous {
 public:

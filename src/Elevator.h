@@ -9,12 +9,12 @@
 #ifndef SRC_ELEVATOR_H_
 #define SRC_ELEVATOR_H_
 
+#include <ElevatorMotionProfiler.h>
 #include <WPILib.h>
 #include "ctre/Phoenix.h"
 #include <chrono>
 #include <Timer.h>
 #include <thread>
-#include <MotionProfiler.h>
 
 class Elevator {
 public:
@@ -23,7 +23,14 @@ public:
 
 	TalonSRX *talonElevator1, *talonElevator2;
 
+
+	DigitalInput *hallEffectTop;
+	DigitalInput *hallEffectBottom;
+
+
 	std::thread ElevatorThread;
+
+	bool is_elevator_init = false;
 
 	const int DOWN_STATE_E_H = 0;
 	const int MID_STATE_E_H = 1;

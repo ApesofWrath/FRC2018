@@ -12,13 +12,13 @@
 #include <WPILib.h>
 #include "ctre/Phoenix.h"
 #include <Timer.h>
-#include <MotionProfiler.h>
 #include <thread>
 #include <chrono>
 #include <vector>
 #include <cmath>
 #include <list>
 #include <DigitalInput.h>
+#include <ElevatorMotionProfiler.h>
 
 class Intake {
 public:
@@ -28,6 +28,8 @@ public:
 	DigitalInput *hallEffectIntake; //for bottom //one top for elevator one bottom for elevator
 
 	std::thread IntakeThread;
+
+	bool is_arm_init = false; //is arm initialized
 
 	const int UP_STATE_H = 0; //arm state machine
 	const int MID_STATE_H = 1;
@@ -54,7 +56,7 @@ public:
 	bool HaveCube();
 	bool EncodersRunning();
 
-	void SetVoltage(double voltage_e);
+	void SetVoltageIntake(double voltage_i);
 
 	void ZeroEnc();
 	void ManualArm(Joystick *joyOpArm);

@@ -14,8 +14,6 @@
 #ifndef SRC_MOTIONPROFILER_H_
 #define SRC_MOTIONPROFILER_H_
 
-//namespace std {
-
 class MotionProfiler {
 public:
 
@@ -73,6 +71,5 @@ public:
 
 };
 
-//} /* namespace std */
 
 #endif /* SRC_MOTIONPROFILER_H_ */
