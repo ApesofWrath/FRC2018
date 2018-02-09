@@ -35,11 +35,11 @@ public:
 	const int HIGH_GEAR_BUTTON = 5;
 
 	const int WAIT_FOR_BUTTON = 1;
-	const int GET_CUBE_GROUND = 2;
-	const int GET_CUBE_STATION = 33;
+	const int GET_CUBE_GROUND = 44;
+	const int GET_CUBE_STATION = 44;
 	const int POST_INTAKE = 44;
-	const int RAISE_TO_SWITCH = 5;
-	const int RAISE_TO_SCALE = 6;
+	const int RAISE_TO_SWITCH = 44;
+	const int RAISE_TO_SCALE = 44;
 
 	const int INTAKE_SPIN_IN = 99;
 	const int INTAKE_SPIN_OUT = 99;
@@ -61,15 +61,15 @@ public:
 	Intake *intake_;
 	Autonomous *autonomous_;
 	TeleopStateMachine *teleop_state_machine;
-	MotionProfiler *intake_profiler_;
-	MotionProfiler *elevator_profiler_;
+	ElevatorMotionProfiler *elevator_profiler_;
+	IntakeMotionProfiler *intake_profiler_;
 
 	Joystick *joyThrottle, *joyWheel, *joyOp;
 
 	void RobotInit() {
 
-		elevator_profiler_ = new MotionProfiler(0.0, 0.0, 0.0001); //will be set in intake and elevator classes for now
-		intake_profiler_ = new MotionProfiler(0.0, 0.0, 0.001);
+		elevator_profiler_ = new ElevatorMotionProfiler(0.0, 0.0, 0.0001); //will be set in intake and elevator classes for now
+		intake_profiler_ = new IntakeMotionProfiler(0.0, 0.0, 0.001);
 
 		pdp_ = new PowerDistributionPanel(3);
 		drive_controller = new DriveController();
@@ -97,35 +97,36 @@ public:
 		drive_controller->ZeroI(true);
 		drive_controller->ZeroEncs();
 		drive_controller->ZeroYaw();
-		//	intake_->ZeroEnc();
-		//elevator_->ZeroEncs
-
-		/*		intake_->ZeroEnc();
-		 intake_->is_arm_init = false;
-
-		 while (intake_->hallEffectIntake->Get()) {
-		 double intake_volt = 2.0 / pdp_->GetVoltage();
-		 intake_->talonIntakeArm->Set(ControlMode::PercentOutput,
-		 intake_volt);
-		 }
-
-		 intake_->talonIntakeArm->Set(ControlMode::PercentOutput, 0.0);
-		 intake_->ZeroEnc();
-		 */
+//
+//		intake_->ZeroEnc();
+//		 intake_->is_arm_init = false;
+//
+//		 while (intake_->hallEffectIntake->Get()) {
+//		 double intake_volt = 2.0 / pdp_->GetVoltage();
+//		 intake_->talonIntakeArm->Set(ControlMode::PercentOutput,
+//		 intake_volt);
+//		 }
+//
+//		 intake_->talonIntakeArm->Set(ControlMode::PercentOutput, 0.0);
+//		 intake_->ZeroEnc();
 
 
-		 elevator_->ZeroEncs();
-		 elevator_->is_elevator_init = false;
+		elevator_->ZeroEncs();
+		//elevator_->is_elevator_init = false; //IMPLEMENT THIS
 
-		 while(elevator_->hallEffectBottom->Get()) {
-		 double elevator_volt = 2.0 / pdp_->GetVoltage() * -1.0;
-		 elevator_->talonElevator1->Set(ControlMode::PercentOutput, elevator_volt);
-		 elevator_->talonElevator2->Set(ControlMode::PercentOutput, elevator_volt);
+		while (elevator_->hallEffectBottom->Get()) {
+			double elevator_volt = (2.0 / pdp_->GetVoltage()) * -1.0;
+			elevator_->talonElevator1->Set(ControlMode::PercentOutput,
+					elevator_volt);
+			elevator_->talonElevator2->Set(ControlMode::PercentOutput,
+					elevator_volt);
 
-		 }
+		}
 
-		 elevator_->talonElevator1->Set(ControlMode::PercentOutput, 0.0);
-		 elevator_->ZeroEncs();
+		double up_volt = ( 0.2 * -1.0 ) / pdp_->GetVoltage();
+		elevator_->talonElevator1->Set(ControlMode::PercentOutput, up_volt);
+		elevator_->talonElevator2->Set(ControlMode::PercentOutput, up_volt);
+		elevator_->ZeroEncs();
 
 
 		teleop_state_machine->Initialize();
@@ -133,8 +134,8 @@ public:
 //#ifndef THREADS
 //		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
 //				&is_vision, &is_fc); //pass by reference through the wrapper
-//		intake_->StartIntakeThread();
-		//	elevator_->StartElevatorThread();
+		intake_->StartIntakeThread();
+		elevator_->StartElevatorThread();
 //#endif
 
 	}
@@ -143,9 +144,9 @@ public:
 
 		//intake_->ManualArm(joyOp);
 		//	intake_->ManualWheels(joyOp);
-		elevator_->ManualElevator(joyThrottle);
+		//elevator_->ManualElevator(joyThrottle);
 
-#ifndef STATEMACHINE
+//#ifndef STATEMACHINE
 
 		bool low_gear = joyThrottle->GetRawButton(LOW_GEAR_BUTTON);
 		bool high_gear = joyThrottle->GetRawButton(HIGH_GEAR_BUTTON);
@@ -175,7 +176,7 @@ public:
 		elevator_->ElevatorStateMachine();
 		intake_->IntakeArmStateMachine();
 		intake_->IntakeWheelStateMachine();
-#endif
+//#endif
 
 //		is_heading = false;
 //		is_vision = false;

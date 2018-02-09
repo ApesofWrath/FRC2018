@@ -64,18 +64,18 @@ Timer *intakeTimer = new Timer();
 
 PowerDistributionPanel *pdp_i;
 
-MotionProfiler *intake_profiler;
+IntakeMotionProfiler *intake_profiler;
 
 bool is_at_bottom = false;
 bool first_time_at_bottom = false;
 int counter_i = 0;
 
-Intake::Intake(PowerDistributionPanel *pdp, MotionProfiler *intake_profiler_) {
+Intake::Intake(PowerDistributionPanel *pdp, IntakeMotionProfiler *intake_profiler_) {
 
 	intake_profiler = intake_profiler_;
 
-	intake_profiler->SetMaxAcc(MAX_ACCELERATION_I);
-	intake_profiler->SetMaxVel(MAX_VELOCITY_I);
+	intake_profiler->SetMaxAccIntake(MAX_ACCELERATION_I);
+	intake_profiler->SetMaxVelIntake(MAX_VELOCITY_I);
 
 	hallEffectIntake = new DigitalInput(0); //will return 0 if arm is at bottom
 
@@ -113,41 +113,6 @@ void Intake::StopWheels() {
 
 }
 
-double Intake::GetAngularVelocity() {
-
-	//Native vel units are in ticks per 100ms so divide by TICKS_PER_ROT to get rotations per 100ms then multiply 10 to get per second
-	//multiply by 2pi to get into radians per second (2pi radians are in one revolution)
-	double ang_vel = (talonIntakeArm->GetSelectedSensorVelocity(0)
-			/ (TICKS_PER_ROT_I)) * (2.0 * PI) * (10.0) * -2.0;
-
-	return ang_vel;
-
-}
-
-double Intake::GetAngularPosition() {
-
-	//Native position in ticks, divide by ticks per rot to get into revolutions multiply by 2pi to get into radians
-	//2pi radians per rotations
-	double ang_pos = (talonIntakeArm->GetSelectedSensorPosition(0.0)
-			/ (TICKS_PER_ROT_I)) * (2.0 * PI) * -2.0;
-
-	return ang_pos;
-
-}
-
-void Intake::ManualWheels(Joystick *joyOpWheels) {
-
-	SmartDashboard::PutNumber("WHEELS CUR", talonIntake1->GetOutputCurrent());
-	double enc = (talonIntake1->GetSelectedSensorPosition(0) / 4096.0) * 2.0
-			* PI; //change this
-	SmartDashboard::PutNumber("WHEELS ENC", enc);
-
-	double out = joyOpWheels->GetRawAxis(3) * -1.0;
-
-	talonIntake1->Set(ControlMode::PercentOutput, out);
-
-}
-
 void Intake::ManualArm(Joystick *joyOpArm) {
 
 	SmartDashboard::PutNumber("ARM CUR", talonIntakeArm->GetOutputCurrent());
@@ -158,19 +123,43 @@ void Intake::ManualArm(Joystick *joyOpArm) {
 
 	double output = joyOpArm->GetY() * 0.5 * 1.0;
 
-	//std::cout << "output " << output << std::endl;
-
-	//std::cout << "COUNT " << counter_i << std::endl;
-
-	//counter_i = 0;
-
 	output *= pdp_i->GetVoltage();
-
-	//last_is_at_bottom = is_at_bottom;
 
 	SmartDashboard::PutNumber("ARM OUTPUT", output);
 
 	SetVoltageIntake(output);
+
+}
+
+void Intake::Rotate(std::vector<std::vector<double> > ref_intake) {
+
+	//top is position, bottom is velocity
+
+	double current_pos = GetAngularPosition();
+	double current_vel = GetAngularVelocity();
+	double goal_pos = ref_intake[0][0];
+	double goal_vel = ref_intake[1][0];
+
+	SmartDashboard::PutNumber("INTAKE POS", current_pos);
+	SmartDashboard::PutNumber("INTAKE VEL", current_vel);
+
+	SmartDashboard::PutNumber("INTAKE REF POS", goal_pos);
+	SmartDashboard::PutNumber("INTAKE REF VEL", goal_vel);
+
+	error_i[0][0] = goal_pos - current_pos;
+	error_i[1][0] = goal_vel - current_vel;
+
+	SmartDashboard::PutNumber("INTAKE ERR POS", error_i[0][0]);
+	SmartDashboard::PutNumber("INTAKE ERR VEL", error_i[1][0]);
+
+	v_bat_i = pdp_i->GetVoltage();
+
+	u_i = (K_i[0][0] * error_i[0][0]) + (K_i[0][1] * error_i[1][0]) //u_i is in voltage, * by v_bat_i
+			+ (Kv_i * goal_vel * v_bat_i); // for this system the second row of the K matrix is a copy and does not matter.
+
+	SmartDashboard::PutNumber("INTAKE OUTPUT", u_i);
+
+	SetVoltageIntake(u_i);
 
 }
 
@@ -213,35 +202,38 @@ void Intake::SetVoltageIntake(double voltage_i) {
 
 }
 
-void Intake::Rotate(std::vector<std::vector<double> > ref_intake) {
+double Intake::GetAngularVelocity() {
 
-	//top is position, bottom is velocity
+	//Native vel units are in ticks per 100ms so divide by TICKS_PER_ROT to get rotations per 100ms then multiply 10 to get per second
+	//multiply by 2pi to get into radians per second (2pi radians are in one revolution)
+	double ang_vel = (talonIntakeArm->GetSelectedSensorVelocity(0)
+			/ (TICKS_PER_ROT_I)) * (2.0 * PI) * (10.0) * -2.0;
 
-	double current_pos = GetAngularPosition();
-	double current_vel = GetAngularVelocity();
-	double goal_pos = ref_intake[0][0];
-	double goal_vel = ref_intake[1][0];
+	return ang_vel;
 
-	SmartDashboard::PutNumber("INTAKE POS", current_pos);
-	SmartDashboard::PutNumber("INTAKE VEL", current_vel);
+}
 
-	SmartDashboard::PutNumber("INTAKE REF POS", goal_pos);
-	SmartDashboard::PutNumber("INTAKE REF VEL", goal_vel);
+double Intake::GetAngularPosition() {
 
-	error_i[0][0] = goal_pos - current_pos;
-	error_i[1][0] = goal_vel - current_vel;
+	//Native position in ticks, divide by ticks per rot to get into revolutions multiply by 2pi to get into radians
+	//2pi radians per rotations
+	double ang_pos = (talonIntakeArm->GetSelectedSensorPosition(0.0)
+			/ (TICKS_PER_ROT_I)) * (2.0 * PI) * -2.0;
 
-	SmartDashboard::PutNumber("INTAKE ERR POS", error_i[0][0]);
-	SmartDashboard::PutNumber("INTAKE ERR VEL", error_i[1][0]);
+	return ang_pos;
 
-	v_bat_i = pdp_i->GetVoltage();
+}
 
-	u_i = (K_i[0][0] * error_i[0][0]) + (K_i[0][1] * error_i[1][0]) //u_i is in voltage, * by v_bat_i
-			+ (Kv_i * goal_vel * v_bat_i); // for this system the second row of the K matrix is a copy and does not matter.
+void Intake::ManualWheels(Joystick *joyOpWheels) {
 
-	SmartDashboard::PutNumber("INTAKE OUTPUT", u_i);
+	SmartDashboard::PutNumber("WHEELS CUR", talonIntake1->GetOutputCurrent());
+	double enc = (talonIntake1->GetSelectedSensorPosition(0) / 4096.0) * 2.0
+			* PI; //change this
+	SmartDashboard::PutNumber("WHEELS ENC", enc);
 
-	SetVoltageIntake(u_i);
+	double out = joyOpWheels->GetRawAxis(3) * -1.0;
+
+	talonIntake1->Set(ControlMode::PercentOutput, out);
 
 }
 
@@ -258,10 +250,10 @@ void Intake::IntakeArmStateMachine() {
 	case UP_STATE:
 		SmartDashboard::PutString("INTAKE ARM", "UP");
 		if (last_intake_state != UP_STATE) { //first time in state
-			intake_profiler->SetMaxAcc(MAX_ACCELERATION_I); //these must be reset in each state
-			intake_profiler->SetMaxVel(MAX_VELOCITY_I);
-			intake_profiler->SetFinalGoal(UP_ANGLE);
-			intake_profiler->SetInitPos(GetAngularPosition()); //is 0
+			intake_profiler->SetMaxAccIntake(MAX_ACCELERATION_I); //these must be reset in each state
+			intake_profiler->SetMaxVelIntake(MAX_VELOCITY_I);
+			intake_profiler->SetFinalGoalIntake(UP_ANGLE);
+			intake_profiler->SetInitPosIntake(GetAngularPosition()); //is 0
 			//std::cout << "HERE" << std::endl;
 			//SmartDashboard::PutString("IN RESET TO DOWN", "YES");
 		}
@@ -270,20 +262,20 @@ void Intake::IntakeArmStateMachine() {
 	case MID_STATE:
 		SmartDashboard::PutString("INTAKE ARM", "MID");
 		if (last_intake_state != MID_STATE) {
-			intake_profiler->SetMaxAcc(MAX_ACCELERATION_I); //these must be reset in each state
-			intake_profiler->SetMaxVel(MAX_VELOCITY_I);
-			intake_profiler->SetInitPos(GetAngularPosition());
-			intake_profiler->SetFinalGoal(MID_ANGLE);
+			intake_profiler->SetMaxAccIntake(MAX_ACCELERATION_I); //these must be reset in each state
+			intake_profiler->SetMaxVelIntake(MAX_VELOCITY_I);
+			intake_profiler->SetInitPosIntake(GetAngularPosition());
+			intake_profiler->SetFinalGoalIntake(MID_ANGLE);
 		}
 		break;
 
 	case DOWN_STATE:
 		SmartDashboard::PutString("INTAKE ARM", "DOWN");
 		if (last_intake_state != DOWN_STATE) {
-			intake_profiler->SetMaxAcc(MAX_ACCELERATION_I); //these must be reset in each state
-			intake_profiler->SetMaxVel(MAX_VELOCITY_I);
-			intake_profiler->SetFinalGoal(DOWN_ANGLE);
-			intake_profiler->SetInitPos(GetAngularPosition());
+			intake_profiler->SetMaxAccIntake(MAX_ACCELERATION_I); //these must be reset in each state
+			intake_profiler->SetMaxVelIntake(MAX_VELOCITY_I);
+			intake_profiler->SetFinalGoalIntake(DOWN_ANGLE);
+			intake_profiler->SetInitPosIntake(GetAngularPosition());
 		}
 		break;
 
@@ -323,7 +315,7 @@ void Intake::IntakeWheelStateMachine() {
 bool Intake::EncodersRunning() { //will stop the controller from run
 
 	double current_pos = GetAngularPosition(); //radians
-	double current_ref = intake_profiler->GetNextRef().at(0).at(0);
+	double current_ref = intake_profiler->GetNextRefIntake().at(0).at(0);
 
 //	if (talonIntakeArm->GetOutputCurrent() > 3.0
 //			&& std::abs(talonIntakeArm->GetSelectedSensorVelocity(0)) <= 0.2
@@ -362,7 +354,7 @@ void Intake::IntakeWrapper(Intake *in) {
 			if (intakeTimer->HasPeriodPassed(INTAKE_WAIT_TIME)) {
 
 				std::vector<std::vector<double>> profile_intake =
-						intake_profiler->GetNextRef();
+						intake_profiler->GetNextRefIntake();
 
 //				std::cout << "pos: " << profile_intake.at(0).at(0) << "  "
 //						<< "vel: " << profile_intake.at(1).at(0) << "   "

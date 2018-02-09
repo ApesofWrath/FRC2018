@@ -7,7 +7,7 @@
 
 #include <ElevatorMotionProfiler.h>
 
-MotionProfiler::MotionProfiler(double max_vel, double max_acc,
+ElevatorMotionProfiler::ElevatorMotionProfiler(double max_vel, double max_acc,
 		double time_step) {
 
 	max_velocity = max_vel;
@@ -17,15 +17,16 @@ MotionProfiler::MotionProfiler(double max_vel, double max_acc,
 
 }
 
-void MotionProfiler::SetFinalGoal(double goal) {
+void ElevatorMotionProfiler::SetFinalGoalElevator(double goal) {
 
 	final_goal = goal;
 
 }
 
-void MotionProfiler::SetInitPos(double position_init) { //at every new whole profile
+void ElevatorMotionProfiler::SetInitPosElevator(double position_init) { //at every new whole profile
 
 	init_pos = position_init;
+	pos = init_pos; //this is necessary
 	last_vel = 0.0;
 	last_pos = init_pos;
 	acc = 0.0;
@@ -33,24 +34,20 @@ void MotionProfiler::SetInitPos(double position_init) { //at every new whole pro
 
 }
 
-void MotionProfiler::SetMaxVel(double max_vel) {
+void ElevatorMotionProfiler::SetMaxVelElevator(double max_vel) {
 
 	max_velocity = max_vel;
 
 }
 
-void MotionProfiler::SetMaxAcc(double max_acc) {
+void ElevatorMotionProfiler::SetMaxAccElevator(double max_acc) {
 
 	max_acceleration = max_acc;
 
 }
 
-void MotionProfiler::Test() {
-
-}
-
 //pre: set init pos and final goal for the first point in the whole profile
-std::vector<std::vector<double>> MotionProfiler::GetNextRef() { //used by both elevator and intake
+std::vector<std::vector<double>> ElevatorMotionProfiler::GetNextRefElevator() { //used by both elevator and intake
 
 	time_dt = 0.0001; //seconds //lower res without 0.000001 and counter, but still ok
 
@@ -67,7 +64,7 @@ std::vector<std::vector<double>> MotionProfiler::GetNextRef() { //used by both e
 
 	while (counter < 100) {
 		if (ref >= init_pos) { //profile to go up
-			if (pos < ref) { //still need to go up
+			if (pos < ref) { //still need to go up, profile not over
 
 				ramp_time = vel / max_acceleration; //y / slope
 				ramp_dis = 0.5 * (vel * ramp_time); //area
@@ -90,12 +87,12 @@ std::vector<std::vector<double>> MotionProfiler::GetNextRef() { //used by both e
 		} else if (ref < init_pos) {
 			if (pos > ref) {
 
-				std::cout << "POS > REF" << std::endl;
+			//	std::cout << "POS > REF" << std::endl;
 
 				ramp_time = vel / max_acceleration;
 				ramp_dis = 0.5 * (vel * ramp_time);
 
-				if ((ramp_dis - ref) >= pos) {
+				if ((ramp_dis + ref) >= pos) { //changed to +
 					acc = 1.0 * max_acceleration;
 				} else if (vel > (-1.0 * max_velocity)) {
 					acc = -1.0 * max_acceleration;
@@ -132,7 +129,7 @@ std::vector<std::vector<double>> MotionProfiler::GetNextRef() { //used by both e
 }
 
 //works off basic triangle geometry calculating times through area calculations under velocity time curves (acceleration is known and constant)
-std::vector<std::vector<double> > MotionProfiler::CreateProfile1D(
+std::vector<std::vector<double> > ElevatorMotionProfiler::CreateProfile1DElevator(
 		double init_pos, //1D movement
 		std::vector<double> waypoints) {
 
@@ -196,7 +193,7 @@ std::vector<std::vector<double> > MotionProfiler::CreateProfile1D(
 				ramp_time = velocity / max_acceleration;
 				ramp_dis = 0.5 * (velocity * ramp_time);
 
-				if ((ramp_dis - ref) >= position) {
+				if ((ramp_dis + ref) >= position) {
 					acceleration = 1.0 * max_acceleration;
 				} else if (velocity > (-1.0 * max_velocity)) {
 					acceleration = -1.0 * max_acceleration;
@@ -233,7 +230,7 @@ std::vector<std::vector<double> > MotionProfiler::CreateProfile1D(
 }
 
 //returns the angle between two waypoints in radians
-double MotionProfiler::FindAngle(std::vector<double> p1,
+double ElevatorMotionProfiler::FindAngleElevator(std::vector<double> p1,
 		std::vector<double> p2) { //point 1, point 2
 
 	double y1 = p1.at(1);

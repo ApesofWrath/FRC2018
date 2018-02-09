@@ -19,7 +19,7 @@
 class Elevator {
 public:
 
-	Elevator(PowerDistributionPanel *pdp, MotionProfiler *elevator_profiler_);
+	Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_);
 
 	TalonSRX *talonElevator1, *talonElevator2;
 

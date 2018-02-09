@@ -18,7 +18,7 @@
 #include <cmath>
 #include <list>
 #include <DigitalInput.h>
-#include <ElevatorMotionProfiler.h>
+#include <IntakeMotionProfiler.h>
 
 class Intake {
 public:
@@ -42,7 +42,7 @@ public:
 	const int OUT_STATE_H = 2;
 	int intake_wheel_state = STOP_WHEEL_STATE_H;
 
-	Intake(PowerDistributionPanel *pdp, MotionProfiler *intake_profiler_);
+	Intake(PowerDistributionPanel *pdp, IntakeMotionProfiler *intake_profiler);
 
 	void In();
 	void Out();
