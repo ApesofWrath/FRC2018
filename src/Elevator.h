@@ -23,20 +23,23 @@ public:
 
 	TalonSRX *talonElevator1, *talonElevator2;
 
-
 	DigitalInput *hallEffectTop;
 	DigitalInput *hallEffectBottom;
 
-
 	std::thread ElevatorThread;
+
+	PowerDistributionPanel *pdp_e;
 
 	bool is_elevator_init = false;
 
-	const int DOWN_STATE_E_H = 0;
-	const int MID_STATE_E_H = 1;
-	const int UP_STATE_E_H = 2;
-	const int STOP_STATE_E_H = 3;
-	int elevator_state = DOWN_STATE_E_H;
+	const int INIT_STATE_E_H = 0;
+	const int DOWN_STATE_E_H = 1;
+	const int MID_STATE_E_H = 2;
+	const int UP_STATE_E_H = 3;
+	const int STOP_STATE_E_H = 4;
+	int elevator_state = INIT_STATE_E_H;
+
+	void InitializeElevator();
 
 	void ElevatorStateMachine();
 	void Move(std::vector<std::vector<double> > ref_elevator);
@@ -49,7 +52,10 @@ public:
 	double GetElevatorPosition();
 	double GetElevatorVelocity();
 
+	bool IsAtBottomElevator();
+	bool IsAtTopElevator();
 	bool ElevatorEncodersRunning();
+
 	void ZeroEncs();
 
 	void StartElevatorThread();

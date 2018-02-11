@@ -11,7 +11,7 @@
 #include <WPILib.h>
 #include <Elevator.h>
 #include <Intake.h>
-//#include <thread>
+#include <fstream>
 #include <DriveController.h>
 #include <ElevatorMotionProfiler.h>
 
@@ -20,6 +20,8 @@ public:
 
 	Autonomous(DriveController *dc, Elevator *el, Intake *in);
 	void RunAuton();
+
+	void FillProfile(std::string profileName);
 
 
 };

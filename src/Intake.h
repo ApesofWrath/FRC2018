@@ -25,17 +25,18 @@ public:
 
 	TalonSRX *talonIntake1, *talonIntake2, *talonIntakeArm;
 
-	DigitalInput *hallEffectIntake; //for bottom //one top for elevator one bottom for elevator
+	DigitalInput *hallEffectIntake; //for bottom
 
 	std::thread IntakeThread;
 
-	bool is_arm_init = false; //is arm initialized
+	bool is_init_intake = false; //is arm initialized
 
-	const int UP_STATE_H = 0; //arm state machine
-	const int MID_STATE_H = 1;
-	const int DOWN_STATE_H = 2;
-	const int STOP_ARM_STATE_H = 3;
-	int intake_arm_state = UP_STATE_H;
+	const int INIT_STATE_H = 0;
+	const int UP_STATE_H = 1; //arm state machine
+	const int MID_STATE_H = 2;
+	const int DOWN_STATE_H = 3;
+	const int STOP_ARM_STATE_H = 4;
+	int intake_arm_state = INIT_STATE_H;
 
 	const int STOP_WHEEL_STATE_H = 0; //wheel state machine
 	const int IN_STATE_H = 1;
@@ -43,6 +44,8 @@ public:
 	int intake_wheel_state = STOP_WHEEL_STATE_H;
 
 	Intake(PowerDistributionPanel *pdp, IntakeMotionProfiler *intake_profiler);
+
+	void InitializeIntake();
 
 	void In();
 	void Out();
@@ -53,7 +56,9 @@ public:
 	double GetAngularVelocity();
 	double GetAngularPosition();
 
+	bool IsAtBottomIntake();
 	bool HaveCube();
+	bool ReleasedCube();
 	bool EncodersRunning();
 
 	void SetVoltageIntake(double voltage_i);
@@ -67,9 +72,7 @@ public:
 
 	void StartIntakeThread();
 	void EndIntakeThread();
-	static void IntakeWrapper(Intake *in); //double *ref_in
-
-
+	static void IntakeWrapper(Intake *in);
 
 };
 

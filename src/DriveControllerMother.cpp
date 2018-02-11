@@ -6,7 +6,6 @@
  */
 
 //TODO: Check encoder counts for drive encoders
-
 #include <DriveControllerMother.h>
 #include <WPILib.h>
 #include "ctre/Phoenix.h" //needed to be double included
@@ -56,9 +55,9 @@ double kick_last_error_vel = 0;
 
 //Changeable Start
 
-const double K_P_RIGHT_VEL_LOW = 0.001;//008;
-const double K_P_LEFT_VEL_LOW = 0.001;//002;
-const double K_P_YAW_VEL_LOW = 5.0;//5.0; //8.0
+const double K_P_RIGHT_VEL_LOW = 0.001; //008;
+const double K_P_LEFT_VEL_LOW = 0.001; //002;
+const double K_P_YAW_VEL_LOW = 5.0; //5.0; //8.0
 const double K_D_YAW_VEL_LOW = 0.0; //0.0
 const double K_D_RIGHT_VEL_LOW = 0.000;
 const double K_D_LEFT_VEL_LOW = 0.000;
@@ -141,8 +140,8 @@ double Kv = 0; //scale from -1 to 1
 const double MAX_KICK_FPS = ((MAX_X_RPM * WHEEL_DIAMETER * PI) / 12.0) / 60.0;
 const int Kv_KICK = 1 / MAX_KICK_FPS;
 
-const double UP_SHIFT_VEL = 0.0;
-const double DOWN_SHIFT_VEL = 0.0; //will be less than up shift vel
+const double UP_SHIFT_VEL = 4888.7; // (24/14) *9370
+const double DOWN_SHIFT_VEL = 2342.5; //will be less than up shift vel (14/56) *9370
 
 double P_RIGHT_DIS = 0;
 double I_RIGHT_DIS = 0;
@@ -257,7 +256,6 @@ DriveControllerMother::DriveControllerMother(int fl, int fr, int rl, int rr,
 	canTalonLeft4 = new TalonSRX(-1);
 	solenoid = new DoubleSolenoid(-1, -1, -1);
 
-
 }
 
 DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
@@ -346,6 +344,15 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 	canTalonRight4 = new TalonSRX(RR);
 	canTalonRight4->Set(ControlMode::Follower, RF);
 
+	canTalonLeft1->EnableCurrentLimit(true); //needed this
+	canTalonLeft2->EnableCurrentLimit(true);
+	canTalonLeft3->EnableCurrentLimit(true);
+	canTalonLeft4->EnableCurrentLimit(true);
+	canTalonRight1->EnableCurrentLimit(true);
+	canTalonRight2->EnableCurrentLimit(true);
+	canTalonRight3->EnableCurrentLimit(true);
+	canTalonRight4->EnableCurrentLimit(true);
+
 	canTalonLeft1->ConfigPeakCurrentLimit(30, 0);
 	canTalonLeft2->ConfigPeakCurrentLimit(30, 0);
 	canTalonLeft3->ConfigPeakCurrentLimit(30, 0);
@@ -354,6 +361,15 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 	canTalonRight2->ConfigPeakCurrentLimit(30, 0);
 	canTalonRight3->ConfigPeakCurrentLimit(30, 0);
 	canTalonRight4->ConfigPeakCurrentLimit(30, 0);
+
+	canTalonLeft1->ConfigContinuousCurrentLimit(30, 0); //set this
+	canTalonLeft2->ConfigContinuousCurrentLimit(30, 0);
+	canTalonLeft3->ConfigContinuousCurrentLimit(30, 0);
+	canTalonLeft4->ConfigContinuousCurrentLimit(30, 0);
+	canTalonRight1->ConfigContinuousCurrentLimit(30, 0);
+	canTalonRight2->ConfigContinuousCurrentLimit(30, 0);
+	canTalonRight3->ConfigContinuousCurrentLimit(30, 0);
+	canTalonRight4->ConfigContinuousCurrentLimit(30, 0);
 
 	canTalonLeft1->ConfigOpenloopRamp(0.1, 0); //TODO: adjust this as needed
 	canTalonLeft2->ConfigOpenloopRamp(0.1, 0);
@@ -700,14 +716,16 @@ void DriveControllerMother::SetGainsLow() {
 
 void DriveControllerMother::AutoShift() {
 
-	double current_rpm_l = (canTalonLeft1->GetSelectedSensorVelocity(0) / TICKS_PER_ROT) * MINUTE_CONVERSION;
-	double current_rpm_r = (canTalonRight1->GetSelectedSensorVelocity(0) / TICKS_PER_ROT) * MINUTE_CONVERSION;
+	double current_rpm_l = (canTalonLeft1->GetSelectedSensorVelocity(0)
+			/ TICKS_PER_ROT) * MINUTE_CONVERSION;
+	double current_rpm_r = (canTalonRight1->GetSelectedSensorVelocity(0)
+			/ TICKS_PER_ROT) * MINUTE_CONVERSION;
 
-	if(current_rpm_l > UP_SHIFT_VEL && current_rpm_r > UP_SHIFT_VEL) {
+	if (current_rpm_l > UP_SHIFT_VEL && current_rpm_r > UP_SHIFT_VEL) {
 		ShiftUp();
 	}
 	//if in between, will stay in the gear it is in. in order to not shift back and forth at one point
-	else if(current_rpm_l < DOWN_SHIFT_VEL && current_rpm_r < DOWN_SHIFT_VEL) {
+	else if (current_rpm_l < DOWN_SHIFT_VEL && current_rpm_r < DOWN_SHIFT_VEL) {
 		ShiftDown();
 	}
 
@@ -961,43 +979,44 @@ void DriveControllerMother::TeleopWrapper(Joystick *JoyThrottle,
 	}
 }
 
-void DriveControllerMother::AutonWrapper(DriveControllerMother *driveController) {
+void DriveControllerMother::AutonWrapper(
+		DriveControllerMother *driveController) {
 
 	timerAuton->Start();
 
-		while (frc::RobotState::IsAutonomous() && frc::RobotState::IsEnabled()) {
+	while (frc::RobotState::IsAutonomous() && frc::RobotState::IsEnabled()) {
 
-			std::this_thread::sleep_for(
-					std::chrono::milliseconds(DRIVE_SLEEP_TIME));
+		std::this_thread::sleep_for(
+				std::chrono::milliseconds(DRIVE_SLEEP_TIME));
 
-			if (timerAuton->HasPeriodPassed(DRIVE_WAIT_TIME)) {
+		if (timerAuton->HasPeriodPassed(DRIVE_WAIT_TIME)) {
 
-				for (int i = 0; i < sizeof(drive_ref); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs
+			for (int i = 0; i < sizeof(drive_ref); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs
 
-					//drive_ref[i] = full_refs[profile_index][i]; //from SetRef()
+				//drive_ref[i] = full_refs[profile_index][i]; //from SetRef()
 
-				}
-
-				if (drive_ref[12] == 1) { //vision on
-
-					//driveController->AutoVisionTrack();
-
-				} else { //vision off
-
-					driveController->AutonDrive();
-
-				}
-
-				timerAuton->Reset();
-
-			//	profile_index++;
 			}
 
-			//if (profile_index >= NUM_POINTS) { //stop at the end of the motion profile, this number is set after the creation of the array
-				//so not all of the array will be accessed, only the part before the non-zero points
-				break;
-			//}
+			if (drive_ref[12] == 1) { //vision on
+
+				//driveController->AutoVisionTrack();
+
+			} else { //vision off
+
+				driveController->AutonDrive();
+
+			}
+
+			timerAuton->Reset();
+
+			//	profile_index++;
 		}
+
+		//if (profile_index >= NUM_POINTS) { //stop at the end of the motion profile, this number is set after the creation of the array
+		//so not all of the array will be accessed, only the part before the non-zero points
+		break;
+		//}
+	}
 
 }
 

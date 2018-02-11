@@ -31,12 +31,17 @@ TeleopStateMachine::TeleopStateMachine(Elevator *elevator_, Intake *intake_) {
 }
 
 void TeleopStateMachine::StateMachine(bool wait_for_button,
-		bool intake_spin_in, //look this over //nothing automatically sets intake arm or elevator to mid state
+		bool intake_spin_in, //nothing automatically sets intake arm or elevator to mid state
 		bool intake_spin_out, bool intake_spin_stop, bool get_cube_ground,
 		bool get_cube_station, bool post_intake, bool raise_to_switch,
 		bool raise_to_scale, bool intake_arm_up, bool intake_arm_mid, bool intake_arm_down,
 		bool elevator_up, bool elevator_mid, bool elevator_down) {
 
+	if (wait_for_button) { //can always return to wait for button state
+		state = WAIT_FOR_BUTTON_STATE;
+	}
+
+	//intake wheels
 	if (intake_spin_out) {
 		state_intake_wheel = false;
 		intake->intake_wheel_state = intake->OUT_STATE_H;
@@ -50,6 +55,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button,
 		state_intake_wheel = true;
 	}
 
+	//intake arm
 	if (!intake->EncodersRunning()) { //will stop regardless of what operator does //
 		state_intake_arm = false;
 		intake->intake_arm_state = intake->STOP_ARM_STATE_H;
@@ -66,6 +72,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button,
 		state_intake_arm = true;
 	}
 
+	//elevator
 	if (!elevator->ElevatorEncodersRunning()) { //will stop regardless of what operator does //
 		state_elevator = false;
 		elevator->elevator_state = elevator->STOP_STATE_E_H;
@@ -82,16 +89,12 @@ void TeleopStateMachine::StateMachine(bool wait_for_button,
 		state_elevator = true;
 	}
 
-	if (wait_for_button) { //can always return to wait for button state
-		state = WAIT_FOR_BUTTON_STATE;
-	}
-
 	switch (state) {
 
 	case INIT_STATE:
 		SmartDashboard::PutString("STATE", "INIT");
-		elevator->elevator_state = elevator->DOWN_STATE_E_H;
-		intake->intake_arm_state = intake->DOWN_STATE_H; //up
+		elevator->elevator_state = elevator->INIT_STATE_E_H;
+		intake->intake_arm_state = intake->INIT_STATE_H;
 		intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
 		state = WAIT_FOR_BUTTON_STATE;
 		break;
@@ -99,13 +102,13 @@ void TeleopStateMachine::StateMachine(bool wait_for_button,
 	case WAIT_FOR_BUTTON_STATE:
 		SmartDashboard::PutString("STATE", "WAIT FOR BUTTON");
 
-		if (get_cube_ground) { //can go to all states below
+		if (get_cube_ground) { //can go to all states below wfb state
 			state = GET_CUBE_GROUND_STATE;
 		} else if (get_cube_station) {
 			state = GET_CUBE_STATION_STATE;
 		} else if (post_intake) {
 			state = POST_INTAKE_STATE;
-		} else if (raise_to_scale) { //should not need to go from this state to a place state, but in case
+		} else if (raise_to_scale) { //should not need to go from wfb state to a raise state, but in case
 			if (state_intake_wheel) {
 				intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H; //in order to not have to change intake wheel state immediately
 			}
