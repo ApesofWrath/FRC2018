@@ -201,6 +201,6 @@ void TeleopStateMachine::StateMachine(bool wait_for_button,
 
 void TeleopStateMachine::Initialize() {
 
-	state = WAIT_FOR_BUTTON_STATE;
+	state = INIT_STATE;
 
 }

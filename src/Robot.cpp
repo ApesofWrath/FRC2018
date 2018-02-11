@@ -56,7 +56,7 @@ public:
 
 	bool is_heading, is_vision, is_fc;
 
-	DriveController *drive_controller;
+//	DriveController *drive_controller;
 	PowerDistributionPanel *pdp_;
 	Elevator *elevator_;
 	Intake *intake_;
@@ -79,10 +79,10 @@ public:
 		intake_profiler_ = new IntakeMotionProfiler(0.0, 0.0, 0.0001);
 
 		pdp_ = new PowerDistributionPanel(3);
-		drive_controller = new DriveController();
+//		drive_controller = new DriveController();
 		intake_ = new Intake(pdp_, intake_profiler_);
 		elevator_ = new Elevator(pdp_, elevator_profiler_);
-		autonomous_ = new Autonomous(drive_controller, elevator_, intake_);
+//		autonomous_ = new Autonomous(drive_controller, elevator_, intake_);
 		teleop_state_machine = new TeleopStateMachine(elevator_, intake_);
 
 		joyThrottle = new Joystick(JOY_THROTTLE);
@@ -125,14 +125,14 @@ public:
 //		drive_controller->ZeroYaw();
 
 		elevator_->ZeroEncs();
-		//intake_->ZeroEnc();
+		intake_->ZeroEnc();
 
 		teleop_state_machine->Initialize();
 
 //#ifndef THREADS
 //		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
 //				&is_vision, &is_fc); //pass by reference through the wrapper
-	//	intake_->StartIntakeThread();
+		intake_->StartIntakeThread();
 		elevator_->StartElevatorThread();
 //#endif
 
@@ -141,7 +141,7 @@ public:
 	void TeleopPeriodic() {
 
 #if !STATEMACHINE
-		//intake_->ManualArm(joyOp);
+		intake_->ManualArm(joyOp);
 		//	intake_->ManualWheels(joyOp);
 		elevator_->ManualElevator(joyThrottle);
 
@@ -175,16 +175,16 @@ public:
 
 		elevator_->ElevatorStateMachine();
 		intake_->IntakeArmStateMachine();
-		intake_->IntakeWheelStateMachine();
+		//intake_->IntakeWheelStateMachine();
 
 		is_heading = false;
 		is_vision = false;
 		is_fc = false;
 
 		if (low_gear) {
-			drive_controller->ShiftDown();
+	//		drive_controller->ShiftDown();
 		} else if (high_gear) {
-			drive_controller->ShiftUp();
+		//	drive_controller->ShiftUp();
 		}
 #endif
 	}
@@ -192,10 +192,12 @@ public:
 	void DisabledInit() override {
 
 		//drive_controller->EndTeleopThreads();
-//		intake_->EndIntakeThread(); //may not actually disable threads
+		intake_->EndIntakeThread(); //may not actually disable threads
 		elevator_->EndElevatorThread();
 		teleop_state_machine->Initialize();
 
+		intake_->is_init_intake = false;
+		elevator_->is_elevator_init = false;
 	}
 
 	void TestPeriodic() {
