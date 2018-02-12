@@ -44,7 +44,7 @@ int last_elevator_state = 0; //init state
 
 const double DOWN_POS_E = 0.0; //starting pos
 const double MID_POS_E = 0.25;
-const double UP_POS_E = 0.5;
+const double UP_POS_E = 0.7;
 
 double offset = 0.0;
 double ff = 0.0; //feedforward
@@ -52,9 +52,8 @@ double u_e = 0.0; //this is the input in volts to the motor
 double v_bat_e = 0.0; //this will be the voltage of the battery at every loop
 
 std::vector<std::vector<double> > K_e;
-std::vector<std::vector<double> > K_down_e =
-		{ { 13.16, .71 }, { 13.16, .71 } }; //controller matrix that is calculated in the Python simulation
-std::vector<std::vector<double> > K_up_e = { { 7.92, 0.51 }, { 7.92, 0.51 } }; //controller matrix that is calculated in the Python simulation
+std::vector<std::vector<double> > K_down_e = { { 13.16, .71 }, { 13.16, .71 } }; //controller matrix that is calculated in the Python simulation
+std::vector<std::vector<double> > K_up_e = { { 11.86, 0.61 }, { 11.86, 0.61 } }; //controller matrix that is calculated in the Python simulation
 
 std::vector<std::vector<double> > X_e = { { 0.0 }, //state matrix filled with the state of the states of the system //not used
 		{ 0.0 } };
@@ -69,8 +68,11 @@ bool is_at_bottom_e = false;
 bool is_at_top = false;
 bool first_at_bottom_e = false;
 bool last_at_bottom_e = false;
+bool encs_zeroed_e = false;
+bool voltage_safety_e = false;
 
 int init_counter = 0;
+int encoder_counter_e = 0;
 
 Elevator::Elevator(PowerDistributionPanel *pdp,
 		ElevatorMotionProfiler *elevator_profiler_) {
@@ -100,7 +102,6 @@ Elevator::Elevator(PowerDistributionPanel *pdp,
 	//talonElevator1->EnableCurrentLimit(true);
 	//talonElevator2->EnableCurrentLimit(true);
 
-
 	talonElevator1->ConfigVelocityMeasurementPeriod(
 			VelocityMeasPeriod::Period_10Ms, 0);
 	talonElevator1->ConfigVelocityMeasurementWindow(5, 0);
@@ -119,8 +120,6 @@ void Elevator::InitializeElevator() {
 //		talonElevator2->Set(ControlMode::PercentOutput,
 //				elevator_volt);
 	}
-
-
 
 	//double up_volt = (0.2 * -1.0) / pdp_e->GetVoltage(); //to not crash down
 	//talonElevator1->Set(ControlMode::PercentOutput, up_volt);
@@ -157,24 +156,26 @@ void Elevator::Move(std::vector<std::vector<double> > ref_elevator) {
 
 	v_bat_e = 12.0;
 
-	if (goal_pos_e < current_pos_e) { //changed
+	if (elevator_profiler->final_goal < current_pos_e) { //can't be the next goal in case we get ahead of the profiler
 		K_e = K_down_e;
 		ff = 0.0;
 		offset = 1.0; //dampen
-		SmartDashboard::PutString("EL GAINS","DOWN");
+		SmartDashboard::PutString("EL GAINS", "DOWN");
 	} else {
 		offset = 0.0;
 		K_e = K_up_e;
 		ff = (Kv_e * goal_vel_e * v_bat_e);
-		SmartDashboard::PutString("EL GAINS","UP");
+		SmartDashboard::PutString("EL GAINS", "UP");
 	}
 
 //	K_e = K_up_e;
 
-	u_e = (K_e[0][0] * error_e[0][0]) + (K_e[0][1] * error_e[1][0]) + ff + offset; //u_e is voltage
-	//+ (Kv_e * goal_vel_e * v_bat_e); // for this system the second row of the K matrix is a copy and does not matter. //
+	u_e = (K_e[0][0] * error_e[0][0]) + (K_e[0][1] * error_e[1][0]);
 
-	std::cout << "ERROR:  " << error_e[0][0] << "  u_e: " << u_e << std::endl;
+	std::cout << "FF:  " << ff << "  FB: " << u_e << std::endl;
+
+	u_e += ff + offset; //u_e is voltage
+	//+ (Kv_e * goal_vel_e * v_bat_e); // for this system the second row of the K matrix is a copy and does not matter. //
 
 //	if (goal_pos_e < current_pos_e) { //changed
 //		u_e = -1.5;
@@ -216,16 +217,18 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 	}
 //
 //	//zero first time seen, on the way down
-	if (is_at_bottom_e && elevator_voltage < 0.0) {
-		if (first_at_bottom_e) { //first time at bottom
-			ZeroEncs();
-			is_elevator_init = true;
-			first_at_bottom_e = false;
-		}
-			elevator_voltage = 0.0;
-	} else {
-		first_at_bottom_e = true;
-	}
+//	if (is_at_bottom_e) {
+//		if (first_at_bottom_e) { //first time at bottom
+//			ZeroEncs();
+//			is_elevator_init = true;
+//			first_at_bottom_e = false;
+//		}
+//		if (elevator_voltage < 0.0) {
+//			elevator_voltage = 0.0;
+//		}
+//	} else {
+//		first_at_bottom_e = true;
+//	}
 ////
 ////	//zero last time seen, on way up
 	if (!is_at_bottom_e) {
@@ -251,12 +254,29 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 		elevator_voltage = MIN_VOLTAGE_E;
 	}
 
+	if (std::abs(GetElevatorVelocity()) <= 0.1 && std::abs(elevator_voltage) > 2.0) { //this has to be here at the end
+		encoder_counter_e++;
+		SmartDashboard::PutString("HERE", "yes");
+	} else {
+		encoder_counter_e = 0;
+		SmartDashboard::PutString("HERE", "no");
+	}
+
+	if (encoder_counter_e > 10) { //10
+		voltage_safety_e = true;
+	}
+
 	elevator_voltage /= 12.0;
 
 	elevator_voltage *= -1.0; //reverse at END
 
 	SmartDashboard::PutNumber("EL OUTPUT", elevator_voltage);
-	std::cout << "EL OUTPUT " << elevator_voltage << std::endl;
+	//std::cout << "EL OUTPUT " << elevator_voltage << std::endl;
+
+	if(voltage_safety_e) {
+		elevator_voltage = 0.0;
+
+	}
 
 	//2 is not slaved to 1
 	talonElevator1->Set(ControlMode::PercentOutput, elevator_voltage);
@@ -266,14 +286,16 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 
 bool Elevator::ElevatorEncodersRunning() {
 
-	double current_pos_e = GetElevatorPosition();
-	double current_ref_e = elevator_profiler->GetNextRefElevator().at(0).at(0);
+//	double current_pos_e = GetElevatorPosition();
+//	double current_ref_e = elevator_profiler->GetNextRefElevator().at(0).at(0);
 
 //	if (talonElevator1->GetOutputCurrent() > 5.0
 //			&& std::abs(talonElevator1->GetSelectedSensorVelocity(0)) <= 0.2
 //			&& std::abs(current_ref_e - current_pos_e) > 0.2) {
 //		return false;
 //	}
+
+
 	return true;
 }
 
@@ -436,6 +458,9 @@ void Elevator::EndElevatorThread() {
 
 void Elevator::ZeroEncs() {
 
-	talonElevator1->GetSensorCollection().SetQuadraturePosition(0, 0);//SetSelectedSensorPosition(0, 0, 0);
+	if (zeroing_counter_e < 2) {
+		talonElevator1->GetSensorCollection().SetQuadraturePosition(0, 0);//SetSelectedSensorPosition(0, 0, 0);
+		zeroing_counter_e++;
+	}
 
 }

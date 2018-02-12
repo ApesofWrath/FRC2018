@@ -91,7 +91,7 @@ std::vector<std::vector<double>> IntakeMotionProfiler::GetNextRefIntake() { //us
 		} else if (ref < init_pos) {
 			if (pos > ref) {
 
-				std::cout << "POS > REF" << std::endl;
+				//std::cout << "POS > REF" << std::endl;
 
 				ramp_time = vel / max_acceleration;
 				ramp_dis = 0.5 * (vel * ramp_time);

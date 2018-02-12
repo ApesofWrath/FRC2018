@@ -29,6 +29,8 @@ public:
 
 	std::thread IntakeThread;
 
+	int zeroing_counter_i = 0;
+
 	bool is_init_intake = false; //is arm initialized
 
 	const int INIT_STATE_H = 0;

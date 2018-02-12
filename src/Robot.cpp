@@ -150,6 +150,7 @@ public:
 		bool low_gear = joyThrottle->GetRawButton(LOW_GEAR_BUTTON);
 		bool high_gear = joyThrottle->GetRawButton(HIGH_GEAR_BUTTON);
 
+
 		bool wait_for_button = joyThrottle->GetRawButton(WAIT_FOR_BUTTON); //testing
 		bool get_cube_ground = joyThrottle->GetRawButton(GET_CUBE_GROUND);
 		bool get_cube_station = joyThrottle->GetRawButton(GET_CUBE_STATION);
@@ -175,7 +176,7 @@ public:
 
 		elevator_->ElevatorStateMachine();
 		intake_->IntakeArmStateMachine();
-		//intake_->IntakeWheelStateMachine();
+		intake_->IntakeWheelStateMachine();
 
 		is_heading = false;
 		is_vision = false;
@@ -198,6 +199,13 @@ public:
 
 		intake_->is_init_intake = false;
 		elevator_->is_elevator_init = false;
+
+		elevator_->ZeroEncs(); //counter zeroing?
+		intake_->ZeroEnc();
+
+		elevator_->zeroing_counter_e = 0;
+		intake_->zeroing_counter_i = 0;
+
 	}
 
 	void TestPeriodic() {

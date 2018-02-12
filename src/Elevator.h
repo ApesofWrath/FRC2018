@@ -32,6 +32,8 @@ public:
 
 	bool is_elevator_init = false;
 
+	int zeroing_counter_e = 0;
+
 	const int INIT_STATE_E_H = 0;
 	const int DOWN_STATE_E_H = 1;
 	const int MID_STATE_E_H = 2;

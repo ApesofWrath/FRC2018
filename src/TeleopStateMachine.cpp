@@ -159,6 +159,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button,
 			elevator->elevator_state = elevator->DOWN_STATE_E_H;
 		}
 		if (state_intake_arm) {
+			std::cout << "uP /state " << std::endl;
 			intake->intake_arm_state = intake->UP_STATE_H;
 		}
 		if (state_intake_wheel) {
