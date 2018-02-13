@@ -20,8 +20,7 @@ private:
 
 	double ref = 0.0;
 
-	double final_goal = 0.0; //for GetNextRef
-	double init_pos = 0.0;
+	double init_pos = 0.0; //for GetNextRef
 	double acc = 0.0;
 	double vel = 0.0;
 	double pos = init_pos;
@@ -42,6 +41,8 @@ private:
 	double wheel_width = 0;
 
 public:
+
+	double final_goal_i = 0.0; //for GetNextRef
 
 	//maximum velocity acceleration of the arm or system and the time step for the controller is needed
 	IntakeMotionProfiler(double max_vel, double max_acc, double time_step);
