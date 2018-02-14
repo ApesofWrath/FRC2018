@@ -93,10 +93,6 @@ void TeleopStateMachine::StateMachine(bool wait_for_button,
 
 	case INIT_STATE: //runs once and only once
 		SmartDashboard::PutString("STATE", "INIT");
-		intake->is_init_intake = false;
-		elevator->is_elevator_init = false;
-		elevator->zeroing_counter_e = 0;
-		intake->zeroing_counter_i = 0;
 		elevator->elevator_state = elevator->INIT_STATE_E_H;
 		intake->intake_arm_state = intake->INIT_STATE_H;
 		intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;

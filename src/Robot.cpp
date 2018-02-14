@@ -87,12 +87,28 @@ public:
 		intake_profiler_ = new IntakeMotionProfiler(0.0, 0.0, 0.0001);
 
 		pdp_ = new PowerDistributionPanel(3);
-		compressor_ = new Compressor(99);
+		compressor_ = new Compressor(1); //pcm id
 		compressor_->SetClosedLoopControl(true);
 
 		joyThrottle = new Joystick(JOY_THROTTLE);
 		joyWheel = new Joystick(JOY_WHEEL);
 		joyOp = new Joystick(JOY_OP);
+
+//		wait_for_button = new DigitalInput(99);
+//		intake_spin_in = new DigitalInput(99);
+//		intake_spin_out = new DigitalInput(99);
+//		intake_spin_stop = new DigitalInput(99);
+//		get_cube_ground = new DigitalInput(99);
+//		get_cube_station = new DigitalInput(99);
+//		post_intake = new DigitalInput(99);
+//		raise_to_switch = new DigitalInput(99);
+//		raise_to_scale = new DigitalInput(99);
+//		intake_arm_up = new DigitalInput(99);
+//		intake_arm_mid = new DigitalInput(99);
+//		intake_arm_down = new DigitalInput(99);
+//		elevator_up = new DigitalInput(99);
+//		elevator_mid = new DigitalInput(99);
+//		elevator_down = new DigitalInput(99);
 
 	}
 
@@ -128,13 +144,19 @@ public:
 //		drive_controller->ZeroI(true);
 //		drive_controller->ZeroEncs();
 //		drive_controller->ZeroYaw();
-
+//
 //		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
 //				&is_vision, &is_fc); //pass by reference through the wrapper
 
 #if !STATEMACHINE
 
 #else
+
+		intake_->is_init_intake = false;
+		elevator_->is_elevator_init = false;
+		elevator_->zeroing_counter_e = 0;
+		intake_->zeroing_counter_i = 0;
+
 		elevator_->ZeroEncs();
 		intake_->ZeroEnc();
 
@@ -201,13 +223,18 @@ public:
 #if !STATEMACHINE
 
 #else
+
+		intake_->is_init_intake = false;
+		elevator_->is_elevator_init = false;
+		elevator_->zeroing_counter_e = 0;
+		intake_->zeroing_counter_i = 0;
 		//drive_controller->EndTeleopThreads();
-		intake_->EndIntakeThread(); //may not actually disable threads
+		intake_->EndIntakeThread();//may not actually disable threads
 		elevator_->EndElevatorThread();
 
 		teleop_state_machine->Initialize();
 
-		elevator_->ZeroEncs(); //counter zeroing?
+		elevator_->ZeroEncs();//counter zeroing?
 		intake_->ZeroEnc();
 #endif
 	}

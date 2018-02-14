@@ -344,14 +344,14 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 	canTalonRight4 = new TalonSRX(RR);
 	canTalonRight4->Set(ControlMode::Follower, RF);
 
-	canTalonLeft1->EnableCurrentLimit(true); //needed this
-	canTalonLeft2->EnableCurrentLimit(true);
-	canTalonLeft3->EnableCurrentLimit(true);
-	canTalonLeft4->EnableCurrentLimit(true);
-	canTalonRight1->EnableCurrentLimit(true);
-	canTalonRight2->EnableCurrentLimit(true);
-	canTalonRight3->EnableCurrentLimit(true);
-	canTalonRight4->EnableCurrentLimit(true);
+//	canTalonLeft1->EnableCurrentLimit(true); //needed this, but still need to implement correctly
+//	canTalonLeft2->EnableCurrentLimit(true);
+//	canTalonLeft3->EnableCurrentLimit(true);
+//	canTalonLeft4->EnableCurrentLimit(true);
+//	canTalonRight1->EnableCurrentLimit(true);
+//	canTalonRight2->EnableCurrentLimit(true);
+//	canTalonRight3->EnableCurrentLimit(true);
+//	canTalonRight4->EnableCurrentLimit(true);
 
 	canTalonLeft1->ConfigPeakCurrentLimit(30, 0);
 	canTalonLeft2->ConfigPeakCurrentLimit(30, 0);
@@ -556,17 +556,17 @@ void DriveControllerMother::AutonDrive() { //auton targets, actually just pd
 		tarVelKick = 0.0;
 	}
 
-	double r_current = -((double) canTalonRight1->GetSelectedSensorVelocity(0) //TODO: make sure this is actually negative
+	double r_current = -((double) canTalonRight1->GetSensorCollection().GetQuadratureVelocity() //TODO: make sure this is actually negative
 	/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
-	double l_current = ((double) canTalonLeft1->GetSelectedSensorVelocity(0)
+	double l_current = ((double) canTalonLeft1->GetSensorCollection().GetQuadratureVelocity()
 			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
 
 	//conversion to feet
-	double r_dis = -(((double) canTalonRight1->GetSelectedSensorPosition(0)
+	double r_dis = -(((double) canTalonRight1->GetSensorCollection().GetQuadraturePosition()
 			/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
-	double l_dis = (((double) canTalonLeft1->GetSelectedSensorPosition(0)
+	double l_dis = (((double) canTalonLeft1->GetSensorCollection().GetQuadraturePosition()
 			/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
-	double k_dis = (((double) canTalonKicker->GetSelectedSensorPosition(0)
+	double k_dis = (((double) canTalonKicker->GetSensorCollection().GetQuadraturePosition()
 			/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
 	double y_dis = -1.0 * ahrs->GetYaw() * (double) (PI / 180); //current theta (yaw) value
 
@@ -716,9 +716,9 @@ void DriveControllerMother::SetGainsLow() {
 
 void DriveControllerMother::AutoShift() {
 
-	double current_rpm_l = (canTalonLeft1->GetSelectedSensorVelocity(0)
+	double current_rpm_l = (canTalonLeft1->GetSensorCollection().GetQuadratureVelocity()
 			/ TICKS_PER_ROT) * MINUTE_CONVERSION;
-	double current_rpm_r = (canTalonRight1->GetSelectedSensorVelocity(0)
+	double current_rpm_r = (canTalonRight1->GetSensorCollection().GetQuadratureVelocity()
 			/ TICKS_PER_ROT) * MINUTE_CONVERSION;
 
 	if (current_rpm_l > UP_SHIFT_VEL && current_rpm_r > UP_SHIFT_VEL) {
@@ -782,11 +782,11 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	double feed_forward_k = K_F_KICK_VEL * ref_kick;
 
 	//conversion to RPM from native unit
-	double l_current = ((double) canTalonLeft1->GetSelectedSensorVelocity(0)
+	double l_current = ((double) canTalonLeft1->GetSensorCollection().GetQuadratureVelocity()
 			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
-	double r_current = -((double) canTalonRight1->GetSelectedSensorVelocity(0)
+	double r_current = -((double) canTalonRight1->GetSensorCollection().GetQuadratureVelocity()
 			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
-	double kick_current = ((double) canTalonKicker->GetSelectedSensorVelocity(0)
+	double kick_current = ((double) canTalonKicker->GetSensorCollection().GetQuadratureVelocity()
 			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION; //going right is positive
 
 	//std::cout << "left: " << l_current << std::endl;
@@ -878,15 +878,15 @@ void DriveControllerMother::StopAll() {
 //sets the position of all the drive encoders to 0
 void DriveControllerMother::ZeroEncs() {
 
-	canTalonRight1->SetSelectedSensorPosition(0, 0, 0);
-	canTalonLeft1->SetSelectedSensorPosition(0, 0, 0);
-	canTalonRight2->SetSelectedSensorPosition(0, 0, 0);
-	canTalonLeft2->SetSelectedSensorPosition(0, 0, 0);
-	canTalonRight3->SetSelectedSensorPosition(0, 0, 0);
-	canTalonLeft3->SetSelectedSensorPosition(0, 0, 0);
-	canTalonRight4->SetSelectedSensorPosition(0, 0, 0);
-	canTalonLeft4->SetSelectedSensorPosition(0, 0, 0);
-	canTalonKicker->SetSelectedSensorPosition(0, 0, 0);
+	canTalonRight1->GetSensorCollection().SetQuadraturePosition(0, 0);
+	canTalonLeft1->GetSensorCollection().SetQuadraturePosition(0, 0);
+	canTalonRight2->GetSensorCollection().SetQuadraturePosition(0, 0);
+	canTalonLeft2->GetSensorCollection().SetQuadraturePosition(0, 0);
+	canTalonRight3->GetSensorCollection().SetQuadraturePosition(0, 0);
+	canTalonLeft3->GetSensorCollection().SetQuadraturePosition(0, 0);
+	canTalonRight4->GetSensorCollection().SetQuadraturePosition(0, 0);
+	canTalonLeft4->GetSensorCollection().SetQuadraturePosition(0, 0);
+	canTalonKicker->GetSensorCollection().SetQuadraturePosition(0, 0);
 
 }
 

@@ -77,7 +77,7 @@ double arm_offset = 0.0;
 int last_intake_state = 0; //cannot equal the first state or profile will not set the first time
 
 double u_i = 0; //this is the input in volts to the motor
-double v_bat_i = 12.0;
+const double v_bat_i = 12.0; //needs to be separate from the max and min voltages, which may change
 
 std::vector<std::vector<double> > K_i;
 std::vector<std::vector<double> > K_down_i = { { 10.32, 0.063 }, //controller matrix that is calculated in the Python simulation, pos and vel
@@ -121,7 +121,7 @@ Intake::Intake(PowerDistributionPanel *pdp,
 
 //	talonIntake1->EnableCurrentLimit(true);
 //	talonIntake2->EnableCurrentLimit(true);
-	talonIntake1->ConfigPeakCurrentLimit(5, 0); //20
+	talonIntake1->ConfigPeakCurrentLimit(5, 0); //TODO: configure this correctly
 	talonIntake2->ConfigPeakCurrentLimit(5, 0);
 	talonIntake1->ConfigContinuousCurrentLimit(5, 0); //20
 	talonIntake2->ConfigContinuousCurrentLimit(5, 0);
@@ -300,7 +300,7 @@ void Intake::SetVoltageIntake(double voltage_i) {
 	SmartDashboard::PutNumber("INTAKE VOLTAGE", voltage_i);
 
 	//scale
-	voltage_i /= MAX_VOLTAGE_I; //scale from -1 to 1 for the talon // max voltage is positive
+	voltage_i /= v_bat_i; //scale from -1 to 1 for the talon // max voltage is positive
 
 	//reverse
 	voltage_i *= -1.0; //set AT END

@@ -19,6 +19,21 @@ const int MID_STATE_E = 2;
 const int UP_STATE_E = 3;
 const int STOP_STATE_E = 4;
 
+const int ELEVATOR_TALON_1_ID = 33;
+const int ELEVATOR_TALON_2_ID = 0;
+
+const int HALL_EFF_BOT_E = 1;
+const int HALL_EFF_TOP_E = 2;
+
+const double UP_LIMIT_E = 0.9;
+const double DOWN_LIMIT_E = -0.1;
+
+const double UP_VOLT_LIMIT_E = 0.0;
+const double DOWN_VOLT_LIMIT_E = 0.0;
+
+const double STALL_VEL_E = 0.1;
+const double STALL_VOLT_E = 2.0;
+
 const double free_speed_e = 18730.0; //rad/s
 const double G_e = (20.0 / 1.0); //gear ratio
 
@@ -51,7 +66,7 @@ const double UP_POS_E = 0.7;
 double offset = 0.0;
 double ff = 0.0; //feedforward
 double u_e = 0.0; //this is the input in volts to the motor
-double v_bat_e = 0.0; //this will be the voltage of the battery at every loop
+const double v_bat_e = 12.0; //this will be the voltage of the battery at every loop
 
 std::vector<std::vector<double> > K_e;
 std::vector<std::vector<double> > K_down_e = { { 13.16, .71 }, { 13.16, .71 } }; //controller matrix that is calculated in the Python simulation
@@ -79,23 +94,23 @@ int encoder_counter_e = 0;
 Elevator::Elevator(PowerDistributionPanel *pdp,
 		ElevatorMotionProfiler *elevator_profiler_) {
 
-	hallEffectTop = new DigitalInput(2);
-	hallEffectBottom = new DigitalInput(1);
+	hallEffectTop = new DigitalInput(HALL_EFF_TOP_E);
+	hallEffectBottom = new DigitalInput(HALL_EFF_BOT_E);
 
 	elevator_profiler = elevator_profiler_;
 
 	elevator_profiler->SetMaxAccElevator(MAX_ACCELERATION_E);
 	elevator_profiler->SetMaxVelElevator(MAX_VELOCITY_E);
 
-	talonElevator1 = new TalonSRX(33);
+	talonElevator1 = new TalonSRX(ELEVATOR_TALON_1_ID);
 //	talonElevator1->ConfigVoltageCompSaturation(12.0, 0);
 //	talonElevator1->EnableVoltageCompensation(true);
 	talonElevator1->ConfigSelectedFeedbackSensor(QuadEncoder, 0, 0);
 
-	talonElevator2 = new TalonSRX(0);
+	talonElevator2 = new TalonSRX(ELEVATOR_TALON_2_ID);
 //	talonElevator2->ConfigVoltageCompSaturation(12.0, 0);
 //	talonElevator2->EnableVoltageCompensation(true);
-	talonElevator2->Set(ControlMode::Follower, 33); //re-slaved
+	talonElevator2->Set(ControlMode::Follower, ELEVATOR_TALON_1_ID); //re-slaved
 
 	talonElevator1->ConfigContinuousCurrentLimit(40, 0);
 	talonElevator2->ConfigContinuousCurrentLimit(40, 0);
@@ -156,8 +171,6 @@ void Elevator::Move(std::vector<std::vector<double> > ref_elevator) {
 	SmartDashboard::PutNumber("ELEV ERR POS", error_e[0][0]);
 	SmartDashboard::PutNumber("ELEV ERR VEL", error_e[1][0]);
 
-	v_bat_e = 12.0;
-
 	if (elevator_profiler->final_goal_e < current_pos_e) { //can't be the next goal in case we get ahead of the profiler
 		K_e = K_down_e;
 		ff = 0.0;
@@ -199,13 +212,13 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 	SmartDashboard::PutString("ELEV safety", "none");
 
 	//upper soft limit
-	if (GetElevatorPosition() >= (0.9) && elevator_voltage > 0.0) { //at max height and still trying to move up
+	if (GetElevatorPosition() >= (UP_LIMIT_E) && elevator_voltage > UP_VOLT_LIMIT_E) { //at max height and still trying to move up
 		elevator_voltage = 0.0;
 		SmartDashboard::PutString("ELEV safety", "soft limit");
 	}
-//
+
 //	//lower soft limit
-	if (GetElevatorPosition() <= (-0.1) && elevator_voltage < 0.0) { //at max height and still trying to move up
+	if (GetElevatorPosition() <= (DOWN_LIMIT_E) && elevator_voltage < DOWN_VOLT_LIMIT_E) { //at max height and still trying to move up
 		elevator_voltage = 0.0;
 		SmartDashboard::PutString("ELEV safety", "soft limit");
 	}
@@ -213,7 +226,7 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 //	//zero last time seen, on way up //does not zero voltage
 	if (!is_at_bottom_e) {
 		if (last_at_bottom_e) {
-			ZeroEncs();
+			ZeroEncs(); //will only run twice, once in teleop init and once in initialize()
 			last_at_bottom_e = false;
 		}
 	} else {
@@ -233,7 +246,7 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 		SmartDashboard::PutString("ELEV safety", "clipping");
 	}
 
-	if (std::abs(GetElevatorVelocity()) <= 0.1 && std::abs(elevator_voltage) > 2.0) { //this has to be here at the end
+	if (std::abs(GetElevatorVelocity()) <= STALL_VEL_E && std::abs(elevator_voltage) > STALL_VOLT_E) { //this has to be here at the end
 		encoder_counter_e++;
 	} else {
 		encoder_counter_e = 0;
@@ -245,7 +258,7 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 
 	SmartDashboard::PutNumber("ELEV VOLTAGE", elevator_voltage);
 
-	elevator_voltage /= 12.0;
+	elevator_voltage /= v_bat_e;
 
 	elevator_voltage *= -1.0; //reverse at END
 
@@ -257,7 +270,7 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 
 }
 
-bool Elevator::ElevatorEncodersRunning() {
+bool Elevator::ElevatorEncodersRunning() { //not used
 
 //	double current_pos_e = GetElevatorPosition();
 //	double current_ref_e = elevator_profiler->GetNextRefElevator().at(0).at(0);
