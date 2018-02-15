@@ -11,8 +11,8 @@
 //fix current limit
 
 #include <Intake.h>
-#include <ctre/Phoenix.h> //double included
-#include <WPILib.h>
+//#include <ctre/Phoenix.h> //double included
+//#include <WPILib.h>
 
 #define PI 3.14159265
 

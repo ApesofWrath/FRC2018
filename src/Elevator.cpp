@@ -7,7 +7,7 @@
 
 #include <Elevator.h>
 //#include "ctre/Phoenix.h"
-#include <WPILib.h>
+//#include <WPILib.h>
 
 //TODO: have limits be hall effects during initialization, but position soft limits after that
 

@@ -75,9 +75,9 @@ public:
 
 	void RobotInit() {
 
-		drive_controller = new DriveController();
+		//drive_controller = new DriveController();
 
-		intake_ = new Intake(pdp_, intake_profiler_);
+		//intake_ = new Intake(pdp_, intake_profiler_);
 		elevator_ = new Elevator(pdp_, elevator_profiler_);
 
 		autonomous_ = new Autonomous(drive_controller, elevator_, intake_);
@@ -152,17 +152,17 @@ public:
 
 #else
 
-		intake_->is_init_intake = false;
+		//intake_->is_init_intake = false;
 		elevator_->is_elevator_init = false;
 		elevator_->zeroing_counter_e = 0;
-		intake_->zeroing_counter_i = 0;
+		//intake_->zeroing_counter_i = 0;
 
 		elevator_->ZeroEncs();
-		intake_->ZeroEnc();
+		//intake_->ZeroEnc();
 
 		teleop_state_machine->Initialize();
 
-		intake_->StartIntakeThread();
+		//intake_->StartIntakeThread();
 		elevator_->StartElevatorThread();
 #endif
 
@@ -204,8 +204,8 @@ public:
 				elevator_mid, elevator_down);
 
 		elevator_->ElevatorStateMachine();
-		intake_->IntakeArmStateMachine();
-		intake_->IntakeWheelStateMachine();
+		//intake_->IntakeArmStateMachine();
+		//intake_->IntakeWheelStateMachine();
 
 		is_heading = false;
 		is_vision = false;
@@ -224,18 +224,18 @@ public:
 
 #else
 
-		intake_->is_init_intake = false;
+		//intake_->is_init_intake = false;
 		elevator_->is_elevator_init = false;
 		elevator_->zeroing_counter_e = 0;
-		intake_->zeroing_counter_i = 0;
+//		intake_->zeroing_counter_i = 0;
 		//drive_controller->EndTeleopThreads();
-		intake_->EndIntakeThread();//may not actually disable threads
+		//intake_->EndIntakeThread();//may not actually disable threads
 		elevator_->EndElevatorThread();
 
 		teleop_state_machine->Initialize();
 
 		elevator_->ZeroEncs();//counter zeroing?
-		intake_->ZeroEnc();
+		//intake_->ZeroEnc();
 #endif
 	}
 
