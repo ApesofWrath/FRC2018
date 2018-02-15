@@ -19,7 +19,7 @@ ElevatorMotionProfiler::ElevatorMotionProfiler(double max_vel, double max_acc,
 
 void ElevatorMotionProfiler::SetFinalGoalElevator(double goal) {
 
-	final_goal = goal;
+	final_goal_e = goal;
 
 }
 
@@ -58,7 +58,7 @@ std::vector<std::vector<double>> ElevatorMotionProfiler::GetNextRefElevator() { 
 	std::vector<double> accelerations;
 	std::vector<double> references; //DOES go down to 0
 
-	ref = final_goal; //swtiches constantly for elevator and intake objects
+	ref = final_goal_e; //swtiches constantly for elevator and intake objects
 
 	int counter = 0;
 

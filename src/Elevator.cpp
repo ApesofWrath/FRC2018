@@ -28,7 +28,7 @@ const double MIN_VOLTAGE_E = -10.0;
 
 //For motion profiler
 const double MAX_VELOCITY_E = 1.3; //0.8 //1,3
-const double MAX_ACCELERATION_E = 10.0; //lower stutter 5.0
+const double MAX_ACCELERATION_E = 7.5; //lower stutter 5.0
 const double TIME_STEP_E = 0.01;
 
 const double friction_loss = 0.78;
@@ -95,10 +95,10 @@ Elevator::Elevator(PowerDistributionPanel *pdp,
 //	talonElevator2->EnableVoltageCompensation(true);
 	talonElevator2->Set(ControlMode::Follower, 33); //re-slaved
 
-	talonElevator1->ConfigContinuousCurrentLimit(40, 0);
-	talonElevator2->ConfigContinuousCurrentLimit(40, 0);
-	talonElevator1->ConfigPeakCurrentLimit(0, 0);
-	talonElevator2->ConfigPeakCurrentLimit(0, 0);
+//	talonElevator1->ConfigContinuousCurrentLimit(40, 0);
+//	talonElevator2->ConfigContinuousCurrentLimit(40, 0);
+//	talonElevator1->ConfigPeakCurrentLimit(0, 0);
+//	talonElevator2->ConfigPeakCurrentLimit(0, 0);
 	//talonElevator1->EnableCurrentLimit(true);
 	//talonElevator2->EnableCurrentLimit(true);
 
@@ -139,9 +139,6 @@ void Elevator::Move(std::vector<std::vector<double> > ref_elevator) {
 	double current_pos_e = GetElevatorPosition();
 	double current_vel_e = GetElevatorVelocity();
 
-	SmartDashboard::PutNumber("ELEVATOR POS", current_pos_e);
-	SmartDashboard::PutNumber("ELEVATOR VEL", current_vel_e);
-
 	double goal_pos_e = ref_elevator[0][0];
 	double goal_vel_e = ref_elevator[1][0];
 
@@ -156,7 +153,7 @@ void Elevator::Move(std::vector<std::vector<double> > ref_elevator) {
 
 	v_bat_e = 12.0;
 
-	if (elevator_profiler->final_goal < current_pos_e) { //can't be the next goal in case we get ahead of the profiler
+	if (elevator_profiler->final_goal_e < current_pos_e) { //can't be the next goal in case we get ahead of the profiler //elevator_profiler->final_goal
 		K_e = K_down_e;
 		ff = 0.0;
 		offset = 1.0; //dampen
@@ -172,7 +169,7 @@ void Elevator::Move(std::vector<std::vector<double> > ref_elevator) {
 
 	u_e = (K_e[0][0] * error_e[0][0]) + (K_e[0][1] * error_e[1][0]);
 
-	std::cout << "FF:  " << ff << "  FB: " << u_e << std::endl;
+	//std::cout << "FF:  " << ff << "  FB: " << u_e << std::endl;
 
 	u_e += ff + offset; //u_e is voltage
 	//+ (Kv_e * goal_vel_e * v_bat_e); // for this system the second row of the K matrix is a copy and does not matter. //
@@ -232,14 +229,10 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 ////
 ////	//zero last time seen, on way up
 	if (!is_at_bottom_e) {
-		if (last_at_bottom_e) {
-			ZeroEncs();
-			is_elevator_init = true;
-			last_at_bottom_e = false;
-		}
-
-	} else {
-		last_at_bottom_e = true;
+		//if (last_at_bottom_e) {
+		ZeroEncs();
+		is_elevator_init = true;
+		last_at_bottom_e = false;
 	}
 
 	//if (elevator_voltage < 0.0) { //account for gravity
@@ -254,7 +247,8 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 		elevator_voltage = MIN_VOLTAGE_E;
 	}
 
-	if (std::abs(GetElevatorVelocity()) <= 0.1 && std::abs(elevator_voltage) > 2.0) { //this has to be here at the end
+	if (std::abs(GetElevatorVelocity()) <= 0.1
+			&& std::abs(elevator_voltage) > 2.0) { //this has to be here at the end
 		encoder_counter_e++;
 		SmartDashboard::PutString("HERE", "yes");
 	} else {
@@ -270,13 +264,14 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 
 	elevator_voltage *= -1.0; //reverse at END
 
-	SmartDashboard::PutNumber("EL OUTPUT", elevator_voltage);
 	//std::cout << "EL OUTPUT " << elevator_voltage << std::endl;
 
-	if(voltage_safety_e) {
+	if (voltage_safety_e) {
 		elevator_voltage = 0.0;
 
 	}
+
+	SmartDashboard::PutNumber("EL OUTPUT", elevator_voltage);
 
 	//2 is not slaved to 1
 	talonElevator1->Set(ControlMode::PercentOutput, elevator_voltage);
@@ -294,7 +289,6 @@ bool Elevator::ElevatorEncodersRunning() {
 //			&& std::abs(current_ref_e - current_pos_e) > 0.2) {
 //		return false;
 //	}
-
 
 	return true;
 }
@@ -353,6 +347,10 @@ void Elevator::ManualElevator(Joystick *joyOpElev) {
 }
 
 void Elevator::ElevatorStateMachine() {
+
+	SmartDashboard::PutNumber("ELEVATOR POS", GetElevatorPosition());
+	SmartDashboard::PutNumber("ELEVATOR VEL", GetElevatorVelocity());
+
 
 	switch (elevator_state) {
 
@@ -459,8 +457,10 @@ void Elevator::EndElevatorThread() {
 void Elevator::ZeroEncs() {
 
 	if (zeroing_counter_e < 2) {
-		talonElevator1->GetSensorCollection().SetQuadraturePosition(0, 0);//SetSelectedSensorPosition(0, 0, 0);
-		zeroing_counter_e++;
+		if (talonElevator1->GetSensorCollection().SetQuadraturePosition(0,
+				10)) {
+			zeroing_counter_e++;
+		}
 	}
 
 }

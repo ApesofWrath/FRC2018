@@ -97,17 +97,17 @@ Intake::Intake(PowerDistributionPanel *pdp,
 
 //	talonIntake1->EnableCurrentLimit(true);
 //	talonIntake2->EnableCurrentLimit(true);
-	talonIntake1->ConfigPeakCurrentLimit(5, 0); //20
-	talonIntake2->ConfigPeakCurrentLimit(5, 0);
-	talonIntake1->ConfigContinuousCurrentLimit(5, 0); //20
-	talonIntake2->ConfigContinuousCurrentLimit(5, 0);
+//	talonIntake1->ConfigPeakCurrentLimit(5, 0); //20
+//	talonIntake2->ConfigPeakCurrentLimit(5, 0);
+//	talonIntake1->ConfigContinuousCurrentLimit(5, 0); //20
+//	talonIntake2->ConfigContinuousCurrentLimit(5, 0);
 
 	talonIntakeArm = new TalonSRX(55);
 
 	talonIntakeArm->ConfigSelectedFeedbackSensor(QuadEncoder, 0, 0);
 	//talonIntakeArm->EnableCurrentLimit(true);
-	talonIntakeArm->ConfigPeakCurrentLimit(20, 0); //for now
-	talonIntakeArm->ConfigContinuousCurrentLimit(20, 0); //for now
+//	talonIntakeArm->ConfigPeakCurrentLimit(20, 0); //for now
+//	talonIntakeArm->ConfigContinuousCurrentLimit(20, 0); //for now
 
 	pdp_i = pdp;
 
@@ -153,12 +153,12 @@ void Intake::Out() {
 
 void Intake::StopWheels() {
 
-	talonIntake1->EnableCurrentLimit(true);
-	talonIntake2->EnableCurrentLimit(true);
-	talonIntake1->ConfigPeakCurrentLimit(5, 0); //20
-	talonIntake2->ConfigPeakCurrentLimit(5, 0);
-	talonIntake1->ConfigContinuousCurrentLimit(5, 0); //20
-	talonIntake2->ConfigContinuousCurrentLimit(5, 0);
+	//talonIntake1->EnableCurrentLimit(true);
+	//talonIntake2->EnableCurrentLimit(true);
+//	talonIntake1->ConfigPeakCurrentLimit(5, 0); //20
+//	talonIntake2->ConfigPeakCurrentLimit(5, 0);
+//	talonIntake1->ConfigContinuousCurrentLimit(5, 0); //20
+//	talonIntake2->ConfigContinuousCurrentLimit(5, 0);
 
 	talonIntake1->Set(ControlMode::PercentOutput, 0.0 - 0.2); //1.8 v
 	talonIntake2->Set(ControlMode::PercentOutput, 0.0 + 0.2); //0.15
@@ -193,9 +193,6 @@ void Intake::Rotate(std::vector<std::vector<double> > ref_intake) {
 	double goal_pos = ref_intake[0][0];
 	double goal_vel = ref_intake[1][0];
 
-	SmartDashboard::PutNumber("INTAKE POS", current_pos);
-	SmartDashboard::PutNumber("INTAKE VEL", current_vel);
-
 	SmartDashboard::PutNumber("INTAKE REF POS", goal_pos);
 	SmartDashboard::PutNumber("INTAKE REF VEL", goal_vel);
 
@@ -207,7 +204,7 @@ void Intake::Rotate(std::vector<std::vector<double> > ref_intake) {
 
 	v_bat_i = 12.0;
 
-	if (goal_pos < current_pos) { //changed
+	if (intake_profiler->final_goal_i < current_pos) { //changed
 		K_i = K_down_i;
 	} else {
 		K_i = K_up_i;
@@ -230,9 +227,10 @@ void Intake::Rotate(std::vector<std::vector<double> > ref_intake) {
 
 void Intake::SetVoltageIntake(double voltage_i) {
 
+	SmartDashboard::PutBoolean("INTAKE INIT", is_init_intake);
+
 	is_at_bottom = IsAtBottomIntake(); //hall effect returns 0 when at bottom. we reverse it here
 	SmartDashboard::PutNumber("HALL EFF INTAKE", is_at_bottom); //actually means not at bottom //0 means up// 1 means dow
-
 
 	//soft limit
 	if (GetAngularPosition() >= (PI / 2.0) && voltage_i > 0.0) { //at max height and still trying to move up
@@ -241,11 +239,14 @@ void Intake::SetVoltageIntake(double voltage_i) {
 
 	if (is_at_bottom) {
 		//if (counter_i == 0) { //first time at bottom
-		ZeroEnc();
-		is_init_intake = true;
+		SmartDashboard::PutNumber("SHOULD WORK", 4);
+		if(ZeroEnc()) {
+			is_init_intake = true;
+		}
+		SmartDashboard::PutNumber("SHOULD WORK", 3);
 		////	counter_i++;
 		//}
-		if (voltage_i < 0.0 && GetAngularPosition() < 0.02) {
+		if (voltage_i < 0.5 && GetAngularPosition() < -0.02) {
 			voltage_i = 0.0;
 		}
 	} else {
@@ -263,7 +264,7 @@ void Intake::SetVoltageIntake(double voltage_i) {
 
 	if (std::abs(GetAngularVelocity()) <= 0.05 && std::abs(voltage_i) > 4.0) { //outputting current, not moving, should be moving
 		encoder_counter++;
-		std::cout << "VEL: " << GetAngularVelocity() << "  VOLT: " << voltage_i << std::endl;
+		//std::cout << "VEL: " << GetAngularVelocity() << "  VOLT: " << voltage_i << std::endl;
 	} else {
 		encoder_counter = 0;
 	}
@@ -276,7 +277,7 @@ void Intake::SetVoltageIntake(double voltage_i) {
 
 	voltage_i *= -1.0; //set AT END
 
-	if(voltage_safety) {
+	if (voltage_safety) {
 		voltage_i = 0.0;
 	}
 	talonIntakeArm->Set(ControlMode::PercentOutput, voltage_i);
@@ -343,7 +344,11 @@ void Intake::IntakeArmStateMachine() {
 	SmartDashboard::PutNumber("ARM ENC",
 			talonIntakeArm->GetSensorCollection().GetQuadraturePosition());
 
-	std::cout << "intake pos " << GetAngularPosition() << std::endl;
+	SmartDashboard::PutNumber("INTAKE POS.", GetAngularPosition());
+	SmartDashboard::PutNumber("INTAKE VEL", GetAngularVelocity());
+
+
+	//std::cout << "intake pos " << GetAngularPosition() << std::endl;
 
 	SmartDashboard::PutNumber("WHEEL CUR 1", talonIntake1->GetOutputCurrent());
 	SmartDashboard::PutNumber("WHEEL CUR 2", talonIntake2->GetOutputCurrent());
@@ -456,11 +461,17 @@ bool Intake::ReleasedCube() {
 	return false;
 }
 
-void Intake::ZeroEnc() { //called in Initialize() and in SetVoltage()
+bool Intake::ZeroEnc() { //called in Initialize() and in SetVoltage()
 
 	if (zeroing_counter_i < 2) {
-		talonIntakeArm->GetSensorCollection().SetQuadraturePosition(0, 0);
-		zeroing_counter_i++;
+		if (talonIntakeArm->GetSensorCollection().SetQuadraturePosition(0,
+				1000) == 0) {
+			zeroing_counter_i++; //still initiializing even if the zero fails
+			return true;
+		} else {
+			std::cout << "here" << std::endl;
+			return false;
+		}
 	}
 
 }
@@ -482,6 +493,7 @@ void Intake::IntakeWrapper(Intake *in) {
 				if (in->intake_arm_state != STOP_ARM_STATE
 						&& in->intake_arm_state != INIT_STATE) {
 					in->Rotate(profile_intake);
+					//std::cout << "wefwfj" << std::endl;
 				}
 
 				intakeTimer->Reset();

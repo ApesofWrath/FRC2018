@@ -50,13 +50,14 @@ public:
 	const int INTAKE_ARM_DOWN = 5;
 	const int ELEVATOR_UP = 9;
 	const int ELEVATOR_MID = 10;
+
 	const int ELEVATOR_DOWN = 11;
 
 	bool acceptable_current_r, acceptable_current_l; //testperiodic
 
 	bool is_heading, is_vision, is_fc;
 
-//	DriveController *drive_controller;
+	DriveController *drive_controller;
 	PowerDistributionPanel *pdp_;
 	Elevator *elevator_;
 	Intake *intake_;
@@ -79,10 +80,10 @@ public:
 		intake_profiler_ = new IntakeMotionProfiler(0.0, 0.0, 0.0001);
 
 		pdp_ = new PowerDistributionPanel(3);
-//		drive_controller = new DriveController();
+		drive_controller = new DriveController();
 		intake_ = new Intake(pdp_, intake_profiler_);
 		elevator_ = new Elevator(pdp_, elevator_profiler_);
-//		autonomous_ = new Autonomous(drive_controller, elevator_, intake_);
+		autonomous_ = new Autonomous(drive_controller, elevator_, intake_);
 		teleop_state_machine = new TeleopStateMachine(elevator_, intake_);
 
 		joyThrottle = new Joystick(JOY_THROTTLE);
@@ -123,6 +124,12 @@ public:
 //		drive_controller->ZeroI(true);
 //		drive_controller->ZeroEncs();
 //		drive_controller->ZeroYaw();
+
+		elevator_->zeroing_counter_e = 0;
+		intake_->zeroing_counter_i = 0;
+
+		intake_->is_init_intake = false;
+		elevator_->is_elevator_init = false;
 
 		elevator_->ZeroEncs();
 		intake_->ZeroEnc();
@@ -195,16 +202,17 @@ public:
 		//drive_controller->EndTeleopThreads();
 		intake_->EndIntakeThread(); //may not actually disable threads
 		elevator_->EndElevatorThread();
+
 		teleop_state_machine->Initialize();
 
 		intake_->is_init_intake = false;
 		elevator_->is_elevator_init = false;
 
-		elevator_->ZeroEncs(); //counter zeroing?
-		intake_->ZeroEnc();
-
 		elevator_->zeroing_counter_e = 0;
 		intake_->zeroing_counter_i = 0;
+
+		elevator_->ZeroEncs(); //counter zeroing?
+		intake_->ZeroEnc();
 
 	}
 
