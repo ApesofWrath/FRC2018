@@ -30,13 +30,12 @@ const double MIN_VOLTAGE_I = -12.0;
 
 const double free_speed_i = 18730.0; //rpm
 const double G_i = (831.0 / 1.0); //gear ratio
-const double MAX_THEORETICAL_VELOCITY_I = ((free_speed_i / G_i)) * (2.0 * PI)
-		/ 60.0; //rad/s
+const double MAX_THEORETICAL_VELOCITY_I = ((free_speed_i / G_i)) * ((2.0 * PI) / 60.0) * 0.6; //rad/s
 const double Kv_i = 1 / MAX_THEORETICAL_VELOCITY_I;
 
 //For motion profiler
-const double MAX_VELOCITY_I = 1.0;
-const double MAX_ACCELERATION_I = 2.5;
+const double MAX_VELOCITY_I = 1.5; //1
+const double MAX_ACCELERATION_I = 4.0;//2.5;
 const double TIME_STEP_I = 0.01; //sec
 
 const double MAX_INTAKE_CURRENT = 50.0;
@@ -54,10 +53,10 @@ double u_i = 0; //this is the input in volts to the motor
 double v_bat_i = 0.0; //will be set to pdp's voltage
 
 std::vector<std::vector<double> > K_i;
-std::vector<std::vector<double> > K_down_i = { { 12.47, 0.077 }, //controller matrix that is calculated in the Python simulation, pos and vel
-		{ 12.47, 0.077 } };
-std::vector<std::vector<double> > K_up_i = { { 12.47, 0.077 }, //controller matrix that is calculated in the Python simulation, pos and vel
-		{ 12.47, 0.077 } };
+std::vector<std::vector<double> > K_down_i = { { 10.32, 0.063}, //controller matrix that is calculated in the Python simulation, pos and vel
+		{ 10.32, 0.063 } };
+std::vector<std::vector<double> > K_up_i = { {16.75, 0.12 }, //controller matrix that is calculated in the Python simulation, pos and vel
+		{16.75, 0.12   } };
 
 std::vector<std::vector<double> > X_i = { { 0.0 }, //state matrix filled with the states of the system //not used
 		{ 0.0 } };
@@ -80,6 +79,8 @@ int init_counter_i = 0;
 int counter_i = 0;
 int i = 0;
 int encoder_counter = 0;
+
+int position_offset = 0;
 
 Intake::Intake(PowerDistributionPanel *pdp,
 		IntakeMotionProfiler *intake_profiler_) {
@@ -204,7 +205,7 @@ void Intake::Rotate(std::vector<std::vector<double> > ref_intake) {
 
 	v_bat_i = 12.0;
 
-	if (intake_profiler->final_goal_i < current_pos) { //changed
+	if (intake_profiler->final_goal_i < intake_profiler->GetInitPosIntake()) { //changed
 		K_i = K_down_i;
 	} else {
 		K_i = K_up_i;
@@ -240,13 +241,13 @@ void Intake::SetVoltageIntake(double voltage_i) {
 	if (is_at_bottom) {
 		//if (counter_i == 0) { //first time at bottom
 		SmartDashboard::PutNumber("SHOULD WORK", 4);
-		if(ZeroEnc()) {
+		if (ZeroEnc()) {
 			is_init_intake = true;
 		}
 		SmartDashboard::PutNumber("SHOULD WORK", 3);
 		////	counter_i++;
 		//}
-		if (voltage_i < 0.5 && GetAngularPosition() < -0.02) {
+		if (voltage_i < 0.0 && GetAngularPosition() < -0.1) {
 			voltage_i = 0.0;
 		}
 	} else {
@@ -302,13 +303,13 @@ double Intake::GetAngularPosition() {
 	//Native position in ticks, divide by ticks per rot to get into revolutions multiply by 2pi to get into radians
 	//2pi radians per rotations
 	double ang_pos =
-			(talonIntakeArm->GetSensorCollection().GetQuadraturePosition()
+			((talonIntakeArm->GetSensorCollection().GetQuadraturePosition() - position_offset)
 					/ (TICKS_PER_ROT_I)) * (2.0 * PI) * -1.0;
 	//double ang_pos = 0.0;
 
-	double offset_pos = .35; //amount that the arm will stick up in radians
+	double offset_angle = .2; //amount that the arm will stick up in radians
 
-	return ang_pos + offset_pos;
+	return ang_pos + offset_angle;  //the angular position from the encoder plus the angle when we zero minus the offset for zeroing
 
 }
 
@@ -347,7 +348,6 @@ void Intake::IntakeArmStateMachine() {
 	SmartDashboard::PutNumber("INTAKE POS.", GetAngularPosition());
 	SmartDashboard::PutNumber("INTAKE VEL", GetAngularVelocity());
 
-
 	//std::cout << "intake pos " << GetAngularPosition() << std::endl;
 
 	SmartDashboard::PutNumber("WHEEL CUR 1", talonIntake1->GetOutputCurrent());
@@ -358,7 +358,7 @@ void Intake::IntakeArmStateMachine() {
 	case INIT_STATE:
 		SmartDashboard::PutString("INTAKE ARM", "INIT");
 		InitializeIntake();
-		if (is_init_intake) {
+		if (is_init_intake){// && GetAngularPosition() == 0.35) {
 			intake_arm_state = UP_STATE;
 		}
 		last_intake_state = INIT_STATE;
@@ -461,18 +461,32 @@ bool Intake::ReleasedCube() {
 	return false;
 }
 
+void Intake::SetZeroOffset() {
+
+	position_offset = (talonIntakeArm->GetSensorCollection().GetQuadraturePosition());
+}
+
 bool Intake::ZeroEnc() { //called in Initialize() and in SetVoltage()
 
-	if (zeroing_counter_i < 2) {
-		if (talonIntakeArm->GetSensorCollection().SetQuadraturePosition(0,
-				1000) == 0) {
-			zeroing_counter_i++; //still initiializing even if the zero fails
+//	if (zeroing_counter_i < 2) {
+//		if (talonIntakeArm->GetSensorCollection().SetQuadraturePosition(0,
+//				1000) == 0) {
+//			zeroing_counter_i++; //still initiializing even if the zero fails
+//			return true;
+//		} else {
+//			std::cout << "here" << std::endl;
+//			return false;
+//		}
+//	}
+
+	if (zeroing_counter_i < 1) {
+		    SetZeroOffset();
+			zeroing_counter_i++;
 			return true;
 		} else {
-			std::cout << "here" << std::endl;
+			//std::cout << "here" << std::endl;
 			return false;
 		}
-	}
 
 }
 
@@ -493,7 +507,6 @@ void Intake::IntakeWrapper(Intake *in) {
 				if (in->intake_arm_state != STOP_ARM_STATE
 						&& in->intake_arm_state != INIT_STATE) {
 					in->Rotate(profile_intake);
-					//std::cout << "wefwfj" << std::endl;
 				}
 
 				intakeTimer->Reset();

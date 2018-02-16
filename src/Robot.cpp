@@ -131,8 +131,8 @@ public:
 		intake_->is_init_intake = false;
 		elevator_->is_elevator_init = false;
 
-		elevator_->ZeroEncs();
-		intake_->ZeroEnc();
+//		elevator_->ZeroEncs();
+//		intake_->ZeroEnc();
 
 		teleop_state_machine->Initialize();
 
@@ -203,16 +203,16 @@ public:
 		intake_->EndIntakeThread(); //may not actually disable threads
 		elevator_->EndElevatorThread();
 
-		teleop_state_machine->Initialize();
+		elevator_->zeroing_counter_e = 0;
+		intake_->zeroing_counter_i = 0;
 
 		intake_->is_init_intake = false;
 		elevator_->is_elevator_init = false;
 
-		elevator_->zeroing_counter_e = 0;
-		intake_->zeroing_counter_i = 0;
+		teleop_state_machine->Initialize();
 
-		elevator_->ZeroEncs(); //counter zeroing?
-		intake_->ZeroEnc();
+		//elevator_->ZeroEncs(); //counter zeroing?
+		//intake_->ZeroEnc();
 
 	}
 

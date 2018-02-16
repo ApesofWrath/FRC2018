@@ -45,6 +45,8 @@ public:
 
 	double final_goal_e = 0.0; //for GetNextRef
 
+	double GetInitPosElevator();
+
 	//maximum velocity acceleration of the arm or system and the time step for the controller is needed
 	ElevatorMotionProfiler(double max_vel, double max_acc, double time_step);
 

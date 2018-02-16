@@ -65,6 +65,8 @@ public:
 
 	void SetVoltageIntake(double voltage_i);
 
+	void SetZeroOffset();
+
 	bool ZeroEnc();
 	void ManualArm(Joystick *joyOpArm);
 	void ManualWheels(Joystick *joyOpWheels);

@@ -247,3 +247,7 @@ double IntakeMotionProfiler::FindIntakeAngle(std::vector<double> p1,
 	return angle;
 
 }
+
+double IntakeMotionProfiler::GetInitPosIntake() {
+	return init_pos;
+}

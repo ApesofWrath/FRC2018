@@ -243,3 +243,7 @@ double ElevatorMotionProfiler::FindAngleElevator(std::vector<double> p1,
 	return angle;
 
 }
+
+double ElevatorMotionProfiler::GetInitPosElevator() {
+	return init_pos;
+}

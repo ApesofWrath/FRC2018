@@ -51,9 +51,11 @@ double ff = 0.0; //feedforward
 double u_e = 0.0; //this is the input in volts to the motor
 double v_bat_e = 0.0; //this will be the voltage of the battery at every loop
 
+double position_offset_e = 0.0;
+
 std::vector<std::vector<double> > K_e;
 std::vector<std::vector<double> > K_down_e = { { 13.16, .71 }, { 13.16, .71 } }; //controller matrix that is calculated in the Python simulation
-std::vector<std::vector<double> > K_up_e = { { 11.86, 0.61 }, { 11.86, 0.61 } }; //controller matrix that is calculated in the Python simulation
+std::vector<std::vector<double> > K_up_e = { { 15.91, 0.7 }, {15.91, 0.7 } }; //controller matrix that is calculated in the Python simulation
 
 std::vector<std::vector<double> > X_e = { { 0.0 }, //state matrix filled with the state of the states of the system //not used
 		{ 0.0 } };
@@ -153,7 +155,7 @@ void Elevator::Move(std::vector<std::vector<double> > ref_elevator) {
 
 	v_bat_e = 12.0;
 
-	if (elevator_profiler->final_goal_e < current_pos_e) { //can't be the next goal in case we get ahead of the profiler //elevator_profiler->final_goal
+	if (elevator_profiler->final_goal_e < elevator_profiler->GetInitPosElevator()) { //can't be the next goal in case we get ahead of the profiler //elevator_profiler->final_goal
 		K_e = K_down_e;
 		ff = 0.0;
 		offset = 1.0; //dampen
@@ -297,9 +299,16 @@ double Elevator::GetElevatorPosition() {
 
 	//divide by the native ticks per rotation then multiply by the circumference of the pulley
 	//radians
+
+	int elev_pos = talonElevator1->GetSensorCollection().GetQuadraturePosition();
+
+	std::cout << "elev pos:" << elev_pos << std::endl;
+	std::cout << "pos offset:" << position_offset_e << std::endl;
+
 	double elevator_pos =
-			(talonElevator1->GetSensorCollection().GetQuadraturePosition()
+			((elev_pos - position_offset_e)
 					/ TICKS_PER_ROT_E) * (PI * PULLEY_DIAMETER) * -1.0;
+
 	return elevator_pos;
 
 }
@@ -350,7 +359,6 @@ void Elevator::ElevatorStateMachine() {
 
 	SmartDashboard::PutNumber("ELEVATOR POS", GetElevatorPosition());
 	SmartDashboard::PutNumber("ELEVATOR VEL", GetElevatorVelocity());
-
 
 	switch (elevator_state) {
 
@@ -454,13 +462,23 @@ void Elevator::EndElevatorThread() {
 
 }
 
-void Elevator::ZeroEncs() {
+void Elevator::SetZeroOffsetElevator() {
 
-	if (zeroing_counter_e < 2) {
-		if (talonElevator1->GetSensorCollection().SetQuadraturePosition(0,
-				10)) {
-			zeroing_counter_e++;
-		}
+	position_offset_e = talonElevator1->GetSensorCollection().GetQuadraturePosition();
+
+	std::cout << "pos e: " << position_offset_e << std::endl;
+	//position_offset_e = pos_e;
+}
+
+bool Elevator::ZeroEncs() {
+
+	if (zeroing_counter_e < 1) {
+		SetZeroOffsetElevator();
+		zeroing_counter_e++;
+		return true;
+	}
+	else {
+		return false;
 	}
 
 }

@@ -51,6 +51,8 @@ public:
 
 	void ManualElevator(Joystick *joyOpElev);
 
+	void SetZeroOffsetElevator();
+
 	double GetElevatorPosition();
 	double GetElevatorVelocity();
 
@@ -58,7 +60,7 @@ public:
 	bool IsAtTopElevator();
 	bool ElevatorEncodersRunning();
 
-	void ZeroEncs();
+	bool ZeroEncs();
 
 	void StartElevatorThread();
 	static void ElevatorWrapper(Elevator *elevator_);
