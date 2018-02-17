@@ -19,7 +19,7 @@ class IntakeMotionProfiler {
 private:
 
 	double ref = 0.0;
-
+	double final_goal = 0.0;
 	double init_pos = 0.0;
 	double acc = 0.0;
 	double vel = 0.0;
@@ -33,7 +33,7 @@ private:
 	double max_velocity = 0.0;
 
 	double iterations = 0.0;
-	double time_dt = 0.00001; //this is the interval that the profiler will run the simulation at,
+	double time_dt = 0.01; //this is the interval that the profiler will run the simulation at,
 	//needs to be faster for accurate integration (area calculation) since this is a reiman sum, it is in seconds
 	double interval = 0.0;
 
@@ -42,9 +42,8 @@ private:
 
 public:
 
-	double final_goal_i = 0.0; //for GetNextRef
-
 	double GetInitPosIntake();
+	double GetFinalGoalIntake();
 
 	//maximum velocity acceleration of the arm or system and the time step for the controller is needed
 	IntakeMotionProfiler(double max_vel, double max_acc, double time_step);

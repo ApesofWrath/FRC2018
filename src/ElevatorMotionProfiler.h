@@ -20,7 +20,7 @@ public:
 private:
 
 	double ref = 0.0;
-
+	double final_goal = 0.0;
 	double init_pos = 0.0;
 	double acc = 0.0;
 	double vel = 0.0;
@@ -43,8 +43,9 @@ private:
 
 public:
 
-	double final_goal_e = 0.0; //for GetNextRef
+	//double final_goal_e = 0.0; //for GetNextRef
 
+	double GetFinalGoalElevator();
 	double GetInitPosElevator();
 
 	//maximum velocity acceleration of the arm or system and the time step for the controller is needed

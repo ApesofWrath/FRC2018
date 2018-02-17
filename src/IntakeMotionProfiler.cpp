@@ -17,14 +17,18 @@ IntakeMotionProfiler::IntakeMotionProfiler(double max_vel, double max_acc,
 
 	ref = 0.0;
 
-	final_goal_i = 0;
+	final_goal = 0;
 
 }
 
 void IntakeMotionProfiler::SetFinalGoalIntake(double goal) {
 
-	final_goal_i = goal;
+	final_goal = goal;
 
+}
+
+double IntakeMotionProfiler::GetFinalGoalIntake() {
+	return final_goal;
 }
 
 void IntakeMotionProfiler::SetInitPosIntake(double position_init) { //at every new whole profile
@@ -59,10 +63,10 @@ std::vector<std::vector<double>> IntakeMotionProfiler::GetNextRefIntake() { //us
 	std::vector<std::vector<double> > matrix; //new matrix every time because .push_back adds rows, moved from the top of the class
 	std::vector<double> positions; //first points will be 0
 	std::vector<double> velocities;
-	std::vector<double> accelerations;
-	std::vector<double> references; //DOES go down to 0
+	//std::vector<double> accelerations;
+	//std::vector<double> references; //DOES go down to 0
 
-	ref = final_goal_i; //swtiches constantly for elevator and intake objects
+	ref = final_goal; //swtiches constantly for elevator and intake objects
 
 	int counter = 0;
 
@@ -81,11 +85,12 @@ std::vector<std::vector<double>> IntakeMotionProfiler::GetNextRefIntake() { //us
 					acc = 0.0;
 				}
 
-				pos = last_pos + (vel * time_dt); //update states
-				last_pos = pos;
 
 				vel = last_vel + (acc * time_dt);
 				last_vel = vel;
+
+				pos = last_pos + (vel * time_dt); //update states
+				last_pos = pos;
 
 			}
 		} else if (ref < init_pos) {
@@ -104,11 +109,11 @@ std::vector<std::vector<double>> IntakeMotionProfiler::GetNextRefIntake() { //us
 					acc = 0.0;
 				}
 
-				pos = last_pos + (vel * time_dt);
-				last_pos = pos;
-
 				vel = last_vel + (acc * time_dt);
 				last_vel = vel;
+
+				pos = last_pos + (vel * time_dt);
+				last_pos = pos;
 
 			}
 		}
@@ -118,15 +123,15 @@ std::vector<std::vector<double>> IntakeMotionProfiler::GetNextRefIntake() { //us
 
 	positions.push_back(pos);
 	velocities.push_back(vel);
-	accelerations.push_back(acc);
-	references.push_back(ref);
+	//accelerations.push_back(acc);
+	//references.push_back(ref);
 
 	//can't directly push the pos and vel doubles into matrix because matrix is an array of arrays
 
 	matrix.push_back(positions); //first vector,  row 0
 	matrix.push_back(velocities); //second vector, row 1
-	matrix.push_back(accelerations);
-	matrix.push_back(references);
+	//matrix.push_back(accelerations);
+	//matrix.push_back(references);
 
 	return matrix;
 
@@ -147,7 +152,7 @@ std::vector<std::vector<double> > IntakeMotionProfiler::CreateProfile1DIntake(
 
 	double time = 0.0;
 
-	time_dt = 0.00001;
+	//time_dt = 0.01;
 
 	int counter = 0;
 
@@ -176,11 +181,11 @@ std::vector<std::vector<double> > IntakeMotionProfiler::CreateProfile1DIntake(
 					acceleration = 0.0;
 				}
 
+				velocity = last_velocity + (acceleration * time_dt);
+					last_velocity = velocity;
+
 				position = last_position + (velocity * time_dt);
 				last_position = position;
-
-				velocity = last_velocity + (acceleration * time_dt);
-				last_velocity = velocity;
 
 				counter++;
 				time += time_dt; //time not used, can be used to graph (not supported)
@@ -205,11 +210,11 @@ std::vector<std::vector<double> > IntakeMotionProfiler::CreateProfile1DIntake(
 					acceleration = 0.0;
 				}
 
-				position = last_position + (velocity * time_dt);
-				last_position = position;
-
 				velocity = last_velocity + (acceleration * time_dt);
 				last_velocity = velocity;
+
+				position = last_position + (velocity * time_dt);
+				last_position = position;
 
 				counter++;
 				time += time_dt; //time not used, can be used to graph (not supported)

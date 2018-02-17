@@ -18,7 +18,7 @@
 #include <cmath>
 #include <Timer.h>
 #include "ctre/Phoenix.h"
-
+#include <pathfinder.h>
 
 class DriveControllerMother {
 public:

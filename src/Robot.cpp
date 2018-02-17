@@ -43,11 +43,11 @@ public:
 
 	const int INTAKE_SPIN_IN = 6;
 	const int INTAKE_SPIN_OUT = 7;
+	const int INTAKE_SPIN_STOP = 5; //8
 
-	const int INTAKE_SPIN_STOP = 8;
 	const int INTAKE_ARM_UP = 3;
 	const int INTAKE_ARM_MID = 4;
-	const int INTAKE_ARM_DOWN = 5;
+	const int INTAKE_ARM_DOWN = 99; //5
 	const int ELEVATOR_UP = 9;
 	const int ELEVATOR_MID = 10;
 
@@ -65,7 +65,7 @@ public:
 	TeleopStateMachine *teleop_state_machine;
 	ElevatorMotionProfiler *elevator_profiler_;
 	IntakeMotionProfiler *intake_profiler_;
-
+	Compressor *compressor_;
 	Joystick *joyThrottle, *joyWheel, *joyOp;
 
 //	DigitalInput *wait_for_button, *intake_spin_in,
@@ -76,8 +76,11 @@ public:
 
 	void RobotInit() {
 
-		elevator_profiler_ = new ElevatorMotionProfiler(0.0, 0.0, 0.0001); //will be set in intake and elevator classes for now
-		intake_profiler_ = new IntakeMotionProfiler(0.0, 0.0, 0.0001);
+		elevator_profiler_ = new ElevatorMotionProfiler(0.0, 0.0, 0.01); //will be set in intake and elevator classes for now //time steps changed
+		intake_profiler_ = new IntakeMotionProfiler(0.0, 0.0, 0.01);
+
+		compressor_ = new Compressor(3);
+		compressor_->SetClosedLoopControl(true);
 
 		pdp_ = new PowerDistributionPanel(3);
 		drive_controller = new DriveController();
@@ -157,6 +160,8 @@ public:
 		bool low_gear = joyThrottle->GetRawButton(LOW_GEAR_BUTTON);
 		bool high_gear = joyThrottle->GetRawButton(HIGH_GEAR_BUTTON);
 
+
+		SmartDashboard::PutNumber("BAT VOLT", pdp_->GetVoltage());
 
 		bool wait_for_button = joyThrottle->GetRawButton(WAIT_FOR_BUTTON); //testing
 		bool get_cube_ground = joyThrottle->GetRawButton(GET_CUBE_GROUND);
