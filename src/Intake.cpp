@@ -5,7 +5,6 @@
  *      Author: DriversStation
  */
 
-
 //ARM ENCODER HAS OFFSET: We set 0.2 to 0.0
 #include <Intake.h>
 #include <ctre/Phoenix.h> //double included
@@ -196,10 +195,11 @@ void Intake::Rotate(std::vector<std::vector<double> > ref_intake) { //a vector o
 	double goal_pos = ref_intake[0][0];
 	double goal_vel = ref_intake[1][0];
 
-//	SmartDashboard::PutNumber("INTAKE REF POS", goal_pos);
-//		SmartDashboard::PutNumber("INTAKE REF VEL", goal_vel);
+	SmartDashboard::PutNumber("INTAKE REF POS", goal_pos);
+		SmartDashboard::PutNumber("INTAKE REF VEL", goal_vel);
 
-	std::cout << "goal pos: " << goal_pos << "        goal vel: " << goal_vel << std::endl;
+	std::cout << "goal pos: " << goal_pos << "        goal vel: " << goal_vel
+			<< std::endl;
 
 	error_i[0][0] = goal_pos - current_pos;
 	error_i[1][0] = goal_vel - current_vel;
@@ -367,7 +367,7 @@ void Intake::IntakeArmStateMachine() {
 		SmartDashboard::PutString("INTAKE ARM", "INIT");
 		InitializeIntake();
 		if (is_init_intake) { // && GetAngularPosition() == 0.35) {
-			//intake_arm_state = UP_STATE; //PUT BACK IN
+			intake_arm_state = UP_STATE; //PUT BACK IN
 		}
 		last_intake_state = INIT_STATE;
 		break;
@@ -376,11 +376,11 @@ void Intake::IntakeArmStateMachine() {
 		SmartDashboard::PutString("INTAKE ARM", "UP");
 		SmartDashboard::PutString("actually in up state", "yep");
 		if (last_intake_state != UP_STATE) { //first time in state
-			intake_profiler->SetMaxAccIntake(MAX_ACCELERATION_I); //these must be reset in each state
-			intake_profiler->SetMaxVelIntake(MAX_VELOCITY_I);
+//			intake_profiler->SetMaxAccIntake(MAX_ACCELERATION_I); //these must be reset in each state
+//			intake_profiler->SetMaxVelIntake(MAX_VELOCITY_I);
 			intake_profiler->SetFinalGoalIntake(UP_ANGLE); //is 0.0 for testing
 			intake_profiler->SetInitPosIntake(GetAngularPosition()); //is 0
-			//std::cout << "HERE" << std::endl;
+			std::cout << " dojijodidj" << std::endl;
 			//SmartDashboard::PutString("IN RESET TO DOWN", "YES");
 		}
 		last_intake_state = UP_STATE;
@@ -501,13 +501,13 @@ bool Intake::ZeroEnc() { //called in Initialize() and in SetVoltage()
 
 void Intake::IntakeWrapper(Intake *in) {
 
-	int i = 0;
-
-	intake_profiler->SetMaxVelIntake(1.0);
-	intake_profiler->SetMaxAccIntake(4.5);
-
-	std::vector<std::vector<double>> profile_intake =
-			intake_profiler->CreateProfile1DIntake(0.2, { 1.3 });
+//	int i = 0;
+//
+//	intake_profiler->SetMaxVelIntake(1.0);
+//	intake_profiler->SetMaxAccIntake(4.5);
+//
+//	std::vector<std::vector<double>> profile_intake =
+//			intake_profiler->CreateProfile1DIntake(0.2, { 1.3 });
 
 	intakeTimer->Start();
 
@@ -516,9 +516,10 @@ void Intake::IntakeWrapper(Intake *in) {
 			std::this_thread::sleep_for(
 					std::chrono::milliseconds(INTAKE_SLEEP_TIME));
 
-	//		SmartDashboard::PutNumber("timer", intakeTimer->Get());
+			//		SmartDashboard::PutNumber("timer", intakeTimer->Get());
 
 			if (intakeTimer->HasPeriodPassed(INTAKE_WAIT_TIME)) {
+
 
 				//std::vector<std::vector<double>> next_goal = {{profile_intake.at(0)}};
 
@@ -541,18 +542,27 @@ void Intake::IntakeWrapper(Intake *in) {
 //						&& in->intake_arm_state != INIT_STATE) {
 //					in->Rotate( { { profile_intake.at(0).at(i) }, {
 //							profile_intake.at(1).at(i) } });
-//					std::cout << "herde" << std::endl;
+					std::cout << "herde" << std::endl;
 
-				SmartDashboard::PutNumber("INTAKE REF POS", profile_intake.at(0).at(i));
-					SmartDashboard::PutNumber("INTAKE REF VEL", profile_intake.at(1).at(i));
+//
+//				if (i < profile_intake.at(0).size() - 1) {
+//						i++;
+//						//std::cout << "OOOOOOOOOOOOOO" << std::endl;
+//					}
+//			//	}
 
-				if (i < profile_intake.at(0).size() - 1) {
-						i++;
-						//std::cout << "OOOOOOOOOOOOOO" << std::endl;
-					}
-			//	}
+				//	i++;
 
-			//	i++;
+				std::vector<std::vector<double>> profile_intake =
+						intake_profiler->GetNextRefIntake();
+
+//				SmartDashboard::PutNumber("INTAKE REF POS", profile_intake.at(0));
+//					SmartDashboard::PutNumber("INTAKE REF VEL", profile_intake.at(1));
+
+				if (in->intake_arm_state != STOP_ARM_STATE
+						&& in->intake_arm_state != INIT_STATE) {
+					in->Rotate(profile_intake);
+				}
 				intakeTimer->Reset();
 
 			}

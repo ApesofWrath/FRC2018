@@ -44,13 +44,13 @@ void IntakeMotionProfiler::SetInitPosIntake(double position_init) { //at every n
 
 void IntakeMotionProfiler::SetMaxVelIntake(double max_vel) {
 
-	max_velocity = max_vel;
+	max_velocity = 1.5;//max_vel;
 
 }
 
 void IntakeMotionProfiler::SetMaxAccIntake(double max_acc) {
 
-	max_acceleration = max_acc;
+	max_acceleration = 4.0;//max_acc;
 
 }
 
