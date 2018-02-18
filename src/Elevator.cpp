@@ -44,7 +44,7 @@ int last_elevator_state = 0; //init state
 
 const double DOWN_POS_E = 0.0; //starting pos
 const double MID_POS_E = 0.25;
-const double UP_POS_E = 0.92;
+const double UP_POS_E = 0.91;
 
 double offset = 0.0;
 double ff = 0.0; //feedforward
@@ -263,7 +263,7 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 	}
 
 	if (std::abs(GetElevatorVelocity()) <= 0.05
-			&& std::abs(elevator_voltage) > 5.0) { //this has to be here at the end
+			&& std::abs(elevator_voltage) > 3.0) { //this has to be here at the end
 		encoder_counter_e++;
 		//	SmartDashboard::PutString("HERE", "yes");
 	} else {
@@ -271,7 +271,7 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 		//	SmartDashboard::PutString("HERE", "no");
 	}
 
-	if (encoder_counter_e > 10) { //bypass the initial high voltage to accelerate from 0
+	if (encoder_counter_e > 3) { //bypass the initial high voltage to accelerate from 0
 		voltage_safety_e = true;
 	} else {
 		voltage_safety_e = false;
@@ -283,7 +283,7 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 
 	}
 
-	SmartDashboard::PutNumber("EL VOLT", elevator_voltage);
+	//SmartDashboard::PutNumber("EL VOLT", elevator_voltage);
 
 	elevator_voltage /= 12.0;
 

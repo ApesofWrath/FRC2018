@@ -10,10 +10,10 @@
 ElevatorMotionProfiler::ElevatorMotionProfiler(double max_vel, double max_acc,
 		double time_step) {
 
-	max_velocity = 1.6;//max_vel;
-	max_acceleration = 10.0;//max_acc;
+	max_velocity = max_vel;
+	max_acceleration = max_acc;
 
-	interval = time_step / time_dt; //frequency of when points should be recorded
+	interval = time_step / time_dt; //frequency of when points should be recorded //1000
 
 }
 

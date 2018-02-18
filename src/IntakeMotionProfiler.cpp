@@ -10,8 +10,8 @@
 IntakeMotionProfiler::IntakeMotionProfiler(double max_vel, double max_acc,
 		double time_step) {
 
-	max_velocity = 2.0;//max_vel;
-	max_acceleration = 8.0;//max_acc;
+	max_velocity = max_vel;
+	max_acceleration = max_acc;
 
 	interval = time_step / time_dt; //frequency of when points should be recorded
 
@@ -44,13 +44,13 @@ void IntakeMotionProfiler::SetInitPosIntake(double position_init) { //at every n
 
 void IntakeMotionProfiler::SetMaxVelIntake(double max_vel) {
 
-	max_velocity = max_vel;//max_vel;
+	max_velocity = max_vel;
 
 }
 
 void IntakeMotionProfiler::SetMaxAccIntake(double max_acc) {
 
-	max_acceleration = max_acc;//max_acc;
+	max_acceleration = max_acc;
 
 }
 

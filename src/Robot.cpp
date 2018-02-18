@@ -41,16 +41,16 @@ public:
 	const int RAISE_TO_SWITCH = 5;
 	const int RAISE_TO_SCALE = 6;
 
-	const int INTAKE_SPIN_IN = 6;
-	const int INTAKE_SPIN_OUT = 7;
-	const int INTAKE_SPIN_STOP = 8;
+	const int INTAKE_SPIN_IN = 99;//6;
+	const int INTAKE_SPIN_OUT = 99;//7;
+	const int INTAKE_SPIN_STOP = 99;//8;
 
-	const int INTAKE_ARM_UP = 3;
-	const int INTAKE_ARM_MID = 4;
-	const int INTAKE_ARM_DOWN = 5; //5
-	const int ELEVATOR_UP = 9;
-	const int ELEVATOR_MID = 10;
-	const int ELEVATOR_DOWN = 11;
+	const int INTAKE_ARM_UP = 7;//3;
+	const int INTAKE_ARM_MID = 8;//4;
+	const int INTAKE_ARM_DOWN = 9;//5; //5
+	const int ELEVATOR_UP = 10;
+	const int ELEVATOR_MID = 11;
+	const int ELEVATOR_DOWN = 12;
 
 	bool acceptable_current_r, acceptable_current_l; //testperiodic
 
@@ -75,8 +75,8 @@ public:
 
 	void RobotInit() {
 
-		elevator_profiler_ = new ElevatorMotionProfiler(0.0, 0.0, 0.01); //will be set in intake and elevator classes for now //time steps changed
-		intake_profiler_ = new IntakeMotionProfiler(1.5, 4.0, 0.01);
+		elevator_profiler_ = new ElevatorMotionProfiler(1.6, 10.0, 0.01); //will be set in intake and elevator classes for now //time steps changed
+		intake_profiler_ = new IntakeMotionProfiler(2.0, 8.0, 0.01);
 
 		compressor_ = new Compressor(3);
 		compressor_->SetClosedLoopControl(true);
@@ -131,6 +131,8 @@ public:
 		elevator_->zeroing_counter_e = 0;
 		intake_->zeroing_counter_i = 0;
 
+		intake_->SetStartingPos(intake_->GetAngularPosition());
+
 		intake_->is_init_intake = false;
 		elevator_->is_elevator_init = false;
 
@@ -164,16 +166,17 @@ public:
 //		SmartDashboard::PutNumber("INTAKE wheel cur1", intake_->talonIntake1->GetOutputCurrent());
 //		SmartDashboard::PutNumber("INTAKE wheel cur2", intake_->talonIntake2->GetOutputCurrent());
 
-		double ang =  -1.0 * (double) drive_controller->ahrs->GetRawGyroZ()
-					* (double) ((PI) / 180.0);
-		SmartDashboard::PutNumber("ANGLE", ang);
+		//double ang = drive_controller->ahrs->GetYaw();//
+					//* (double) ((PI) / 180.0);
+		///SmartDashboard::PutNumber("ANGLE.", ang);
+		//std::cout << "ang: " << ang << std::endl;
 
-		bool wait_for_button = joyThrottle->GetRawButton(WAIT_FOR_BUTTON); //testing
-		bool get_cube_ground = joyThrottle->GetRawButton(GET_CUBE_GROUND);
-		bool get_cube_station = joyThrottle->GetRawButton(GET_CUBE_STATION);
-		bool post_intake = joyThrottle->GetRawButton(POST_INTAKE);
-		bool raise_to_switch = joyThrottle->GetRawButton(RAISE_TO_SWITCH);
-		bool raise_to_scale = joyThrottle->GetRawButton(RAISE_TO_SCALE);
+		bool wait_for_button = joyOp->GetRawButton(WAIT_FOR_BUTTON); //testing
+		bool get_cube_ground = joyOp->GetRawButton(GET_CUBE_GROUND);
+		bool get_cube_station = joyOp->GetRawButton(GET_CUBE_STATION);
+		bool post_intake = joyOp->GetRawButton(POST_INTAKE);
+		bool raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
+		bool raise_to_scale = joyOp->GetRawButton(RAISE_TO_SCALE);
 
 		bool intake_spin_in = joyOp->GetRawButton(INTAKE_SPIN_IN);
 		bool intake_spin_out = joyOp->GetRawButton(INTAKE_SPIN_OUT);

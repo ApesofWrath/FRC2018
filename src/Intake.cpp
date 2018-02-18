@@ -23,6 +23,7 @@ const int STOP_ARM_STATE = 4;
 const int STOP_WHEEL_STATE = 0; //wheel state machine
 const int IN_STATE = 1;
 const int OUT_STATE = 2;
+//TODO: add an agitate state
 
 const double TICKS_PER_ROT_I = 4096.0;
 const double MAX_VOLTAGE_I = 12.0; //CANNOT EXCEED abs(10)
@@ -35,17 +36,21 @@ const double MAX_THEORETICAL_VELOCITY_I = ((free_speed_i / G_i))
 const double Kv_i = 1 / MAX_THEORETICAL_VELOCITY_I;
 
 //For motion profiler
-const double MAX_VELOCITY_I = 2.0; //1
-const double MAX_ACCELERATION_I = 6.0; //2.5;
-const double TIME_STEP_I = 0.01; //sec
+//const double MAX_VELOCITY_I = 2.0; //1
+//const double MAX_ACCELERATION_I = 6.0; //2.5;
+//const double TIME_STEP_I = 0.01; //sec
 
 const double MAX_INTAKE_CURRENT = 40.0;
 const double OUTTAKE_INTAKE_CURRENT = 20.0;
 
+const double PCL_WHEELS = 80.0; //peak current limit
+const double CCL_WHEELS = 10.0; //continuous current limit
+const double PCD_WHEELS = 200.0; //peak current duration
+
 const int INTAKE_SLEEP_TIME = 0;
 const double INTAKE_WAIT_TIME = 0.01; //sec
 
-const double DOWN_ANGLE = 0.0;
+const double DOWN_ANGLE = 0.02; //instead of changing the offset
 const double MID_ANGLE = 0.6;
 const double UP_ANGLE = 1.3; //starting pos
 
@@ -57,7 +62,7 @@ double v_bat_i = 0.0; //will be set to pdp's voltage
 std::vector<std::vector<double> > K_i;
 std::vector<std::vector<double> > K_down_i = { { 10.32, 0.063 }, //controller matrix that is calculated in the Python simulation, pos and vel  10.32, 0.063
 		{ 10.32, 0.063 } };
-std::vector<std::vector<double> > K_up_i = { { 21.10, 0.18 }, //controller matrix that is calculated in the Python simulation, pos and vel 16.75, 0.12
+std::vector<std::vector<double> > K_up_i = { { 16.75, 0.12 }, //controller matrix that is calculated in the Python simulation, pos and vel 16.75, 0.12
 		{ 16.75, 0.12 } };
 
 std::vector<std::vector<double> > X_i = { { 0.0 }, //state matrix filled with the states of the system //not used
@@ -70,6 +75,8 @@ Timer *intakeTimer = new Timer();
 PowerDistributionPanel *pdp_i;
 
 IntakeMotionProfiler *intake_profiler;
+
+double starting_pos = 0.0;
 
 bool is_at_bottom = false;
 bool first_time_at_bottom = false;
@@ -93,8 +100,8 @@ Intake::Intake(PowerDistributionPanel *pdp,
 
 	intake_profiler = intake_profiler_;
 
-	intake_profiler->SetMaxAccIntake(MAX_ACCELERATION_I);
-	intake_profiler->SetMaxVelIntake(MAX_VELOCITY_I);
+//	intake_profiler->SetMaxAccIntake(MAX_ACCELERATION_I);
+//	intake_profiler->SetMaxVelIntake(MAX_VELOCITY_I);
 
 	hallEffectIntake = new DigitalInput(0);
 
@@ -104,12 +111,12 @@ Intake::Intake(PowerDistributionPanel *pdp,
 
 	talonIntake1->EnableCurrentLimit(true);
 	talonIntake2->EnableCurrentLimit(true);
-	talonIntake1->ConfigPeakCurrentLimit(150, 0);
-	talonIntake2->ConfigPeakCurrentLimit(150, 0);
-	talonIntake1->ConfigContinuousCurrentLimit(5, 0);
-	talonIntake2->ConfigContinuousCurrentLimit(5, 0);
-	talonIntake1->ConfigPeakCurrentDuration(200, 0);
-	talonIntake2->ConfigPeakCurrentDuration(200, 0);
+	talonIntake1->ConfigPeakCurrentLimit(PCL_WHEELS, 0);
+	talonIntake2->ConfigPeakCurrentLimit(PCL_WHEELS, 0);
+	talonIntake1->ConfigContinuousCurrentLimit(CCL_WHEELS, 0);
+	talonIntake2->ConfigContinuousCurrentLimit(CCL_WHEELS, 0);
+	talonIntake1->ConfigPeakCurrentDuration(PCD_WHEELS, 0);
+	talonIntake2->ConfigPeakCurrentDuration(PCD_WHEELS, 0);
 
 	talonIntakeArm = new TalonSRX(55);
 
@@ -117,7 +124,7 @@ Intake::Intake(PowerDistributionPanel *pdp,
 	talonIntakeArm->EnableCurrentLimit(true);
 	talonIntakeArm->ConfigPeakCurrentLimit(80, 0);
 	talonIntakeArm->ConfigContinuousCurrentLimit(40, 0);
-	talonIntakeArm->ConfigPeakCurrentDuration(100, 0);
+	talonIntakeArm->ConfigPeakCurrentDuration(300, 0);
 
 	talonIntakeArm->ConfigVelocityMeasurementPeriod(
 			VelocityMeasPeriod::Period_10Ms, 0);
@@ -127,13 +134,21 @@ Intake::Intake(PowerDistributionPanel *pdp,
 
 }
 
+void Intake::SetStartingPos(double start) {
+	starting_pos = start;
+}
+
 void Intake::InitializeIntake() {
 
 	//ZeroEnc();
 
 	//if (!IsAtBottomIntake()) { //don't see hall effect
 	if (!is_init_intake) { //this has to be here for some reason
-		SetVoltageIntake(-7.0); //double intake_volt = (2.0 / pdp_i->GetVoltage()) * 1.0; //down//SetVoltageIntake(-1.0);
+		if (GetAngularPosition() < (starting_pos - 0.5)) {
+			SetVoltageIntake(-2.0); //double intake_volt = (2.0 / pdp_i->GetVoltage()) * 1.0; //down//SetVoltageIntake(-1.0);
+		} else {
+			SetVoltageIntake(-6.0);
+		}
 		//talonIntakeArm->Set(ControlMode::PercentOutput, intake_volt);
 	}
 
@@ -149,12 +164,12 @@ void Intake::In() { //add quick out and back in
 
 	talonIntake1->EnableCurrentLimit(true);
 	talonIntake2->EnableCurrentLimit(true);
-	talonIntake1->ConfigPeakCurrentLimit(150, 0);
-	talonIntake2->ConfigPeakCurrentLimit(150, 0);
-	talonIntake1->ConfigContinuousCurrentLimit(5, 0);
-	talonIntake2->ConfigContinuousCurrentLimit(5, 0);
-	talonIntake1->ConfigPeakCurrentDuration(200, 0);
-	talonIntake2->ConfigPeakCurrentDuration(200, 0);
+	talonIntake1->ConfigPeakCurrentLimit(PCL_WHEELS, 0);
+	talonIntake2->ConfigPeakCurrentLimit(PCL_WHEELS, 0);
+	talonIntake1->ConfigContinuousCurrentLimit(CCL_WHEELS, 0);
+	talonIntake2->ConfigContinuousCurrentLimit(CCL_WHEELS, 0);
+	talonIntake1->ConfigPeakCurrentDuration(PCD_WHEELS, 0);
+	talonIntake2->ConfigPeakCurrentDuration(PCD_WHEELS, 0);
 
 	talonIntake1->Set(ControlMode::PercentOutput, -0.95); // +2.0/12.0 maybe -0.7
 	talonIntake2->Set(ControlMode::PercentOutput, 0.95); // +2.0/12.0 maybe 0.7
@@ -175,12 +190,12 @@ void Intake::StopWheels() {
 
 	talonIntake1->EnableCurrentLimit(true);
 	talonIntake2->EnableCurrentLimit(true);
-	talonIntake1->ConfigPeakCurrentLimit(150, 0);
-	talonIntake2->ConfigPeakCurrentLimit(150, 0);
-	talonIntake1->ConfigContinuousCurrentLimit(5, 0);
-	talonIntake2->ConfigContinuousCurrentLimit(5, 0);
-	talonIntake1->ConfigPeakCurrentDuration(200, 0);
-	talonIntake2->ConfigPeakCurrentDuration(200, 0);
+	talonIntake1->ConfigPeakCurrentLimit(PCL_WHEELS, 0);
+	talonIntake2->ConfigPeakCurrentLimit(PCL_WHEELS, 0);
+	talonIntake1->ConfigContinuousCurrentLimit(CCL_WHEELS, 0);
+	talonIntake2->ConfigContinuousCurrentLimit(CCL_WHEELS, 0);
+	talonIntake1->ConfigPeakCurrentDuration(PCD_WHEELS, 0);
+	talonIntake2->ConfigPeakCurrentDuration(PCD_WHEELS, 0);
 
 	talonIntake1->Set(ControlMode::PercentOutput, 0.0 - 0.2); //1.8 v
 	talonIntake2->Set(ControlMode::PercentOutput, 0.0 + 0.2); //0.15
@@ -215,6 +230,7 @@ void Intake::Rotate(std::vector<std::vector<double> > ref_intake) { //a vector o
 	double goal_pos = ref_intake[0][0];
 	double goal_vel = ref_intake[1][0];
 
+	SmartDashboard::PutNumber("INTAKE POS", GetAngularPosition());
 //	SmartDashboard::PutNumber("INTAKE REF POS", goal_pos);
 //	SmartDashboard::PutNumber("INTAKE REF VEL", goal_vel);
 
@@ -224,7 +240,7 @@ void Intake::Rotate(std::vector<std::vector<double> > ref_intake) { //a vector o
 	error_i[0][0] = goal_pos - current_pos;
 	error_i[1][0] = goal_vel - current_vel;
 
-//	SmartDashboard::PutNumber("INTAKE ERR POS", error_i[0][0]);
+	SmartDashboard::PutNumber("INTAKE ERR POS", error_i[0][0]);
 //	SmartDashboard::PutNumber("INTAKE ERR VEL", error_i[1][0]);
 
 	v_bat_i = 12.0;
@@ -242,8 +258,8 @@ void Intake::Rotate(std::vector<std::vector<double> > ref_intake) { //a vector o
 
 	double offset = 1.3 * cos(current_pos); //counter gravity
 
-	u_i = (K_i[0][0] * error_i[0][0]) + (K_i[0][1] * error_i[1][0]) + offset; //u_i is in voltage, * by v_bat_i
-	///+ (Kv_i * goal_vel * v_bat_i) + offset; // for this system the second row of the K matrix is a copy and does not matter.
+	u_i = (K_i[0][0] * error_i[0][0]) + (K_i[0][1] * error_i[1][0]) //+ offset ; //u_i is in voltage, * by v_bat_i
+			+ (Kv_i * goal_vel * v_bat_i)*0.5 + offset; // for this system the second row of the K matrix is a copy and does not matter.
 
 	//SmartDashboard::PutNumber("INTAKE FF", u_i);
 
@@ -259,7 +275,7 @@ void Intake::SetVoltageIntake(double voltage_i) {
 	//SmartDashboard::PutNumber("HALL EFF INTAKE", is_at_bottom); //actually means not at bottom //0 means up// 1 means dow
 
 	//soft limit
-	if (GetAngularPosition() >= (PI / 2.0) && voltage_i > 0.0) { //at max height and still trying to move up
+	if (GetAngularPosition() >= (1.4) && voltage_i > 0.0) { //at max height and still trying to move up
 		voltage_i = 0.0; //shouldn't crash
 	}
 
@@ -286,7 +302,7 @@ void Intake::SetVoltageIntake(double voltage_i) {
 		voltage_i = MIN_VOLTAGE_I;
 	}
 
-	if (std::abs(GetAngularVelocity()) <= 0.05 && std::abs(voltage_i) > 4.0) { //outputting current, not moving, should be moving
+	if (std::abs(GetAngularVelocity()) <= 0.05 && std::abs(voltage_i) > 3.0) { //outputting current, not moving, should be moving
 		encoder_counter++;
 		//std::cout << "VEL: " << GetAngularVelocity() << "  VOLT: " << voltage_i << std::endl;
 	} else {
@@ -304,7 +320,7 @@ void Intake::SetVoltageIntake(double voltage_i) {
 		voltage_i = 0.0;
 	}
 
-	SmartDashboard::PutNumber("INTAKE VOLT", voltage_i);
+	//SmartDashboard::PutNumber("INTAKE VOLT", voltage_i);
 
 	voltage_i /= 12.0; //scale from -1 to 1 for the talon
 
@@ -512,16 +528,16 @@ bool Intake::ReleasedCube() {
 //	}
 
 	if (talonIntake1->GetOutputCurrent() <= 17.0
-				&& talonIntake2->GetOutputCurrent() <= 17.0) {
-			current_counter++;
-		} else {
-			current_counter = 0;
-		}
-		if (current_counter >= 15) {
-			return true;
-		} else {
-			return false;
-		}
+			&& talonIntake2->GetOutputCurrent() <= 17.0) {
+		current_counter++;
+	} else {
+		current_counter = 0;
+	}
+	if (current_counter >= 15) {
+		return true;
+	} else {
+		return false;
+	}
 
 }
 

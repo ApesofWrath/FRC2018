@@ -48,6 +48,7 @@ public:
 	Intake(PowerDistributionPanel *pdp, IntakeMotionProfiler *intake_profiler);
 
 	void InitializeIntake();
+	void SetStartingPos(double start);
 
 	void In();
 	void Out();

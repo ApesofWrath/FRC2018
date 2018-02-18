@@ -18,6 +18,8 @@ const int PLACE_SCALE_STATE = 5;
 const int PLACE_SWITCH_STATE = 6;
 int state = INIT_STATE;
 
+int last_state = 0;
+
 bool state_intake_wheel = false; //set to true to override the states set in the state machine
 bool state_intake_arm = false;
 bool state_elevator = false;
@@ -172,7 +174,11 @@ void TeleopStateMachine::StateMachine(bool wait_for_button,
 			state = PLACE_SCALE_STATE;
 		} else if (raise_to_switch) {
 			state = PLACE_SWITCH_STATE;
-		} //can always go back to wait for button state
+		} else if (last_state == PLACE_SCALE_STATE || last_state == PLACE_SWITCH_STATE) {
+			state = WAIT_FOR_BUTTON_STATE;
+		}
+
+		//can always go back to wait for button state
 		break;
 
 	case PLACE_SCALE_STATE:
@@ -207,6 +213,8 @@ void TeleopStateMachine::StateMachine(bool wait_for_button,
 		break;
 
 	}
+
+	last_state = state;
 
 }
 

@@ -415,7 +415,9 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 			VelocityMeasPeriod::Period_10Ms, 0);
 	canTalonRight4->ConfigVelocityMeasurementWindow(5, 0);
 
-	ahrs = new AHRS(SerialPort::Port::kUSB); //
+	//ahrs = new AHRS(SerialPort::Port::kUSB, AHRS::SerialDataType::kProcessedData, 200);
+	ahrs = new AHRS(SerialPort::kUSB);
+	//ahrs = new AHRS(SerialPort::Port::kMXP);
 
 	solenoid = new DoubleSolenoid(3, 0, 1);
 
@@ -430,6 +432,7 @@ void DriveControllerMother::TeleopHDrive(Joystick *JoyThrottle,
 	double strafe = (JoyThrottle->GetX());
 	double current_yaw = (fmod((-1.0 * ahrs->GetYaw() * (PI / 180.0)),
 			(2.0 * PI))); // yaw position
+
 
 	if ((bool) *is_fc) {
 
@@ -772,7 +775,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 		double k_d_left, double k_d_kick, double target_vel_left,
 		double target_vel_right, double target_vel_kick) {
 
-	double yaw_rate_current = -1.0 * (double) ahrs->GetRawGyroZ()
+	double yaw_rate_current = -1.0 * (double) ahrs->GetYaw()
 			* (double) ((PI) / 180.0); //left should be positive
 
 	double target_yaw_rate = ref_yaw;
@@ -824,6 +827,8 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	double kick_current = ((double) canTalonKicker->GetSelectedSensorVelocity(0)
 			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION; //going right is positive
 
+	SmartDashboard::PutNumber("Left vel", l_current);
+	SmartDashboard::PutNumber("Right vel", r_current);
 	//std::cout << "left: " << l_current << std::endl;
 	//std::cout << "right: " << r_current << std::endl;
 	//std::cout << "yaw: " << yaw_error << std::endl;
