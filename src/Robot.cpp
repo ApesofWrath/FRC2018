@@ -31,8 +31,8 @@ public:
 	const int JOY_WHEEL = 1;
 	const int JOY_OP = 2;
 
-	const int LOW_GEAR_BUTTON = 10;
-	const int HIGH_GEAR_BUTTON = 11;
+	const int LOW_GEAR_BUTTON = 8;
+	const int HIGH_GEAR_BUTTON = 9;
 
 	const int WAIT_FOR_BUTTON = 1;
 	const int GET_CUBE_GROUND = 2;
@@ -43,14 +43,13 @@ public:
 
 	const int INTAKE_SPIN_IN = 6;
 	const int INTAKE_SPIN_OUT = 7;
-	const int INTAKE_SPIN_STOP = 5; //8
+	const int INTAKE_SPIN_STOP = 8;
 
 	const int INTAKE_ARM_UP = 3;
 	const int INTAKE_ARM_MID = 4;
-	const int INTAKE_ARM_DOWN = 99; //5
+	const int INTAKE_ARM_DOWN = 5; //5
 	const int ELEVATOR_UP = 9;
 	const int ELEVATOR_MID = 10;
-
 	const int ELEVATOR_DOWN = 11;
 
 	bool acceptable_current_r, acceptable_current_l; //testperiodic
@@ -77,7 +76,7 @@ public:
 	void RobotInit() {
 
 		elevator_profiler_ = new ElevatorMotionProfiler(0.0, 0.0, 0.01); //will be set in intake and elevator classes for now //time steps changed
-		intake_profiler_ = new IntakeMotionProfiler(0.0, 0.0, 0.01);
+		intake_profiler_ = new IntakeMotionProfiler(1.5, 4.0, 0.01);
 
 		compressor_ = new Compressor(3);
 		compressor_->SetClosedLoopControl(true);
@@ -124,9 +123,10 @@ public:
 
 		//disable auton threads
 
-//		drive_controller->ZeroI(true);
-//		drive_controller->ZeroEncs();
-//		drive_controller->ZeroYaw();
+		drive_controller->ZeroI(true);
+		drive_controller->ZeroEncs();
+		drive_controller->ZeroYaw();
+		drive_controller->ShiftDown();
 
 		elevator_->zeroing_counter_e = 0;
 		intake_->zeroing_counter_i = 0;
@@ -140,8 +140,8 @@ public:
 		teleop_state_machine->Initialize();
 
 //#ifndef THREADS
-//		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
-//				&is_vision, &is_fc); //pass by reference through the wrapper
+		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
+				&is_vision, &is_fc); //pass by reference through the wrapper
 		intake_->StartIntakeThread();
 		elevator_->StartElevatorThread();
 //#endif
@@ -160,8 +160,13 @@ public:
 		bool low_gear = joyThrottle->GetRawButton(LOW_GEAR_BUTTON);
 		bool high_gear = joyThrottle->GetRawButton(HIGH_GEAR_BUTTON);
 
+//		SmartDashboard::PutNumber("ELEVATOR VEL", elevator_->GetElevatorVelocity());
+//		SmartDashboard::PutNumber("INTAKE wheel cur1", intake_->talonIntake1->GetOutputCurrent());
+//		SmartDashboard::PutNumber("INTAKE wheel cur2", intake_->talonIntake2->GetOutputCurrent());
 
-		SmartDashboard::PutNumber("BAT VOLT", pdp_->GetVoltage());
+		double ang =  -1.0 * (double) drive_controller->ahrs->GetRawGyroZ()
+					* (double) ((PI) / 180.0);
+		SmartDashboard::PutNumber("ANGLE", ang);
 
 		bool wait_for_button = joyThrottle->GetRawButton(WAIT_FOR_BUTTON); //testing
 		bool get_cube_ground = joyThrottle->GetRawButton(GET_CUBE_GROUND);
@@ -195,16 +200,16 @@ public:
 		is_fc = false;
 
 		if (low_gear) {
-	//		drive_controller->ShiftDown();
+			drive_controller->ShiftDown();
 		} else if (high_gear) {
-		//	drive_controller->ShiftUp();
+			drive_controller->ShiftUp();
 		}
 #endif
 	}
 
 	void DisabledInit() override {
 
-		//drive_controller->EndTeleopThreads();
+		drive_controller->EndTeleopThreads();
 		intake_->EndIntakeThread(); //may not actually disable threads
 		elevator_->EndElevatorThread();
 
@@ -215,9 +220,6 @@ public:
 		elevator_->is_elevator_init = false;
 
 		teleop_state_machine->Initialize();
-
-		//elevator_->ZeroEncs(); //counter zeroing?
-		//intake_->ZeroEnc();
 
 	}
 

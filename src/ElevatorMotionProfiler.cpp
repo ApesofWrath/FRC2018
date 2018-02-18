@@ -10,8 +10,8 @@
 ElevatorMotionProfiler::ElevatorMotionProfiler(double max_vel, double max_acc,
 		double time_step) {
 
-	max_velocity = max_vel;
-	max_acceleration = max_acc;
+	max_velocity = 1.6;//max_vel;
+	max_acceleration = 10.0;//max_acc;
 
 	interval = time_step / time_dt; //frequency of when points should be recorded
 
@@ -53,20 +53,20 @@ void ElevatorMotionProfiler::SetMaxAccElevator(double max_acc) {
 //pre: set init pos and final goal for the first point in the whole profile
 std::vector<std::vector<double>> ElevatorMotionProfiler::GetNextRefElevator() { //used by both elevator and intake
 
-	time_dt = 0.0004; //seconds //lower res without 0.000001 and counter, but still ok //higher because lowered the counter threshold
+	time_dt = 0.0001; //seconds //lower res without 0.000001 and counter, but still ok //higher because lowered the counter threshold
 
 	//cant initialize any vectors outside of the function or their previous values will carry over into the next profiles made. Don't pull a ChezyChamps2k17
 	std::vector<std::vector<double> > matrix; //new matrix every time because .push_back adds rows, moved from the top of the class
 	std::vector<double> positions; //first points will be 0
 	std::vector<double> velocities;
-	std::vector<double> accelerations;
-	std::vector<double> references; //DOES go down to 0
+//	std::vector<double> accelerations;
+//	std::vector<double> references; //DOES go down to 0
 
 	ref = final_goal; //swtiches constantly for elevator and intake objects
 
 	int counter = 0;
 
-	while (counter < 25) { //lower threshold because profile is going too slow
+	while (counter < 100) { //lower threshold because profile is going too slow
 		if (ref >= init_pos) { //profile to go up
 			if (pos < ref) { //still need to go up, profile not over
 
@@ -81,11 +81,12 @@ std::vector<std::vector<double>> ElevatorMotionProfiler::GetNextRefElevator() { 
 					acc = 0.0;
 				}
 
-				pos = last_pos + (vel * time_dt); //update states
-				last_pos = pos;
 
 				vel = last_vel + (acc * time_dt);
 				last_vel = vel;
+
+				pos = last_pos + (vel * time_dt); //update states
+				last_pos = pos;
 
 			}
 		} else if (ref < init_pos) {
@@ -104,11 +105,11 @@ std::vector<std::vector<double>> ElevatorMotionProfiler::GetNextRefElevator() { 
 					acc = 0.0;
 				}
 
-				pos = last_pos + (vel * time_dt);
-				last_pos = pos;
-
 				vel = last_vel + (acc * time_dt);
 				last_vel = vel;
+
+				pos = last_pos + (vel * time_dt);
+				last_pos = pos;
 
 			}
 		}
@@ -118,15 +119,15 @@ std::vector<std::vector<double>> ElevatorMotionProfiler::GetNextRefElevator() { 
 
 	positions.push_back(pos);
 	velocities.push_back(vel);
-	accelerations.push_back(acc);
-	references.push_back(ref);
+//	accelerations.push_back(acc);
+//	references.push_back(ref);
 
 	//can't directly push the pos and vel doubles into matrix because matrix is an array of arrays
 
 	matrix.push_back(positions); //first vector,  row 0
 	matrix.push_back(velocities); //second vector, row 1
-	matrix.push_back(accelerations);
-	matrix.push_back(references);
+//	matrix.push_back(accelerations);
+//	matrix.push_back(references);
 
 	return matrix;
 

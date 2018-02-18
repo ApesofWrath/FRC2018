@@ -32,6 +32,8 @@ public:
 
 	bool is_elevator_init = false;
 
+	double goal_vel_e = 0.0;
+
 	int zeroing_counter_e = 0;
 
 	const int INIT_STATE_E_H = 0;

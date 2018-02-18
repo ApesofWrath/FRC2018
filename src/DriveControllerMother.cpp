@@ -5,10 +5,9 @@
  *      Author: maxkwon
  */
 
-//TODO: Check encoder counts for drive encoders
 #include <DriveControllerMother.h>
 #include <WPILib.h>
-#include "ctre/Phoenix.h" //needed to be double included
+//#include "ctre/Phoenix.h" //needed to be double included
 
 #define PI 3.1415926
 
@@ -208,7 +207,7 @@ std::vector<double> drive_ref; //TODO: fill this with the motion profile one row
 std::vector<std::vector<double> > auton_profile;
 
 DriveControllerMother::DriveControllerMother(int fl, int fr, int rl, int rr,
-		int k, bool is_wc, bool start_low) { // may still need to initialize more constants
+		int k, bool is_wc, bool start_low) { //not used and not complete
 
 	max_y_rpm = MAX_Y_RPM_HD;
 	actual_max_y_rpm = ACTUAL_MAX_Y_RPM_HD;
@@ -258,6 +257,7 @@ DriveControllerMother::DriveControllerMother(int fl, int fr, int rl, int rr,
 
 }
 
+//We use this one
 DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 		int r1, int r2, int r3, int r4, bool start_low) {
 
@@ -344,7 +344,7 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 	canTalonRight4 = new TalonSRX(RR);
 	canTalonRight4->Set(ControlMode::Follower, RF);
 
-	canTalonLeft1->EnableCurrentLimit(true); //needed this
+	canTalonLeft1->EnableCurrentLimit(true);
 	canTalonLeft2->EnableCurrentLimit(true);
 	canTalonLeft3->EnableCurrentLimit(true);
 	canTalonLeft4->EnableCurrentLimit(true);
@@ -353,16 +353,16 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 	canTalonRight3->EnableCurrentLimit(true);
 	canTalonRight4->EnableCurrentLimit(true);
 
-	canTalonLeft1->ConfigPeakCurrentLimit(30, 0);
-	canTalonLeft2->ConfigPeakCurrentLimit(30, 0);
-	canTalonLeft3->ConfigPeakCurrentLimit(30, 0);
-	canTalonLeft4->ConfigPeakCurrentLimit(30, 0);
-	canTalonRight1->ConfigPeakCurrentLimit(30, 0);
-	canTalonRight2->ConfigPeakCurrentLimit(30, 0);
-	canTalonRight3->ConfigPeakCurrentLimit(30, 0);
-	canTalonRight4->ConfigPeakCurrentLimit(30, 0);
+	canTalonLeft1->ConfigPeakCurrentLimit(60, 0);
+	canTalonLeft2->ConfigPeakCurrentLimit(60, 0);
+	canTalonLeft3->ConfigPeakCurrentLimit(60, 0);
+	canTalonLeft4->ConfigPeakCurrentLimit(60, 0);
+	canTalonRight1->ConfigPeakCurrentLimit(60, 0);
+	canTalonRight2->ConfigPeakCurrentLimit(60, 0);
+	canTalonRight3->ConfigPeakCurrentLimit(60, 0);
+	canTalonRight4->ConfigPeakCurrentLimit(60, 0);
 
-	canTalonLeft1->ConfigContinuousCurrentLimit(30, 0); //set this
+	canTalonLeft1->ConfigContinuousCurrentLimit(30, 0);
 	canTalonLeft2->ConfigContinuousCurrentLimit(30, 0);
 	canTalonLeft3->ConfigContinuousCurrentLimit(30, 0);
 	canTalonLeft4->ConfigContinuousCurrentLimit(30, 0);
@@ -370,6 +370,15 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 	canTalonRight2->ConfigContinuousCurrentLimit(30, 0);
 	canTalonRight3->ConfigContinuousCurrentLimit(30, 0);
 	canTalonRight4->ConfigContinuousCurrentLimit(30, 0);
+
+	canTalonLeft1->ConfigPeakCurrentDuration(500, 0);
+	canTalonLeft2->ConfigPeakCurrentDuration(500, 0);
+	canTalonLeft3->ConfigPeakCurrentDuration(500, 0);
+	canTalonLeft4->ConfigPeakCurrentDuration(500, 0);
+	canTalonRight1->ConfigPeakCurrentDuration(500, 0);
+	canTalonRight2->ConfigPeakCurrentDuration(500, 0);
+	canTalonRight3->ConfigPeakCurrentDuration(500, 0);
+	canTalonRight4->ConfigPeakCurrentDuration(500, 0);
 
 	canTalonLeft1->ConfigOpenloopRamp(0.1, 0); //TODO: adjust this as needed
 	canTalonLeft2->ConfigOpenloopRamp(0.1, 0);
@@ -380,9 +389,35 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 	canTalonRight3->ConfigOpenloopRamp(0.1, 0);
 	canTalonRight4->ConfigOpenloopRamp(0.1, 0);
 
-	ahrs = new AHRS(SPI::Port::kMXP, 200);
+	canTalonLeft1->ConfigVelocityMeasurementPeriod(
+			VelocityMeasPeriod::Period_10Ms, 0);
+	canTalonLeft1->ConfigVelocityMeasurementWindow(5, 0);
+	canTalonLeft2->ConfigVelocityMeasurementPeriod(
+			VelocityMeasPeriod::Period_10Ms, 0);
+	canTalonLeft2->ConfigVelocityMeasurementWindow(5, 0);
+	canTalonLeft3->ConfigVelocityMeasurementPeriod(
+			VelocityMeasPeriod::Period_10Ms, 0);
+	canTalonLeft3->ConfigVelocityMeasurementWindow(5, 0);
+	canTalonLeft4->ConfigVelocityMeasurementPeriod(
+			VelocityMeasPeriod::Period_10Ms, 0);
+	canTalonLeft4->ConfigVelocityMeasurementWindow(5, 0);
 
-	solenoid = new DoubleSolenoid(1, 0, 1);
+	canTalonRight1->ConfigVelocityMeasurementPeriod(
+			VelocityMeasPeriod::Period_10Ms, 0);
+	canTalonRight1->ConfigVelocityMeasurementWindow(5, 0);
+	canTalonRight2->ConfigVelocityMeasurementPeriod(
+			VelocityMeasPeriod::Period_10Ms, 0);
+	canTalonRight2->ConfigVelocityMeasurementWindow(5, 0);
+	canTalonRight3->ConfigVelocityMeasurementPeriod(
+			VelocityMeasPeriod::Period_10Ms, 0);
+	canTalonRight3->ConfigVelocityMeasurementWindow(5, 0);
+	canTalonRight4->ConfigVelocityMeasurementPeriod(
+			VelocityMeasPeriod::Period_10Ms, 0);
+	canTalonRight4->ConfigVelocityMeasurementWindow(5, 0);
+
+	ahrs = new AHRS(SerialPort::Port::kUSB); //
+
+	solenoid = new DoubleSolenoid(3, 0, 1);
 
 	canTalonKicker = new TalonSRX(-1);
 
@@ -658,8 +693,6 @@ void DriveControllerMother::ShiftDown() { //low gear, outside
 	solenoid->Set(DoubleSolenoid::Value::kReverse);
 	//std::cout << "DOWN" << std::endl;
 
-	//print on smart dashboard
-
 	SetGainsLow(); //separate for gains in case we want to initialize them by themselves in the constructor
 
 }
@@ -716,10 +749,12 @@ void DriveControllerMother::SetGainsLow() {
 
 void DriveControllerMother::AutoShift() {
 
-	double current_rpm_l = (canTalonLeft1->GetSelectedSensorVelocity(0)
-			/ TICKS_PER_ROT) * MINUTE_CONVERSION;
-	double current_rpm_r = (canTalonRight1->GetSelectedSensorVelocity(0)
-			/ TICKS_PER_ROT) * MINUTE_CONVERSION;
+	double current_rpm_l =
+			(canTalonLeft1->GetSelectedSensorVelocity(0)
+					/ TICKS_PER_ROT) * MINUTE_CONVERSION;
+	double current_rpm_r =
+			(canTalonRight1->GetSelectedSensorVelocity(0)
+					/ TICKS_PER_ROT) * MINUTE_CONVERSION;
 
 	if (current_rpm_l > UP_SHIFT_VEL && current_rpm_r > UP_SHIFT_VEL) {
 		ShiftUp();
@@ -876,7 +911,7 @@ void DriveControllerMother::StopAll() {
 }
 
 //sets the position of all the drive encoders to 0
-void DriveControllerMother::ZeroEncs() {
+void DriveControllerMother::ZeroEncs() { //acc to 8
 
 	canTalonRight1->SetSelectedSensorPosition(0, 0, 0);
 	canTalonLeft1->SetSelectedSensorPosition(0, 0, 0);
@@ -943,42 +978,50 @@ void DriveControllerMother::TeleopWrapper(Joystick *JoyThrottle,
 		while (frc::RobotState::IsEnabled() && !frc::RobotState::IsAutonomous()
 				&& !(bool) *is_heading && !(bool) *is_vision) {
 
-			std::this_thread::sleep_for(
-					std::chrono::milliseconds(DRIVE_SLEEP_TIME));
+			timerTeleop->Reset();
 
-			if (timerTeleop->HasPeriodPassed(DRIVE_WAIT_TIME)) {
-
-				if (!tank) {
-					driveController->TeleopHDrive(JoyThrottle, JoyWheel, is_fc);
-				}
-
-				else {
-					driveController->TeleopWCDrive(JoyThrottle, JoyWheel);
-				}
-
-				timerTeleop->Reset();
-
+			if (!tank) {
+				driveController->TeleopHDrive(JoyThrottle, JoyWheel, is_fc);
 			}
+
+			else {
+				driveController->TeleopWCDrive(JoyThrottle, JoyWheel);
+			}
+
+			double time_t = .010 - timerTeleop->Get();
+
+			time_t *= 1000;
+			if (time_t < 0) {
+				time_t = 0;
+			}
+
+			std::this_thread::sleep_for(
+					std::chrono::milliseconds((int) time_t));
 
 		}
 		while (frc::RobotState::IsEnabled() && !frc::RobotState::IsAutonomous()
 				&& (bool) *is_heading && !(bool) *is_vision) {
 
-			std::this_thread::sleep_for(
-					std::chrono::milliseconds(DRIVE_SLEEP_TIME));
+			timerTeleop->Reset();
 
-			if (timerTeleop->HasPeriodPassed(DRIVE_WAIT_TIME)) {
+			driveController->RotationController(JoyWheel);
 
-				driveController->RotationController(JoyWheel);
+			double time_a = .010 - timerTeleop->Get(); //how much time left to sleep till 10 ms have passed. timerTeleop->Get() returns seconds
 
-				timerTeleop->Reset();
-
+			time_a *= 1000; //convert to ms
+			if (time_a < 0) { //can't wait for negative time
+				time_a = 0;
 			}
+
+			std::this_thread::sleep_for(
+					std::chrono::milliseconds((int)time_a));
+
 		}
 
 	}
 }
 
+//TODO: update thread timing
 void DriveControllerMother::AutonWrapper(
 		DriveControllerMother *driveController) {
 
@@ -1041,12 +1084,14 @@ void DriveControllerMother::StartAutonThreads() {
 
 void DriveControllerMother::EndTeleopThreads() {
 
+	timerTeleop->Stop();
 	TeleopThread.~thread();
 
 }
 
 void DriveControllerMother::EndAutonThreads() {
 
+	timerAuton->Stop();
 	AutonThread.~thread();
 
 }
