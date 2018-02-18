@@ -38,12 +38,19 @@ public:
 	const int MID_STATE_H = 2;
 	const int DOWN_STATE_H = 3;
 	const int STOP_ARM_STATE_H = 4;
+	const int SWITCH_STATE_H = 5;
 	int intake_arm_state = INIT_STATE_H;
 
 	const int STOP_WHEEL_STATE_H = 0; //wheel state machine
 	const int IN_STATE_H = 1;
 	const int OUT_STATE_H = 2;
+	const int SLOW_STATE_H = 3;
 	int intake_wheel_state = STOP_WHEEL_STATE_H;
+
+	const double DOWN_ANGLE = 0.02; //instead of changing the offset
+	const double MID_ANGLE = 0.55;
+	const double SWITCH_ANGLE = 0.8;
+	const double UP_ANGLE = 1.2; //starting pos
 
 	Intake(PowerDistributionPanel *pdp, IntakeMotionProfiler *intake_profiler);
 
@@ -52,6 +59,7 @@ public:
 
 	void In();
 	void Out();
+	void Slow();
 	void StopWheels();
 	void StopArm();
 

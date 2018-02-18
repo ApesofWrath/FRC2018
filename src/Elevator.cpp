@@ -16,6 +16,7 @@ const int DOWN_STATE_E = 1;
 const int MID_STATE_E = 2;
 const int UP_STATE_E = 3;
 const int STOP_STATE_E = 4;
+const int SWITCH_STATE_E = 5;
 
 const double free_speed_e = 18730.0; //rad/s
 const double G_e = (20.0 / 1.0); //gear ratio
@@ -41,10 +42,6 @@ const int ELEVATOR_SLEEP_TIME = 0;
 const double ELEVATOR_WAIT_TIME = 0.01; //sec
 
 int last_elevator_state = 0; //init state
-
-const double DOWN_POS_E = 0.0; //starting pos
-const double MID_POS_E = 0.25;
-const double UP_POS_E = 0.91;
 
 double offset = 0.0;
 double ff = 0.0; //feedforward
@@ -214,14 +211,14 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 	//upper soft limit
 	if (GetElevatorPosition() >= (0.93) && elevator_voltage > 0.0) { //at max height and still trying to move up
 		elevator_voltage = 0.0;
-		//	SmartDashboard::PutString("ELEVATOR SAFETY", "upper soft");
+		SmartDashboard::PutString("ELEVATOR SAFETY", "upper soft");
 		//std::cout << "S o f t l i m i t" << std::endl;
 	}
 //
 //	//lower soft limit
 	if (GetElevatorPosition() <= (-0.05) && elevator_voltage < 0.0) { //at max height and still trying to move up
 		elevator_voltage = 0.0;
-		//	SmartDashboard::PutString("ELEVATOR SAFETY", "lower soft");
+		SmartDashboard::PutString("ELEVATOR SAFETY", "lower soft");
 		//std::cout << "S o f t l i m i t" << std::endl;
 	}
 //
@@ -248,6 +245,7 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 	}
 
 	if (is_at_top && elevator_voltage > 0.1) {
+		SmartDashboard::PutString("ELEVATOR SAFETY", "upper hall eff");
 		elevator_voltage = 0.0;
 	}
 	//if (elevator_voltage < 0.0) { //account for gravity
@@ -422,6 +420,15 @@ void Elevator::ElevatorStateMachine() {
 		last_elevator_state = STOP_STATE_E;
 		break;
 
+	case SWITCH_STATE_E:
+		SmartDashboard::PutString("ELEVATOR", "SWITCH");
+		if (last_elevator_state != SWITCH_STATE_E){
+			elevator_profiler->SetFinalGoalElevator(SWITCH_POS_E);
+			elevator_profiler->SetInitPosElevator(GetElevatorPosition());
+		}
+		last_elevator_state = SWITCH_STATE_E;
+		break;
+
 	}
 
 }
@@ -443,14 +450,6 @@ void Elevator::ElevatorWrapper(Elevator *el) {
 		while (frc::RobotState::IsEnabled()) {
 
 			elevatorTimer->Reset();
-
-			//if (elevatorTimer->HasPeriodPassed(ELEVATOR_WAIT_TIME)) {
-
-			//std::cout << "pos: " << profile_elevator.at(0).at(0) << "    " // std::endl; //"  "
-			//		<< "vel: " << profile_elevator.at(1).at(0) << "   "
-			//		<< "acc: " << profile_elevator.at(2).at(0) << "   " << std::endl;
-			//	std::cout << "ref: " << profile_elevator.at(3).at(0)
-			//		<< std::endl; //ref is 0 //and current_pos is 0// still
 
 			std::vector<std::vector<double>> profile_elevator =
 					elevator_profiler->GetNextRefElevator();
@@ -486,14 +485,12 @@ void Elevator::SetZeroOffsetElevator() {
 
 	position_offset_e =
 			talonElevator1->GetSensorCollection().GetQuadraturePosition();
-
-	//std::cout << "pos e: " << position_offset_e << std::endl;
-	//position_offset_e = pos_e;
 }
 
 bool Elevator::ZeroEncs() {
 
 	if (zeroing_counter_e < 1) {
+		//Great Robotic Actuation and Controls Execution ()
 		SetZeroOffsetElevator();
 		zeroing_counter_e++;
 		return true;

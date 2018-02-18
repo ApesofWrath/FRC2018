@@ -41,13 +41,14 @@ public:
 	const int RAISE_TO_SWITCH = 5;
 	const int RAISE_TO_SCALE = 6;
 
-	const int INTAKE_SPIN_IN = 99;//6;
-	const int INTAKE_SPIN_OUT = 99;//7;
-	const int INTAKE_SPIN_STOP = 99;//8;
+	const int INTAKE_SPIN_IN = 7; //THROTTLE
+	const int INTAKE_SPIN_OUT = 10;
+	const int INTAKE_SPIN_STOP = 11;
 
-	const int INTAKE_ARM_UP = 7;//3;
-	const int INTAKE_ARM_MID = 8;//4;
-	const int INTAKE_ARM_DOWN = 9;//5; //5
+	const int INTAKE_ARM_UP = 7;
+	const int INTAKE_ARM_MID = 8;
+	const int INTAKE_ARM_DOWN = 9;
+
 	const int ELEVATOR_UP = 10;
 	const int ELEVATOR_MID = 11;
 	const int ELEVATOR_DOWN = 12;
@@ -131,7 +132,7 @@ public:
 		elevator_->zeroing_counter_e = 0;
 		intake_->zeroing_counter_i = 0;
 
-		intake_->SetStartingPos(intake_->GetAngularPosition());
+		//intake_->SetStartingPos(intake_->GetAngularPosition()); //try getting rid of this
 
 		intake_->is_init_intake = false;
 		elevator_->is_elevator_init = false;
@@ -178,9 +179,10 @@ public:
 		bool raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
 		bool raise_to_scale = joyOp->GetRawButton(RAISE_TO_SCALE);
 
-		bool intake_spin_in = joyOp->GetRawButton(INTAKE_SPIN_IN);
-		bool intake_spin_out = joyOp->GetRawButton(INTAKE_SPIN_OUT);
-		bool intake_spin_stop = joyOp->GetRawButton(INTAKE_SPIN_STOP);
+		bool intake_spin_in = joyThrottle->GetRawButton(INTAKE_SPIN_IN);
+		bool intake_spin_out = joyThrottle->GetRawButton(INTAKE_SPIN_OUT);
+		bool intake_spin_stop = joyThrottle->GetRawButton(INTAKE_SPIN_STOP);
+
 		bool intake_arm_up = joyOp->GetRawButton(INTAKE_ARM_UP);
 		bool intake_arm_mid = joyOp->GetRawButton(INTAKE_ARM_MID);
 		bool intake_arm_down = joyOp->GetRawButton(INTAKE_ARM_DOWN);

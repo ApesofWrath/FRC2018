@@ -521,13 +521,29 @@ void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle,
 
 	double target_l, target_r, target_yaw_rate;
 
-	double forward = -1.0 * (JoyThrottle->GetY());
+	double reverse_y = 1.0;
 
-	target_l = 1.0 * forward * max_y_rpm;
+	if(JoyThrottle->GetY() > 0.0) {
+		reverse_y = -1.0;
+	}
+	else {
+		reverse_y = 1.0;
+	}
+	double forward = (JoyThrottle->GetY()) * (JoyThrottle->GetY()); //SQUARED. will always be positive
+
+	target_l = reverse_y * forward * max_y_rpm;
 
 	target_r = target_l;
 
-	double joy_wheel_val = JoyWheel->GetX();
+	double reverse_x = 1.0;
+
+	if(JoyWheel->GetX() < 0.0) {
+		reverse_x = -1.0;
+	}
+	else {
+		reverse_x = 1.0;
+	}
+	double joy_wheel_val = reverse_x * JoyWheel->GetX() * JoyWheel->GetX(); //SQUARED
 
 	if (std::abs(joy_wheel_val) < .02) {
 		joy_wheel_val = 0.0;
@@ -827,8 +843,8 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	double kick_current = ((double) canTalonKicker->GetSelectedSensorVelocity(0)
 			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION; //going right is positive
 
-	SmartDashboard::PutNumber("Left vel", l_current);
-	SmartDashboard::PutNumber("Right vel", r_current);
+	//SmartDashboard::PutNumber("Left vel", l_current);
+	//SmartDashboard::PutNumber("Right vel", r_current);
 	//std::cout << "left: " << l_current << std::endl;
 	//std::cout << "right: " << r_current << std::endl;
 	//std::cout << "yaw: " << yaw_error << std::endl;

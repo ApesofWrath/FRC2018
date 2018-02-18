@@ -5,8 +5,8 @@
  *      Author: DriversStation
  */
 
+//put in thread
 //arm back down in get cube ground
-
 #include <TeleopStateMachine.h>
 
 const int INIT_STATE = 0;
@@ -35,7 +35,7 @@ TeleopStateMachine::TeleopStateMachine(Elevator *elevator_, Intake *intake_) {
 }
 
 void TeleopStateMachine::StateMachine(bool wait_for_button,
-		bool intake_spin_in, //nothing automatically sets intake arm or elevator to mid state
+		bool intake_spin_in,
 		bool intake_spin_out, bool intake_spin_stop, bool get_cube_ground,
 		bool get_cube_station, bool post_intake, bool raise_to_switch,
 		bool raise_to_scale, bool intake_arm_up, bool intake_arm_mid,
@@ -61,18 +61,18 @@ void TeleopStateMachine::StateMachine(bool wait_for_button,
 	}
 
 	//intake arm
-//	if (intake_arm_up) {
-//		state_intake_arm = false;
-//		intake->intake_arm_state = intake->UP_STATE_H;
-//	} else if (intake_arm_mid) {
-//		state_intake_arm = false;
-//		intake->intake_arm_state = intake->MID_STATE_H;
-//	} else if (intake_arm_down) {
-//		state_intake_arm = false;
-//		intake->intake_arm_state = intake->DOWN_STATE_H;
-//	} else {
-//		state_intake_arm = true;
-//	}
+	if (intake_arm_up) {
+		state_intake_arm = false;
+		intake->intake_arm_state = intake->UP_STATE_H;
+	} else if (intake_arm_mid) {
+		state_intake_arm = false;
+		intake->intake_arm_state = intake->MID_STATE_H;
+	} else if (intake_arm_down) {
+		state_intake_arm = false;
+		intake->intake_arm_state = intake->DOWN_STATE_H;
+	} else {
+		state_intake_arm = true;
+	}
 
 	state_intake_arm = true;
 
@@ -98,11 +98,11 @@ void TeleopStateMachine::StateMachine(bool wait_for_button,
 		intake->intake_arm_state = intake->INIT_STATE_H;
 		intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
 		state = WAIT_FOR_BUTTON_STATE;
+		last_state = INIT_STATE;
 		break;
 
 	case WAIT_FOR_BUTTON_STATE:
 		SmartDashboard::PutString("STATE", "WAIT FOR BUTTON");
-
 		if (get_cube_ground) { //can go to all states below wfb state
 			state = GET_CUBE_GROUND_STATE;
 		} else if (get_cube_station) {
@@ -110,17 +110,17 @@ void TeleopStateMachine::StateMachine(bool wait_for_button,
 		} else if (post_intake) {
 			state = POST_INTAKE_STATE;
 		} else if (raise_to_scale) { //should not need to go from wfb state to a raise state, but in case
-			if (state_intake_wheel) {
-				intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H; //in order to not have to change intake wheel state immediately
-			}
+//			if (state_intake_wheel) {
+//				intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H; //in order to not have to change intake wheel state immediately
+//			}
 			state = PLACE_SCALE_STATE;
 		} else if (raise_to_switch) {
-			if (state_intake_wheel) {
-				intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H; //in order to not have to change intake wheel state immediately
-			}
+//			if (state_intake_wheel) {
+//				intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H; //in order to not have to change intake wheel state immediately
+//			}
 			state = PLACE_SWITCH_STATE;
 		}
-
+		last_state = WAIT_FOR_BUTTON_STATE;
 		break;
 
 	case GET_CUBE_GROUND_STATE:
@@ -136,11 +136,13 @@ void TeleopStateMachine::StateMachine(bool wait_for_button,
 		}
 		if (state_intake_arm) {
 			intake->intake_arm_state = 3;
-			std::cout << "intake arm state: " << intake->intake_arm_state << std::endl;
+			std::cout << "intake arm state: " << intake->intake_arm_state
+					<< std::endl;
 		}
 		if (intake->HaveCube() || post_intake) {
 			state = POST_INTAKE_STATE;
 		}
+		last_state = GET_CUBE_GROUND_STATE;
 		break;
 
 	case GET_CUBE_STATION_STATE: //human player station
@@ -157,6 +159,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button,
 		if (intake->HaveCube() || post_intake) {
 			state = POST_INTAKE_STATE;
 		}
+		last_state = GET_CUBE_STATION_STATE;
 		break;
 
 	case POST_INTAKE_STATE: //have cube, waiting to place cube
@@ -170,14 +173,15 @@ void TeleopStateMachine::StateMachine(bool wait_for_button,
 		if (state_intake_wheel) {
 			intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
 		}
-		if (raise_to_scale) {
+		if (raise_to_scale) { //go to place from this state, return to this state after placing and then wfb
 			state = PLACE_SCALE_STATE;
 		} else if (raise_to_switch) {
 			state = PLACE_SWITCH_STATE;
-		} else if (last_state == PLACE_SCALE_STATE || last_state == PLACE_SWITCH_STATE) {
+		} else if (last_state == PLACE_SCALE_STATE
+				|| last_state == PLACE_SWITCH_STATE) {
 			state = WAIT_FOR_BUTTON_STATE;
 		}
-
+		last_state = POST_INTAKE_STATE;
 		//can always go back to wait for button state
 		break;
 
@@ -189,12 +193,13 @@ void TeleopStateMachine::StateMachine(bool wait_for_button,
 		if (state_elevator) {
 			elevator->elevator_state = elevator->UP_STATE_E_H;
 		}
-		if (elevator->GetElevatorPosition() >= 0.6 && state_intake_wheel) {
+		if (elevator->GetElevatorPosition() >= 0.55 && state_intake_wheel) { //start shooting at 0.6
 			intake->intake_wheel_state = intake->OUT_STATE_H;
 			if (intake->ReleasedCube()) {
 				state = POST_INTAKE_STATE;
 			}
 		}
+		last_state = PLACE_SCALE_STATE;
 		//stay in this state when spitting cube, then return to WFB
 		break;
 
@@ -203,18 +208,20 @@ void TeleopStateMachine::StateMachine(bool wait_for_button,
 		if (state_elevator) {
 			elevator->elevator_state = elevator->MID_STATE_E_H;
 		}
-		if (state_intake_arm) {
-			intake->intake_arm_state = intake->UP_STATE_H;
+		if (state_intake_arm) { //elevator->GetElevatorPosition() >= 0.1 &&
+			intake->intake_arm_state = intake->MID_STATE_H;
 		}
-//		if (elevator->GetElevatorPosition() >= 0.7 && state_intake_wheel) {
-//			intake->intake_wheel_state = intake->OUT_STATE_H;
-//		}
+		if (std::abs(intake->GetAngularPosition() - intake->MID_ANGLE) <= 0.2
+				&& state_intake_wheel) { //start shooting when close enough
+			intake->intake_wheel_state = intake->SLOW_STATE_H;
+			if (intake->ReleasedCube()) {
+				state = POST_INTAKE_STATE;
+			}
+		}
+		last_state = PLACE_SWITCH_STATE;
 		//stay in this state when spitting cube, then return to WFB
 		break;
-
 	}
-
-	last_state = state;
 
 }
 
