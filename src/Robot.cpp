@@ -55,6 +55,22 @@ public:
 
 	bool acceptable_current_r, acceptable_current_l; //testperiodic
 
+	bool wait_for_button;
+	bool intake_spin_in;
+	bool intake_spin_out;
+	bool intake_spin_stop;
+	bool get_cube_ground;
+	bool get_cube_station;
+	bool post_intake;
+	bool raise_to_switch;
+	bool raise_to_scale;
+	bool intake_arm_up;
+	bool intake_arm_mid;
+	bool intake_arm_down;
+	bool elevator_up;
+	bool elevator_mid;
+	bool elevator_down;
+
 	bool is_heading, is_vision, is_fc;
 
 	DriveController *drive_controller;
@@ -129,24 +145,21 @@ public:
 		drive_controller->ZeroYaw();
 		drive_controller->ShiftDown();
 
-		elevator_->zeroing_counter_e = 0;
-		intake_->zeroing_counter_i = 0;
-
-		//intake_->SetStartingPos(intake_->GetAngularPosition()); //try getting rid of this
-
-		intake_->is_init_intake = false;
-		elevator_->is_elevator_init = false;
-
-//		elevator_->ZeroEncs();
-//		intake_->ZeroEnc();
-
 		teleop_state_machine->Initialize();
 
 //#ifndef THREADS
 		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
-				&is_vision, &is_fc); //pass by reference through the wrapper
-		intake_->StartIntakeThread();
+				&is_vision, &is_fc);
+
+		intake_->StartIntakeThread(); //for controllers
 		elevator_->StartElevatorThread();
+
+		teleop_state_machine->StartStateMachineThread(&wait_for_button, //calls all state machines
+				&intake_spin_in, &intake_spin_out, &intake_spin_stop,
+				&get_cube_ground, &get_cube_station, &post_intake,
+				&raise_to_switch, &raise_to_scale, &intake_arm_up,
+				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
+				&elevator_down);
 //#endif
 
 	}
@@ -163,42 +176,33 @@ public:
 		bool low_gear = joyThrottle->GetRawButton(LOW_GEAR_BUTTON);
 		bool high_gear = joyThrottle->GetRawButton(HIGH_GEAR_BUTTON);
 
-//		SmartDashboard::PutNumber("ELEVATOR VEL", elevator_->GetElevatorVelocity());
-//		SmartDashboard::PutNumber("INTAKE wheel cur1", intake_->talonIntake1->GetOutputCurrent());
-//		SmartDashboard::PutNumber("INTAKE wheel cur2", intake_->talonIntake2->GetOutputCurrent());
+		wait_for_button = joyOp->GetRawButton(WAIT_FOR_BUTTON);
+		get_cube_ground = joyOp->GetRawButton(GET_CUBE_GROUND);
+		get_cube_station = joyOp->GetRawButton(GET_CUBE_STATION);
+		post_intake = joyOp->GetRawButton(POST_INTAKE);
+		raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
+		raise_to_scale = joyOp->GetRawButton(RAISE_TO_SCALE);
 
-		//double ang = drive_controller->ahrs->GetYaw();//
-					//* (double) ((PI) / 180.0);
-		///SmartDashboard::PutNumber("ANGLE.", ang);
-		//std::cout << "ang: " << ang << std::endl;
+		intake_spin_in = joyThrottle->GetRawButton(INTAKE_SPIN_IN);
+		intake_spin_out = joyThrottle->GetRawButton(INTAKE_SPIN_OUT);
+		intake_spin_stop = joyThrottle->GetRawButton(INTAKE_SPIN_STOP);
 
-		bool wait_for_button = joyOp->GetRawButton(WAIT_FOR_BUTTON); //testing
-		bool get_cube_ground = joyOp->GetRawButton(GET_CUBE_GROUND);
-		bool get_cube_station = joyOp->GetRawButton(GET_CUBE_STATION);
-		bool post_intake = joyOp->GetRawButton(POST_INTAKE);
-		bool raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
-		bool raise_to_scale = joyOp->GetRawButton(RAISE_TO_SCALE);
+		intake_arm_up = joyOp->GetRawButton(INTAKE_ARM_UP);
+		intake_arm_mid = joyOp->GetRawButton(INTAKE_ARM_MID);
+		intake_arm_down = joyOp->GetRawButton(INTAKE_ARM_DOWN);
+		elevator_up = joyOp->GetRawButton(ELEVATOR_UP);
+		elevator_mid = joyOp->GetRawButton(ELEVATOR_MID);
+		elevator_down = joyOp->GetRawButton(ELEVATOR_DOWN);
 
-		bool intake_spin_in = joyThrottle->GetRawButton(INTAKE_SPIN_IN);
-		bool intake_spin_out = joyThrottle->GetRawButton(INTAKE_SPIN_OUT);
-		bool intake_spin_stop = joyThrottle->GetRawButton(INTAKE_SPIN_STOP);
-
-		bool intake_arm_up = joyOp->GetRawButton(INTAKE_ARM_UP);
-		bool intake_arm_mid = joyOp->GetRawButton(INTAKE_ARM_MID);
-		bool intake_arm_down = joyOp->GetRawButton(INTAKE_ARM_DOWN);
-		bool elevator_up = joyOp->GetRawButton(ELEVATOR_UP);
-		bool elevator_mid = joyOp->GetRawButton(ELEVATOR_MID);
-		bool elevator_down = joyOp->GetRawButton(ELEVATOR_DOWN);
-
-		teleop_state_machine->StateMachine(wait_for_button, intake_spin_in,
-				intake_spin_out, intake_spin_stop, get_cube_ground,
-				get_cube_station, post_intake, raise_to_switch, raise_to_scale,
-				intake_arm_up, intake_arm_mid, intake_arm_down, elevator_up,
-				elevator_mid, elevator_down);
-
-		elevator_->ElevatorStateMachine();
-		intake_->IntakeArmStateMachine();
-		intake_->IntakeWheelStateMachine();
+//		teleop_state_machine->StateMachine(wait_for_button, intake_spin_in,
+//				intake_spin_out, intake_spin_stop, get_cube_ground,
+//				get_cube_station, post_intake, raise_to_switch, raise_to_scale,
+//				intake_arm_up, intake_arm_mid, intake_arm_down, elevator_up,
+//				elevator_mid, elevator_down);
+//
+//		elevator_->ElevatorStateMachine();
+//		intake_->IntakeArmStateMachine();
+//		intake_->IntakeWheelStateMachine();
 
 		is_heading = false;
 		is_vision = false;
@@ -214,15 +218,10 @@ public:
 
 	void DisabledInit() override {
 
+		teleop_state_machine->EndStateMachineThread();
 		drive_controller->EndTeleopThreads();
 		intake_->EndIntakeThread(); //may not actually disable threads
 		elevator_->EndElevatorThread();
-
-		elevator_->zeroing_counter_e = 0;
-		intake_->zeroing_counter_i = 0;
-
-		intake_->is_init_intake = false;
-		elevator_->is_elevator_init = false;
 
 		teleop_state_machine->Initialize();
 

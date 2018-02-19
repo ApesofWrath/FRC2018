@@ -41,6 +41,7 @@ public:
 	const int MID_STATE_E_H = 2;
 	const int UP_STATE_E_H = 3;
 	const int STOP_STATE_E_H = 4;
+	const int SWITCH_STATE_E_H = 5;
 	int elevator_state = INIT_STATE_E_H;
 
 	const double DOWN_POS_E = 0.0; //starting pos

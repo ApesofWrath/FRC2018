@@ -209,7 +209,7 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 //	SmartDashboard::PutNumber("HALL EFF TOP", is_at_top);
 
 	//upper soft limit
-	if (GetElevatorPosition() >= (0.93) && elevator_voltage > 0.0) { //at max height and still trying to move up
+	if (GetElevatorPosition() >= (0.92) && elevator_voltage > 0.0) { //at max height and still trying to move up
 		elevator_voltage = 0.0;
 		SmartDashboard::PutString("ELEVATOR SAFETY", "upper soft");
 		//std::cout << "S o f t l i m i t" << std::endl;
@@ -239,9 +239,10 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 ////	//zero last time seen, on way up
 	if (!is_at_bottom_e) {
 		//if (last_at_bottom_e) {
-		ZeroEncs();
-		is_elevator_init = true;
-		last_at_bottom_e = false;
+		if (ZeroEncs()) { //successfully zeroed one time
+			is_elevator_init = true;
+		}
+		//last_at_bottom_e = false;
 	}
 
 	if (is_at_top && elevator_voltage > 0.1) {
@@ -422,7 +423,7 @@ void Elevator::ElevatorStateMachine() {
 
 	case SWITCH_STATE_E:
 		SmartDashboard::PutString("ELEVATOR", "SWITCH");
-		if (last_elevator_state != SWITCH_STATE_E){
+		if (last_elevator_state != SWITCH_STATE_E) {
 			elevator_profiler->SetFinalGoalElevator(SWITCH_POS_E);
 			elevator_profiler->SetInitPosElevator(GetElevatorPosition());
 		}
