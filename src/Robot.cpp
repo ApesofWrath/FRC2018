@@ -31,7 +31,7 @@ public:
 	const int JOY_WHEEL = 1;
 	const int JOY_OP = 2;
 
-	const int LOW_GEAR_BUTTON = 8;
+	const int LOW_GEAR_BUTTON = 6;
 	const int HIGH_GEAR_BUTTON = 9;
 
 	const int WAIT_FOR_BUTTON = 1;
@@ -41,7 +41,7 @@ public:
 	const int RAISE_TO_SWITCH = 5;
 	const int RAISE_TO_SCALE = 6;
 
-	const int INTAKE_SPIN_IN = 7; //THROTTLE
+	const int INTAKE_SPIN_IN = 9; //THROTTLE
 	const int INTAKE_SPIN_OUT = 10;
 	const int INTAKE_SPIN_STOP = 11;
 
@@ -154,7 +154,8 @@ public:
 		intake_->StartIntakeThread(); //for controllers
 		elevator_->StartElevatorThread();
 
-		teleop_state_machine->StartStateMachineThread(&wait_for_button, //calls all state machines
+		teleop_state_machine->StartStateMachineThread(
+				&wait_for_button, //calls all state machines
 				&intake_spin_in, &intake_spin_out, &intake_spin_stop,
 				&get_cube_ground, &get_cube_station, &post_intake,
 				&raise_to_switch, &raise_to_scale, &intake_arm_up,
@@ -173,9 +174,8 @@ public:
 
 #else
 
-		bool low_gear = joyThrottle->GetRawButton(LOW_GEAR_BUTTON);
-		bool high_gear = joyThrottle->GetRawButton(HIGH_GEAR_BUTTON);
-
+		bool low_gear = joyWheel->GetRawButton(LOW_GEAR_BUTTON);
+		bool high_gear = joyWheel->GetRawButton(HIGH_GEAR_BUTTON);
 
 		wait_for_button = joyOp->GetRawButton(WAIT_FOR_BUTTON);
 		get_cube_ground = joyOp->GetRawButton(GET_CUBE_GROUND);
@@ -195,15 +195,22 @@ public:
 		elevator_mid = joyOp->GetRawButton(ELEVATOR_MID);
 		elevator_down = joyOp->GetRawButton(ELEVATOR_DOWN);
 
-//		teleop_state_machine->StateMachine(wait_for_button, intake_spin_in,
-//				intake_spin_out, intake_spin_stop, get_cube_ground,
-//				get_cube_station, post_intake, raise_to_switch, raise_to_scale,
-//				intake_arm_up, intake_arm_mid, intake_arm_down, elevator_up,
-//				elevator_mid, elevator_down);
-//
-//		elevator_->ElevatorStateMachine();
-//		intake_->IntakeArmStateMachine();
-//		intake_->IntakeWheelStateMachine();
+		SmartDashboard::PutNumber("Left 1",
+				drive_controller->canTalonLeft1->GetOutputCurrent());
+		SmartDashboard::PutNumber("Left 2",
+				drive_controller->canTalonLeft2->GetOutputCurrent());
+		SmartDashboard::PutNumber("Left 3",
+				drive_controller->canTalonLeft3->GetOutputCurrent());
+		SmartDashboard::PutNumber("Left 4",
+				drive_controller->canTalonLeft4->GetOutputCurrent());
+		SmartDashboard::PutNumber("Right 1",
+				drive_controller->canTalonRight1->GetOutputCurrent());
+		SmartDashboard::PutNumber("Right 2",
+				drive_controller->canTalonRight2->GetOutputCurrent());
+		SmartDashboard::PutNumber("Right 3",
+				drive_controller->canTalonRight3->GetOutputCurrent());
+		SmartDashboard::PutNumber("Right 4",
+				drive_controller->canTalonRight4->GetOutputCurrent());
 
 		is_heading = false;
 		is_vision = false;

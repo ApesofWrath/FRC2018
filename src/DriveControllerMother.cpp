@@ -54,12 +54,19 @@ double kick_last_error_vel = 0;
 
 //Changeable Start
 
-const double K_P_RIGHT_VEL_LOW = 0.001; //008;
-const double K_P_LEFT_VEL_LOW = 0.001; //002;
-const double K_P_YAW_VEL_LOW = 5.0; //5.0; //8.0
+const double K_P_RIGHT_VEL_LOW = 0.001; //008; //0.001
+const double K_P_LEFT_VEL_LOW = 0.001; //002; //0.001
+const double K_P_YAW_VEL_LOW = 0.0; //5.0; //8.0
 const double K_D_YAW_VEL_LOW = 0.0; //0.0
 const double K_D_RIGHT_VEL_LOW = 0.000;
 const double K_D_LEFT_VEL_LOW = 0.000;
+
+const double K_P_RIGHT_VEL_HIGH = 0.001; //0.001
+const double K_P_LEFT_VEL_HIGH = 0.001; //0.001
+const double K_P_YAW_VEL_HIGH = 0.0; //13 //17
+const double K_D_YAW_VEL_HIGH = 0.000;
+const double K_D_RIGHT_VEL_HIGH = 0.00;
+const double K_D_LEFT_VEL_HIGH = 0.0;
 
 double k_p_right_vel;
 double k_p_left_vel;
@@ -73,13 +80,6 @@ double k_d_kick_vel;
 double k_p_yaw_h_vel;
 double k_p_yaw_au;
 double k_d_yaw_au;
-
-const double K_P_RIGHT_VEL_HIGH = 0.001;
-const double K_P_LEFT_VEL_HIGH = 0.001;
-const double K_P_YAW_VEL_HIGH = 13.0;
-const double K_D_YAW_VEL_HIGH = 0.000;
-const double K_D_RIGHT_VEL_HIGH = 0.00;
-const double K_D_LEFT_VEL_HIGH = 0.0;
 
 const double K_P_YAW_AU_HD = 5.0; //AutonDrive
 const double K_D_YAW_AU_HD = 0.085;
@@ -139,8 +139,8 @@ double Kv = 0; //scale from -1 to 1
 const double MAX_KICK_FPS = ((MAX_X_RPM * WHEEL_DIAMETER * PI) / 12.0) / 60.0;
 const int Kv_KICK = 1 / MAX_KICK_FPS;
 
-const double UP_SHIFT_VEL = 4888.7; // (24/14) *9370
-const double DOWN_SHIFT_VEL = 2342.5; //will be less than up shift vel (14/56) *9370
+const double UP_SHIFT_VEL = 4888.7; // (24/14) *9370 //RPM
+const double DOWN_SHIFT_VEL = 2342.5; //will be less than up shift vel (14/56) *9370 //RPM
 
 double P_RIGHT_DIS = 0;
 double I_RIGHT_DIS = 0;
@@ -353,41 +353,41 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 	canTalonRight3->EnableCurrentLimit(true);
 	canTalonRight4->EnableCurrentLimit(true);
 
-	canTalonLeft1->ConfigPeakCurrentLimit(80, 0);
-	canTalonLeft2->ConfigPeakCurrentLimit(80, 0);
-	canTalonLeft3->ConfigPeakCurrentLimit(80, 0);
-	canTalonLeft4->ConfigPeakCurrentLimit(80, 0);
-	canTalonRight1->ConfigPeakCurrentLimit(80, 0);
-	canTalonRight2->ConfigPeakCurrentLimit(80, 0);
-	canTalonRight3->ConfigPeakCurrentLimit(80, 0);
-	canTalonRight4->ConfigPeakCurrentLimit(80, 0);
+	canTalonLeft1->ConfigPeakCurrentLimit(100, 0);
+	canTalonLeft2->ConfigPeakCurrentLimit(100, 0);
+	canTalonLeft3->ConfigPeakCurrentLimit(100, 0);
+	canTalonLeft4->ConfigPeakCurrentLimit(100, 0);
+	canTalonRight1->ConfigPeakCurrentLimit(100, 0);
+	canTalonRight2->ConfigPeakCurrentLimit(100, 0);
+	canTalonRight3->ConfigPeakCurrentLimit(100, 0);
+	canTalonRight4->ConfigPeakCurrentLimit(100, 0);
 
-	canTalonLeft1->ConfigContinuousCurrentLimit(40, 0);
-	canTalonLeft2->ConfigContinuousCurrentLimit(40, 0);
-	canTalonLeft3->ConfigContinuousCurrentLimit(40, 0);
-	canTalonLeft4->ConfigContinuousCurrentLimit(40, 0);
-	canTalonRight1->ConfigContinuousCurrentLimit(40, 0);
-	canTalonRight2->ConfigContinuousCurrentLimit(40, 0);
-	canTalonRight3->ConfigContinuousCurrentLimit(40, 0);
-	canTalonRight4->ConfigContinuousCurrentLimit(40, 0);
+	canTalonLeft1->ConfigContinuousCurrentLimit(55, 0);
+	canTalonLeft2->ConfigContinuousCurrentLimit(55, 0);
+	canTalonLeft3->ConfigContinuousCurrentLimit(55, 0);
+	canTalonLeft4->ConfigContinuousCurrentLimit(55, 0);
+	canTalonRight1->ConfigContinuousCurrentLimit(55, 0);
+	canTalonRight2->ConfigContinuousCurrentLimit(55, 0);
+	canTalonRight3->ConfigContinuousCurrentLimit(55, 0);
+	canTalonRight4->ConfigContinuousCurrentLimit(55, 0);
 
-	canTalonLeft1->ConfigPeakCurrentDuration(500, 0);
-	canTalonLeft2->ConfigPeakCurrentDuration(500, 0);
-	canTalonLeft3->ConfigPeakCurrentDuration(500, 0);
-	canTalonLeft4->ConfigPeakCurrentDuration(500, 0);
-	canTalonRight1->ConfigPeakCurrentDuration(500, 0);
-	canTalonRight2->ConfigPeakCurrentDuration(500, 0);
-	canTalonRight3->ConfigPeakCurrentDuration(500, 0);
-	canTalonRight4->ConfigPeakCurrentDuration(500, 0);
+	canTalonLeft1->ConfigPeakCurrentDuration(400, 0);
+	canTalonLeft2->ConfigPeakCurrentDuration(400, 0);
+	canTalonLeft3->ConfigPeakCurrentDuration(400, 0);
+	canTalonLeft4->ConfigPeakCurrentDuration(400, 0);
+	canTalonRight1->ConfigPeakCurrentDuration(400, 0);
+	canTalonRight2->ConfigPeakCurrentDuration(400, 0);
+	canTalonRight3->ConfigPeakCurrentDuration(400, 0);
+	canTalonRight4->ConfigPeakCurrentDuration(400, 0);
 
-	canTalonLeft1->ConfigOpenloopRamp(0.1, 0); //TODO: adjust this as needed
-	canTalonLeft2->ConfigOpenloopRamp(0.1, 0);
-	canTalonLeft3->ConfigOpenloopRamp(0.1, 0);
-	canTalonLeft4->ConfigOpenloopRamp(0.1, 0);
-	canTalonRight1->ConfigOpenloopRamp(0.1, 0);
-	canTalonRight2->ConfigOpenloopRamp(0.1, 0);
-	canTalonRight3->ConfigOpenloopRamp(0.1, 0);
-	canTalonRight4->ConfigOpenloopRamp(0.1, 0);
+	canTalonLeft1->ConfigOpenloopRamp(0.15, 0); //TODO: adjust this as needed
+	canTalonLeft2->ConfigOpenloopRamp(0.15, 0);
+	canTalonLeft3->ConfigOpenloopRamp(0.15, 0);
+	canTalonLeft4->ConfigOpenloopRamp(0.15, 0);
+	canTalonRight1->ConfigOpenloopRamp(0.15, 0);
+	canTalonRight2->ConfigOpenloopRamp(0.15, 0);
+	canTalonRight3->ConfigOpenloopRamp(0.15, 0);
+	canTalonRight4->ConfigOpenloopRamp(0.15, 0);
 
 	canTalonLeft1->ConfigVelocityMeasurementPeriod(
 			VelocityMeasPeriod::Period_10Ms, 0);
@@ -535,16 +535,20 @@ void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle,
 
 	target_r = target_l;
 
-	//double reverse_x = 1.0;
+	double reverse_x = 1.0; //square
 
-//	if(JoyWheel->GetX() < 0.0) {
-		//reverse_x = -1.0;
-//	}
-//	else {
-		//reverse_x = 1.0;
-	//}
+	if(JoyWheel->GetX() < 0.0) {
+		reverse_x = -1.0;
+	}
+	else {
+		reverse_x = 1.0;
+	}
 
 	double joy_wheel_val = 1.0 * JoyWheel->GetX(); //SQUARED //*reverse_x
+
+	if(!is_low_gear) {
+		joy_wheel_val *= reverse_x * JoyWheel->GetX();
+	}
 
 	if (std::abs(joy_wheel_val) < .02) {
 		joy_wheel_val = 0.0;

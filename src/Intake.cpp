@@ -354,7 +354,7 @@ double Intake::GetAngularPosition() {
 			/ (TICKS_PER_ROT_I)) * (2.0 * PI) * -1.0;
 	//double ang_pos = 0.0;
 
-	double offset_angle = 1.65; //amount that the arm will stick up in radians //why?
+	double offset_angle = 1.4; //amount that the arm will stick up in radians //why?
 
 	return ang_pos + offset_angle; //the angular position from the encoder plus the angle when we zero minus the offset for zeroing
 
@@ -508,16 +508,31 @@ bool Intake::HaveCube() {
 
 bool Intake::ReleasedCube() {
 
-	if (talonIntake1->GetOutputCurrent() <= 17.0
-			&& talonIntake2->GetOutputCurrent() <= 17.0) {
-		current_counter++;
-	} else {
-		current_counter = 0;
+	if (intake_wheel_state == SLOW_STATE) {
+		if (talonIntake1->GetOutputCurrent() <= 7.0
+				&& talonIntake2->GetOutputCurrent() <= 7.0) {
+			current_counter++;
+		} else {
+			current_counter = 0;
+		}
+		if (current_counter >= 15) {
+			return true;
+		} else {
+			return false;
+		}
 	}
-	if (current_counter >= 15) {
-		return true;
-	} else {
-		return false;
+	else {
+		if (talonIntake1->GetOutputCurrent() <= 17.0
+				&& talonIntake2->GetOutputCurrent() <= 17.0) {
+			current_counter++;
+		} else {
+			current_counter = 0;
+		}
+		if (current_counter >= 15) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 }
