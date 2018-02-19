@@ -353,23 +353,23 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 	canTalonRight3->EnableCurrentLimit(true);
 	canTalonRight4->EnableCurrentLimit(true);
 
-	canTalonLeft1->ConfigPeakCurrentLimit(60, 0);
-	canTalonLeft2->ConfigPeakCurrentLimit(60, 0);
-	canTalonLeft3->ConfigPeakCurrentLimit(60, 0);
-	canTalonLeft4->ConfigPeakCurrentLimit(60, 0);
-	canTalonRight1->ConfigPeakCurrentLimit(60, 0);
-	canTalonRight2->ConfigPeakCurrentLimit(60, 0);
-	canTalonRight3->ConfigPeakCurrentLimit(60, 0);
-	canTalonRight4->ConfigPeakCurrentLimit(60, 0);
+	canTalonLeft1->ConfigPeakCurrentLimit(80, 0);
+	canTalonLeft2->ConfigPeakCurrentLimit(80, 0);
+	canTalonLeft3->ConfigPeakCurrentLimit(80, 0);
+	canTalonLeft4->ConfigPeakCurrentLimit(80, 0);
+	canTalonRight1->ConfigPeakCurrentLimit(80, 0);
+	canTalonRight2->ConfigPeakCurrentLimit(80, 0);
+	canTalonRight3->ConfigPeakCurrentLimit(80, 0);
+	canTalonRight4->ConfigPeakCurrentLimit(80, 0);
 
-	canTalonLeft1->ConfigContinuousCurrentLimit(30, 0);
-	canTalonLeft2->ConfigContinuousCurrentLimit(30, 0);
-	canTalonLeft3->ConfigContinuousCurrentLimit(30, 0);
-	canTalonLeft4->ConfigContinuousCurrentLimit(30, 0);
-	canTalonRight1->ConfigContinuousCurrentLimit(30, 0);
-	canTalonRight2->ConfigContinuousCurrentLimit(30, 0);
-	canTalonRight3->ConfigContinuousCurrentLimit(30, 0);
-	canTalonRight4->ConfigContinuousCurrentLimit(30, 0);
+	canTalonLeft1->ConfigContinuousCurrentLimit(40, 0);
+	canTalonLeft2->ConfigContinuousCurrentLimit(40, 0);
+	canTalonLeft3->ConfigContinuousCurrentLimit(40, 0);
+	canTalonLeft4->ConfigContinuousCurrentLimit(40, 0);
+	canTalonRight1->ConfigContinuousCurrentLimit(40, 0);
+	canTalonRight2->ConfigContinuousCurrentLimit(40, 0);
+	canTalonRight3->ConfigContinuousCurrentLimit(40, 0);
+	canTalonRight4->ConfigContinuousCurrentLimit(40, 0);
 
 	canTalonLeft1->ConfigPeakCurrentDuration(500, 0);
 	canTalonLeft2->ConfigPeakCurrentDuration(500, 0);
@@ -535,15 +535,16 @@ void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle,
 
 	target_r = target_l;
 
-	double reverse_x = 1.0;
+	//double reverse_x = 1.0;
 
-	if(JoyWheel->GetX() < 0.0) {
-		reverse_x = -1.0;
-	}
-	else {
-		reverse_x = 1.0;
-	}
-	double joy_wheel_val = reverse_x * JoyWheel->GetX() * JoyWheel->GetX(); //SQUARED
+//	if(JoyWheel->GetX() < 0.0) {
+		//reverse_x = -1.0;
+//	}
+//	else {
+		//reverse_x = 1.0;
+	//}
+
+	double joy_wheel_val = 1.0 * JoyWheel->GetX(); //SQUARED //*reverse_x
 
 	if (std::abs(joy_wheel_val) < .02) {
 		joy_wheel_val = 0.0;

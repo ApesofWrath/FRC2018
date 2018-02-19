@@ -5,7 +5,6 @@
  *      Author: DriversStation
  */
 
-//put in thread
 //arm back down in get cube ground
 #include <TeleopStateMachine.h>
 

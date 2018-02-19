@@ -5,8 +5,6 @@
  *      Author: DriversStation
  */
 
-//rethink initialization
-//ARM ENCODER HAS OFFSET: We set 0.2 to 0.0
 #include <Intake.h>
 #include <ctre/Phoenix.h> //double included
 #include <WPILib.h>
@@ -20,7 +18,7 @@ const int UP_STATE = 1; //arm state machine
 const int MID_STATE = 2;
 const int DOWN_STATE = 3;
 const int STOP_ARM_STATE = 4;
-const int SWITCH_STATE= 5;
+const int SWITCH_STATE = 5;
 
 const int STOP_WHEEL_STATE = 0; //wheel state machine
 const int IN_STATE = 1;
@@ -141,13 +139,12 @@ void Intake::InitializeIntake() {
 
 	if (!is_init_intake) { //this has to be here for some reason
 		//if (GetAngularPosition() < (starting_pos - 0.5)) {
-			SetVoltageIntake(-2.0);
+		SetVoltageIntake(2.0); //offset is changed accordingly
 		//} else {
 		//	SetVoltageIntake(-6.0);
 		//}
 
-
-			//SetVoltageIntake(0.5);
+		//SetVoltageIntake(0.5);
 	}
 
 }
@@ -263,7 +260,7 @@ void Intake::Rotate(std::vector<std::vector<double> > ref_intake) { //a vector o
 	double offset = 1.3 * cos(current_pos); //counter gravity
 
 	u_i = (K_i[0][0] * error_i[0][0]) + (K_i[0][1] * error_i[1][0]) //+ offset ; //u_i is in voltage, * by v_bat_i
-			+ (Kv_i * goal_vel * v_bat_i)*0.5 + offset; // for this system the second row of the K matrix is a copy and does not matter.
+			+ (Kv_i * goal_vel * v_bat_i) * 0.5 + offset; // for this system the second row of the K matrix is a copy and does not matter.
 
 	//SmartDashboard::PutNumber("INTAKE FF", u_i);
 
@@ -275,30 +272,28 @@ void Intake::SetVoltageIntake(double voltage_i) {
 
 	SmartDashboard::PutString("INTAKE SAFETY", "none");
 
-	is_at_bottom = IsAtBottomIntake(); //hall effect returns 0 when at bottom. we reverse it here
-	//SmartDashboard::PutNumber("HALL EFF INTAKE", is_at_bottom); //actually means not at bottom //0 means up// 1 means dow
+	//is_at_bottom = IsAtBottomIntake(); //hall effect returns 0 when at bottom. we reverse it here
 
-	//soft limit
-	if (GetAngularPosition() >= (1.4) && voltage_i > 0.0) { //at max height and still trying to move up
+	//soft limit //TODO: make the top height lower after we have initialize
+	if (GetAngularPosition() >= (1.6) && voltage_i > 0.0 && is_init_intake) { //at max height and still trying to move up //no upper soft limit when initializing
 		voltage_i = 0.0; //shouldn't crash
 		SmartDashboard::PutString("INTAKE SAFETY", "top soft limit");
 	}
 
-	if (is_at_bottom) {
-		if (ZeroEnc()) { //successfully zeroed enc one time
-			is_init_intake = true;
-		}
-//		if (talonIntakeArm->GetOutputCurrent() > 3.0) {
-//			if(ZeroEnc()) {
-//				is_init_intake = true;
-//			}
-//		}
-		if (voltage_i < 0.0 && GetAngularPosition() < -0.1) {
-			voltage_i = 0.0;
-			SmartDashboard::PutString("INTAKE SAFETY", "bottom soft limit");
+//	if (is_at_bottom) {
+	if (talonIntakeArm->GetOutputCurrent() > 2.0) {
+		counter_i++;
+		if (counter_i > 0) {
+			if (ZeroEnc()) { //successfully zeroed enc one time
+				is_init_intake = true;
+			}
 		}
 	} else {
 		counter_i = 0;
+	}
+	if (voltage_i < 0.0 && GetAngularPosition() < -0.1) {
+		voltage_i = 0.0;
+		SmartDashboard::PutString("INTAKE SAFETY", "bottom soft limit");
 	}
 
 	//voltage limit
@@ -359,7 +354,7 @@ double Intake::GetAngularPosition() {
 			/ (TICKS_PER_ROT_I)) * (2.0 * PI) * -1.0;
 	//double ang_pos = 0.0;
 
-	double offset_angle = .3; //amount that the arm will stick up in radians //why?
+	double offset_angle = 1.65; //amount that the arm will stick up in radians //why?
 
 	return ang_pos + offset_angle; //the angular position from the encoder plus the angle when we zero minus the offset for zeroing
 

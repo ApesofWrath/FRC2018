@@ -176,6 +176,7 @@ public:
 		bool low_gear = joyThrottle->GetRawButton(LOW_GEAR_BUTTON);
 		bool high_gear = joyThrottle->GetRawButton(HIGH_GEAR_BUTTON);
 
+
 		wait_for_button = joyOp->GetRawButton(WAIT_FOR_BUTTON);
 		get_cube_ground = joyOp->GetRawButton(GET_CUBE_GROUND);
 		get_cube_station = joyOp->GetRawButton(GET_CUBE_STATION);
