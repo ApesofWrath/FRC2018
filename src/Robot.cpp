@@ -216,6 +216,8 @@ public:
 		is_vision = false;
 		is_fc = false;
 
+		drive_controller->AutoShift();
+
 		if (low_gear) {
 			drive_controller->ShiftDown();
 		} else if (high_gear) {

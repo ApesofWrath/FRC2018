@@ -354,7 +354,7 @@ double Intake::GetAngularPosition() {
 			/ (TICKS_PER_ROT_I)) * (2.0 * PI) * -1.0;
 	//double ang_pos = 0.0;
 
-	double offset_angle = 1.4; //amount that the arm will stick up in radians //why?
+	double offset_angle = 1.5; //amount that the arm will stick up in radians// the top angle. greater offset = lower 0
 
 	return ang_pos + offset_angle; //the angular position from the encoder plus the angle when we zero minus the offset for zeroing
 

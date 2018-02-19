@@ -20,13 +20,13 @@ const double WHEEL_DIAMETER = 4.0; //inches
 const double TICKS_PER_ROT = 1365.0; //about 3 encoder rotations for each actual rotation // 4096 ticks per rotation for mag encoders
 
 double max_y_rpm = 0;
-const double MAX_Y_RPM_LOW = 350.0;
-const double MAX_Y_RPM_HIGH = 1000.0;
+const double MAX_Y_RPM_LOW = 550.0;
+const double MAX_Y_RPM_HIGH = 1250.0;
 const double MAX_Y_RPM_HD = 0; //HDrive
 
 double actual_max_y_rpm = 0;
-const double ACTUAL_MAX_Y_RPM_LOW = 470.0;
-const double ACTUAL_MAX_Y_RPM_HIGH = 1200.0; //left is 1150
+const double ACTUAL_MAX_Y_RPM_LOW = 625.0; //668
+const double ACTUAL_MAX_Y_RPM_HIGH = 1300.0; //left is 1150
 const double ACTUAL_MAX_Y_RPM_HD = 0;
 
 double DYN_MAX_Y_RPM = 625.0; //for field-centric
@@ -36,6 +36,7 @@ double max_yaw_rate = 0; //max angular velocity divided by the max rpm multiplie
 const double MAX_YAW_RATE_LOW = 12.0;
 const double MAX_YAW_RATE_HIGH = 28.0;
 const double MAX_YAW_RATE_HD = 0.0;
+
 /////////////////////////////////////////////////////
 
 const int DRIVE_SLEEP_TIME = 0.00; //we do not sleep as the wait time is close to the tick rate (?)
@@ -139,8 +140,8 @@ double Kv = 0; //scale from -1 to 1
 const double MAX_KICK_FPS = ((MAX_X_RPM * WHEEL_DIAMETER * PI) / 12.0) / 60.0;
 const int Kv_KICK = 1 / MAX_KICK_FPS;
 
-const double UP_SHIFT_VEL = 4888.7; // (24/14) *9370 //RPM
-const double DOWN_SHIFT_VEL = 2342.5; //will be less than up shift vel (14/56) *9370 //RPM
+const double UP_SHIFT_VEL = 375.0; // (24/14) *9370 //RPM
+const double DOWN_SHIFT_VEL = 200.0; //will be less than up shift vel (14/56) *9370 //RPM
 
 double P_RIGHT_DIS = 0;
 double I_RIGHT_DIS = 0;
@@ -194,6 +195,7 @@ double drive_wait_time = 0.01;
 
 Timer *timerTeleop = new Timer();
 Timer *timerAuton = new Timer();
+Timer *timerShift = new Timer();
 
 double init_heading = 0;
 double total_heading = 0;
@@ -433,7 +435,6 @@ void DriveControllerMother::TeleopHDrive(Joystick *JoyThrottle,
 	double current_yaw = (fmod((-1.0 * ahrs->GetYaw() * (PI / 180.0)),
 			(2.0 * PI))); // yaw position
 
-
 	if ((bool) *is_fc) {
 
 		if (current_yaw < -PI) {
@@ -523,10 +524,9 @@ void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle,
 
 	double reverse_y = 1.0;
 
-	if(JoyThrottle->GetY() > 0.0) {
+	if (JoyThrottle->GetY() > 0.0) {
 		reverse_y = -1.0;
-	}
-	else {
+	} else {
 		reverse_y = 1.0;
 	}
 	double forward = (JoyThrottle->GetY()) * (JoyThrottle->GetY()); //SQUARED. will always be positive
@@ -537,22 +537,21 @@ void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle,
 
 	double reverse_x = 1.0; //square
 
-	if(JoyWheel->GetX() < 0.0) {
+	if (JoyWheel->GetX() < 0.0) {
 		reverse_x = -1.0;
-	}
-	else {
+	} else {
 		reverse_x = 1.0;
 	}
 
-	double joy_wheel_val = 1.0 * JoyWheel->GetX(); //SQUARED //*reverse_x
+	double joy_wheel_val = 1.0 * JoyWheel->GetX(); //not SQUARED //*reverse_x
 
-	if(!is_low_gear) {
+	if (!is_low_gear) { //squrare wheel in high gear
 		joy_wheel_val *= reverse_x * JoyWheel->GetX();
 	}
 
-	if (std::abs(joy_wheel_val) < .02) {
-		joy_wheel_val = 0.0;
-	}
+//	if (std::abs(joy_wheel_val) < .02) {
+//		joy_wheel_val = 0.0;
+//	}
 
 	target_yaw_rate = -1.0 * (joy_wheel_val) * max_yaw_rate; //Left will be positive
 
@@ -600,6 +599,7 @@ void DriveControllerMother::RotationController(Joystick *JoyWheel) {
 /**
  * Param: Feet forward, + = forward
  */
+//fix this
 void DriveControllerMother::AutonDrive() { //auton targets, actually just pd
 
 	double refYaw = drive_ref.at(0);
@@ -773,19 +773,30 @@ void DriveControllerMother::SetGainsLow() {
 
 void DriveControllerMother::AutoShift() {
 
-	double current_rpm_l =
-			(canTalonLeft1->GetSelectedSensorVelocity(0)
-					/ TICKS_PER_ROT) * MINUTE_CONVERSION;
-	double current_rpm_r =
-			(canTalonRight1->GetSelectedSensorVelocity(0)
-					/ TICKS_PER_ROT) * MINUTE_CONVERSION;
+	double current_rpm_l = ((double) canTalonLeft1->GetSelectedSensorVelocity(0)
+			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
 
-	if (current_rpm_l > UP_SHIFT_VEL && current_rpm_r > UP_SHIFT_VEL) {
+	double current_rpm_r = -((double) canTalonRight1->GetSelectedSensorVelocity(
+			0) / (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
+
+//	SmartDashboard::PutNumber("left vel", current_rpm_l);
+//	SmartDashboard::PutNumber("right vel", current_rpm_r);
+
+	if (std::abs(current_rpm_l) > UP_SHIFT_VEL
+			&& std::abs(current_rpm_r) > UP_SHIFT_VEL && is_low_gear) {
 		ShiftUp();
 	}
+
 	//if in between, will stay in the gear it is in. in order to not shift back and forth at one point
-	else if (current_rpm_l < DOWN_SHIFT_VEL && current_rpm_r < DOWN_SHIFT_VEL) {
-		ShiftDown();
+
+	else if (std::abs(current_rpm_l) < DOWN_SHIFT_VEL
+			&& std::abs(current_rpm_r) < DOWN_SHIFT_VEL && !is_low_gear) {
+		timerShift->Start();
+		if (timerShift->Get() > 3.0) {
+			ShiftDown();
+			timerShift->Reset();
+		}
+
 	}
 
 }
@@ -815,7 +826,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 
 	d_yaw_dis = yaw_error - yaw_last_error;
 
-	double yaw_output = ((k_p_yaw * yaw_error) + (k_d_yaw * d_yaw_dis));
+	double yaw_output = ((k_p_yaw * yaw_error) + (k_d_yaw * d_yaw_dis)); //pd for auton, p for teleop
 
 	ref_right += yaw_output; //left should be positive
 	ref_left -= yaw_output;
@@ -836,7 +847,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 		ref_right = -max_y_rpm;
 	}
 
-	double feed_forward_r = k_f_right_vel * ref_right;
+	double feed_forward_r = k_f_right_vel * ref_right; //teleop only
 	double feed_forward_l = k_f_left_vel * ref_left;
 	double feed_forward_k = K_F_KICK_VEL * ref_kick;
 
@@ -848,8 +859,8 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	double kick_current = ((double) canTalonKicker->GetSelectedSensorVelocity(0)
 			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION; //going right is positive
 
-	//SmartDashboard::PutNumber("Left vel", l_current);
-	//SmartDashboard::PutNumber("Right vel", r_current);
+	SmartDashboard::PutNumber("Left vel", l_current);
+	SmartDashboard::PutNumber("Right vel", r_current);
 	//std::cout << "left: " << l_current << std::endl;
 	//std::cout << "right: " << r_current << std::endl;
 	//std::cout << "yaw: " << yaw_error << std::endl;
@@ -887,7 +898,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	}
 
 	double total_right = D_RIGHT_VEL + P_RIGHT_VEL + feed_forward_r
-			+ (Kv * target_vel_right);
+			+ (Kv * target_vel_right); //Kv only in auton
 	double total_left = D_LEFT_VEL + P_LEFT_VEL + feed_forward_l
 			+ (Kv * target_vel_left);
 	double total_kick = D_KICK_VEL + P_KICK_VEL + feed_forward_k
@@ -1040,7 +1051,7 @@ void DriveControllerMother::TeleopWrapper(Joystick *JoyThrottle,
 			}
 
 			std::this_thread::sleep_for(
-					std::chrono::milliseconds((int)time_a));
+					std::chrono::milliseconds((int) time_a));
 
 		}
 
