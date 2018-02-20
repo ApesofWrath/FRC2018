@@ -85,15 +85,15 @@ Elevator::Elevator(PowerDistributionPanel *pdp,
 //	elevator_profiler->SetMaxAccElevator(MAX_ACCELERATION_E);
 //	elevator_profiler->SetMaxVelElevator(MAX_VELOCITY_E);
 
-	talonElevator1 = new TalonSRX(0);
+	talonElevator1 = new TalonSRX(33);
 //	talonElevator1->ConfigVoltageCompSaturation(12.0, 0);
 //	talonElevator1->EnableVoltageCompensation(true);
 	talonElevator1->ConfigSelectedFeedbackSensor(QuadEncoder, 0, 0);
 
-	talonElevator2 = new TalonSRX(33);
+	talonElevator2 = new TalonSRX(0);
 //	talonElevator2->ConfigVoltageCompSaturation(12.0, 0);
 //	talonElevator2->EnableVoltageCompensation(true);
-	talonElevator2->Set(ControlMode::Follower, 0); //re-slaved
+	talonElevator2->Set(ControlMode::Follower, 33); //re-slaved
 
 	talonElevator1->EnableCurrentLimit(true);
 	talonElevator2->EnableCurrentLimit(true);

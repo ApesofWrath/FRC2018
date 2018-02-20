@@ -16,6 +16,9 @@
 #include <thread>
 #include <chrono>
 #include <cmath>
+#include <stdio.h>
+#include <stdlib.h>
+#include <cstdlib>
 #include <Timer.h>
 #include "ctre/Phoenix.h"
 #include <pathfinder.h>

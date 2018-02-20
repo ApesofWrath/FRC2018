@@ -23,6 +23,7 @@ public:
 
 	void FillProfile(std::string profileName);
 
+	void InitPathfinder();
 
 };
 

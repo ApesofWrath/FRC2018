@@ -7,6 +7,7 @@
 
 #include <DriveControllerMother.h>
 #include <WPILib.h>
+//#include <pathfinder.h>
 //#include "ctre/Phoenix.h" //needed to be double included
 
 #define PI 3.1415926
@@ -57,14 +58,14 @@ double kick_last_error_vel = 0;
 
 const double K_P_RIGHT_VEL_LOW = 0.001; //008; //0.001
 const double K_P_LEFT_VEL_LOW = 0.001; //002; //0.001
-const double K_P_YAW_VEL_LOW = 0.0; //5.0; //8.0
+const double K_P_YAW_VEL_LOW = 85.0; //5.0; //8.0 -
 const double K_D_YAW_VEL_LOW = 0.0; //0.0
 const double K_D_RIGHT_VEL_LOW = 0.000;
 const double K_D_LEFT_VEL_LOW = 0.000;
 
 const double K_P_RIGHT_VEL_HIGH = 0.001; //0.001
 const double K_P_LEFT_VEL_HIGH = 0.001; //0.001
-const double K_P_YAW_VEL_HIGH = 0.0; //13 //17
+const double K_P_YAW_VEL_HIGH = 120.0; //13 //17 -
 const double K_D_YAW_VEL_HIGH = 0.000;
 const double K_D_RIGHT_VEL_HIGH = 0.00;
 const double K_D_LEFT_VEL_HIGH = 0.0;
@@ -432,7 +433,7 @@ void DriveControllerMother::TeleopHDrive(Joystick *JoyThrottle,
 
 	double forward = -1.0 * (JoyThrottle->GetY());
 	double strafe = (JoyThrottle->GetX());
-	double current_yaw = (fmod((-1.0 * ahrs->GetYaw() * (PI / 180.0)),
+	double current_yaw = (fmod((-1.0 * ahrs->GetRate() * (PI / 180.0)),
 			(2.0 * PI))); // yaw position
 
 	if ((bool) *is_fc) {
@@ -517,7 +518,7 @@ void DriveControllerMother::TeleopHDrive(Joystick *JoyThrottle,
 
 }
 
-void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle,
+void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle, //finds targets for the Controller()
 		Joystick *JoyWheel) {
 
 	double target_l, target_r, target_yaw_rate;
@@ -549,9 +550,9 @@ void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle,
 		joy_wheel_val *= reverse_x * JoyWheel->GetX();
 	}
 
-//	if (std::abs(joy_wheel_val) < .02) {
-//		joy_wheel_val = 0.0;
-//	}
+	if (std::abs(joy_wheel_val) < .05) {
+		joy_wheel_val = 0.0;
+	}
 
 	target_yaw_rate = -1.0 * (joy_wheel_val) * max_yaw_rate; //Left will be positive
 
@@ -574,6 +575,8 @@ void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle,
 }
 
 void DriveControllerMother::RotationController(Joystick *JoyWheel) {
+
+	std::cout << "rotation controller" << std::endl;
 
 	double target_heading = init_heading
 			+ (-1.0 * JoyWheel->GetX() * (90.0 * PI / 180.0)); //scaling, conversion to radians,left should be positive
@@ -807,7 +810,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 		double k_d_left, double k_d_kick, double target_vel_left,
 		double target_vel_right, double target_vel_kick) {
 
-	double yaw_rate_current = -1.0 * (double) ahrs->GetYaw()
+	double yaw_rate_current = -1.0 * (double) ahrs->GetRate()
 			* (double) ((PI) / 180.0); //left should be positive
 
 	double target_yaw_rate = ref_yaw;
@@ -817,8 +820,12 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 
 	double yaw_error = target_yaw_rate - yaw_rate_current;
 
-	//std::cout << "kp:" << k_p_left << std::endl;
+	std::cout << "kp:" << k_p_yaw << std::endl;
 	//std::cout << "yaw: " << yaw_error << std::endl;
+
+	SmartDashboard::PutNumber("yaw current", yaw_rate_current);
+	SmartDashboard::PutNumber("yaw target", target_yaw_rate);
+	SmartDashboard::PutNumber("yaw error", yaw_error);
 
 	if (std::abs(yaw_error) < .3) {
 		yaw_error = 0.0;

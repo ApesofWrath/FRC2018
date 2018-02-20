@@ -64,3 +64,6 @@ void Autonomous::FillProfile(std::string profileName) { //fill array and run aut
 
 }
 
+void Autonomous::InitPathfinder() {
+
+}
