@@ -195,7 +195,7 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 //	int enc = talonElevator1->GetSensorCollection().GetQuadraturePosition(); //encoders return ints?
 //	SmartDashboard::PutNumber("ElEV ENC", enc);
 //
-	SmartDashboard::PutString("ELEVATOR SAFETY", "none");
+//	SmartDashboard::PutString("ELEVATOR SAFETY", "none");
 //
 //	SmartDashboard::PutNumber("ELEV HEIGHT", GetElevatorPosition());
 //	SmartDashboard::PutNumber("ELEV VEL", GetElevatorVelocity());
@@ -211,14 +211,14 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 	//upper soft limit
 	if (GetElevatorPosition() >= (0.92) && elevator_voltage > 0.0) { //at max height and still trying to move up
 		elevator_voltage = 0.0;
-		SmartDashboard::PutString("ELEVATOR SAFETY", "upper soft");
+//		SmartDashboard::PutString("ELEVATOR SAFETY", "upper soft");
 		//std::cout << "S o f t l i m i t" << std::endl;
 	}
 //
 //	//lower soft limit
 	if (GetElevatorPosition() <= (-0.05) && elevator_voltage < 0.0) { //at max height and still trying to move up
 		elevator_voltage = 0.0;
-		SmartDashboard::PutString("ELEVATOR SAFETY", "lower soft");
+//		SmartDashboard::PutString("ELEVATOR SAFETY", "lower soft");
 		//std::cout << "S o f t l i m i t" << std::endl;
 	}
 //
@@ -246,7 +246,7 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 	}
 
 	if (is_at_top && elevator_voltage > 0.1) {
-		SmartDashboard::PutString("ELEVATOR SAFETY", "upper hall eff");
+		//	SmartDashboard::PutString("ELEVATOR SAFETY", "upper hall eff");
 		elevator_voltage = 0.0;
 	}
 	//if (elevator_voltage < 0.0) { //account for gravity
@@ -278,7 +278,7 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 
 	if (voltage_safety_e) {
 		elevator_voltage = 0.0;
-		SmartDashboard::PutString("ELEVATOR SAFETY", "stall");
+		//	SmartDashboard::PutString("ELEVATOR SAFETY", "stall");
 
 	}
 
@@ -380,7 +380,7 @@ void Elevator::ElevatorStateMachine() {
 	switch (elevator_state) {
 
 	case INIT_STATE_E:
-		SmartDashboard::PutString("ELEVATOR", "INIT");
+		//	SmartDashboard::PutString("ELEVATOR", "INIT");
 		InitializeElevator();
 		if (is_elevator_init) {
 			elevator_state = DOWN_STATE_E;
@@ -389,7 +389,7 @@ void Elevator::ElevatorStateMachine() {
 		break;
 
 	case DOWN_STATE_E:
-		SmartDashboard::PutString("ELEVATOR", "DOWN");
+//		SmartDashboard::PutString("ELEVATOR", "DOWN");
 		if (last_elevator_state != DOWN_STATE_E) { //first time in state
 			elevator_profiler->SetFinalGoalElevator(DOWN_POS_E);
 			elevator_profiler->SetInitPosElevator(GetElevatorPosition());
@@ -398,7 +398,7 @@ void Elevator::ElevatorStateMachine() {
 		break;
 
 	case MID_STATE_E:
-		SmartDashboard::PutString("ELEVATOR", "MID");
+		//	SmartDashboard::PutString("ELEVATOR", "MID");
 		if (last_elevator_state != MID_STATE_E) { //first time in state
 			elevator_profiler->SetFinalGoalElevator(MID_POS_E);
 			elevator_profiler->SetInitPosElevator(GetElevatorPosition());
@@ -407,7 +407,7 @@ void Elevator::ElevatorStateMachine() {
 		break;
 
 	case UP_STATE_E:
-		SmartDashboard::PutString("ELEVATOR", "UP");
+		//	SmartDashboard::PutString("ELEVATOR", "UP");
 		if (last_elevator_state != UP_STATE_E) { //first time in state
 			elevator_profiler->SetFinalGoalElevator(UP_POS_E);
 			elevator_profiler->SetInitPosElevator(GetElevatorPosition());
@@ -416,13 +416,13 @@ void Elevator::ElevatorStateMachine() {
 		break;
 
 	case STOP_STATE_E:
-		SmartDashboard::PutString("ELEVATOR", "STOP");
+		//	SmartDashboard::PutString("ELEVATOR", "STOP");
 		StopElevator();
 		last_elevator_state = STOP_STATE_E;
 		break;
 
 	case SWITCH_STATE_E:
-		SmartDashboard::PutString("ELEVATOR", "SWITCH");
+		//	SmartDashboard::PutString("ELEVATOR", "SWITCH");
 		if (last_elevator_state != SWITCH_STATE_E) {
 			elevator_profiler->SetFinalGoalElevator(SWITCH_POS_E);
 			elevator_profiler->SetInitPosElevator(GetElevatorPosition());
@@ -448,9 +448,10 @@ void Elevator::ElevatorWrapper(Elevator *el) {
 	elevatorTimer->Start();
 
 	while (true) {
-		while (frc::RobotState::IsEnabled()) {
 
-			elevatorTimer->Reset();
+		elevatorTimer->Reset();
+
+		if (frc::RobotState::IsEnabled()) {
 
 			std::vector<std::vector<double>> profile_elevator =
 					elevator_profiler->GetNextRefElevator();
@@ -460,17 +461,17 @@ void Elevator::ElevatorWrapper(Elevator *el) {
 				el->Move(profile_elevator);
 			}
 
-			double time_e = .010 - elevatorTimer->Get();
-
-			time_e *= 1000;
-			if (time_e < 0) {
-				time_e = 0;
-			}
-
-			std::this_thread::sleep_for(
-					std::chrono::milliseconds((int) time_e));
-
 		}
+
+		double time_e = 1.0 - elevatorTimer->Get(); //change
+
+		time_e *= 1000;
+		if (time_e < 0) {
+			time_e = 0;
+		}
+
+		std::this_thread::sleep_for(std::chrono::milliseconds((int) time_e));
+
 	}
 
 }

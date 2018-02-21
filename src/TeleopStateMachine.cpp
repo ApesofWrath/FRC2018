@@ -102,7 +102,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 	switch (state) {
 
 	case INIT_STATE:
-		SmartDashboard::PutString("STATE", "INIT");
+		//	SmartDashboard::PutString("STATE", "INIT");
 		elevator->elevator_state = elevator->INIT_STATE_E_H;
 		intake->intake_arm_state = intake->INIT_STATE_H;
 		intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
@@ -111,7 +111,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		break;
 
 	case WAIT_FOR_BUTTON_STATE:
-		SmartDashboard::PutString("STATE", "WAIT FOR BUTTON");
+		//	SmartDashboard::PutString("STATE", "WAIT FOR BUTTON");
 		if (get_cube_ground) { //can go to all states below wfb state
 			state = GET_CUBE_GROUND_STATE;
 		} else if (get_cube_station) {
@@ -127,7 +127,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		break;
 
 	case GET_CUBE_GROUND_STATE:
-		SmartDashboard::PutString("STATE", "GET CUBE GROUND");
+		//	SmartDashboard::PutString("STATE", "GET CUBE GROUND");
 		//std::cout << "state intake " << state_intake_arm << std::endl;
 		if (state_elevator) {
 			elevator->elevator_state = elevator->DOWN_STATE_E_H;
@@ -149,7 +149,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		break;
 
 	case GET_CUBE_STATION_STATE: //human player station
-		SmartDashboard::PutString("STATE", "GET CUBE STATION");
+		//	SmartDashboard::PutString("STATE", "GET CUBE STATION");
 		if (state_elevator) {
 			elevator->elevator_state = elevator->SWITCH_STATE_E_H;
 		}
@@ -189,7 +189,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		break;
 
 	case PLACE_SCALE_STATE:
-		SmartDashboard::PutString("STATE", "SCALE");
+		//	SmartDashboard::PutString("STATE", "SCALE");
 		if (state_intake_arm) {
 			intake->intake_arm_state = intake->UP_STATE_H;
 		}
@@ -207,7 +207,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		break;
 
 	case PLACE_SWITCH_STATE:
-		SmartDashboard::PutString("STATE", "SWITCH");
+		//	SmartDashboard::PutString("STATE", "SWITCH");
 		if (state_elevator) {
 			elevator->elevator_state = elevator->MID_STATE_E_H;
 		}
@@ -268,33 +268,38 @@ void TeleopStateMachine::StateMachineWrapper(
 	teleopTimer->Start();
 
 	while (true) {
-		while (frc::RobotState::IsEnabled()) {
 
-			teleopTimer->Reset();
+		teleopTimer->Reset();
+
+		//std::cout << "threads here" << std::endl;
+
+		if (frc::RobotState::IsEnabled()) {
 
 			intake->IntakeArmStateMachine();
 			intake->IntakeWheelStateMachine();
 			elevator->ElevatorStateMachine();
 
 			teleop_state_machine->StateMachine((bool) *wait_for_button,
-			(bool) *intake_spin_in, (bool) *intake_spin_out, (bool) *intake_spin_stop,
-			(bool) *get_cube_ground, (bool) *get_cube_station, (bool) *post_intake,
-			(bool) *raise_to_switch, (bool) *raise_to_scale, (bool) *intake_arm_up,
-			(bool) *intake_arm_mid, (bool) *intake_arm_down, (bool) *elevator_up,
-			(bool) *elevator_mid, (bool) *elevator_down);
-
-			double time = .050 - teleopTimer->Get();
-
-			time *= 1000;
-			if (time < 0) {
-				time = 0;
-			}
-
-			std::this_thread::sleep_for(std::chrono::milliseconds((int) time));
+					(bool) *intake_spin_in, (bool) *intake_spin_out,
+					(bool) *intake_spin_stop, (bool) *get_cube_ground,
+					(bool) *get_cube_station, (bool) *post_intake,
+					(bool) *raise_to_switch, (bool) *raise_to_scale,
+					(bool) *intake_arm_up, (bool) *intake_arm_mid,
+					(bool) *intake_arm_down, (bool) *elevator_up,
+					(bool) *elevator_mid, (bool) *elevator_down);
 
 			///SmartDashboard::PutNumber("TIME", teleopTimer->Get());
 
 		}
+
+		double time = 5.0 - teleopTimer->Get(); //change back 0.05
+
+		time *= 1000;
+		if (time < 0) {
+			time = 0;
+		}
+
+		std::this_thread::sleep_for(std::chrono::milliseconds((int) time));
 	}
 
 }
