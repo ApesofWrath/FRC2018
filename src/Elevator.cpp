@@ -11,6 +11,14 @@
 
 #define PI 3.14159265
 
+#define CORNELIUS 0
+
+#if CORNELIUS
+double ff_percent = 0.4;
+#else
+double ff_percent = 0.4;
+#endif
+
 const int INIT_STATE_E = 0;
 const int DOWN_STATE_E = 1;
 const int MID_STATE_E = 2;
@@ -123,6 +131,9 @@ void Elevator::InitializeElevator() {
 //				elevator_volt);
 	}
 
+
+	SmartDashboard::PutString("init elev", "yes");
+
 	//double up_volt = (0.2 * -1.0) / pdp_e->GetVoltage(); //to not crash down
 	//talonElevator1->Set(ControlMode::PercentOutput, up_volt);
 	//talonElevator2->Set(ControlMode::PercentOutput, up_volt);
@@ -164,7 +175,9 @@ void Elevator::Move(std::vector<std::vector<double> > ref_elevator) {
 	} else {
 		offset = 0.0;
 		K_e = K_up_e;
-		ff = (Kv_e * goal_vel_e * v_bat_e) * 0.6;
+
+		ff = (Kv_e * goal_vel_e * v_bat_e) * ff_percent;
+
 		//SmartDashboard::PutString("EL GAINS", "UP");
 	}
 
@@ -195,7 +208,9 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 //	int enc = talonElevator1->GetSensorCollection().GetQuadraturePosition(); //encoders return ints?
 //	SmartDashboard::PutNumber("ElEV ENC", enc);
 //
-//	SmartDashboard::PutString("ELEVATOR SAFETY", "none");
+
+	SmartDashboard::PutString("ELEVATOR SAFETY", "none");
+
 //
 //	SmartDashboard::PutNumber("ELEV HEIGHT", GetElevatorPosition());
 //	SmartDashboard::PutNumber("ELEV VEL", GetElevatorVelocity());
@@ -211,14 +226,18 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 	//upper soft limit
 	if (GetElevatorPosition() >= (0.92) && elevator_voltage > 0.0) { //at max height and still trying to move up
 		elevator_voltage = 0.0;
-//		SmartDashboard::PutString("ELEVATOR SAFETY", "upper soft");
+
+		SmartDashboard::PutString("ELEVATOR SAFETY", "upper soft");
+
 		//std::cout << "S o f t l i m i t" << std::endl;
 	}
 //
 //	//lower soft limit
 	if (GetElevatorPosition() <= (-0.05) && elevator_voltage < 0.0) { //at max height and still trying to move up
 		elevator_voltage = 0.0;
-//		SmartDashboard::PutString("ELEVATOR SAFETY", "lower soft");
+
+		SmartDashboard::PutString("ELEVATOR SAFETY", "lower soft");
+
 		//std::cout << "S o f t l i m i t" << std::endl;
 	}
 //
@@ -246,7 +265,9 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 	}
 
 	if (is_at_top && elevator_voltage > 0.1) {
-		//	SmartDashboard::PutString("ELEVATOR SAFETY", "upper hall eff");
+
+		SmartDashboard::PutString("ELEVATOR SAFETY", "upper hall eff");
+
 		elevator_voltage = 0.0;
 	}
 	//if (elevator_voltage < 0.0) { //account for gravity
@@ -278,11 +299,14 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 
 	if (voltage_safety_e) {
 		elevator_voltage = 0.0;
-		//	SmartDashboard::PutString("ELEVATOR SAFETY", "stall");
+
+		SmartDashboard::PutString("ELEVATOR SAFETY", "stall");
 
 	}
 
-	//SmartDashboard::PutNumber("EL VOLT", elevator_voltage);
+	SmartDashboard::PutNumber("EL VOLT", elevator_voltage);
+	std::cout << "el volt: " << elevator_voltage << std::endl;
+
 
 	elevator_voltage /= 12.0;
 
@@ -361,26 +385,30 @@ bool Elevator::IsAtTopElevator() {
 void Elevator::ManualElevator(Joystick *joyOpElev) {
 
 	//SmartDashboard::PutNumber("ELEV CUR", talonElevator1->GetOutputCurrent());
-	//SmartDashboard::PutNumber("ElEV ENC",
-	//	talonElevator1->GetSelectedSensorPosition(0));
+
+//	SmartDashboard::PutNumber("ElEV ENC",
+//		talonElevator1->GetSensorCollection.GetQuadraturePosition()); //TODO: figure out
 
 	//SmartDashboard::PutNumber("ELEV HEIGHT", GetElevatorPosition());
 
-//	double output = (joyOpElev->GetY()) * 0.5 * 12.0; //multiply by voltage because setvoltageelevator takes voltage
+	double output = (joyOpElev->GetY()) * 0.5 * 12.0; //multiply by voltage because setvoltageelevator takes voltage
 //
-//	SetVoltageElevator(output);
+	SetVoltageElevator(output);
 
 }
 
 void Elevator::ElevatorStateMachine() {
 
-//	SmartDashboard::PutNumber("ELEVATOR POS", GetElevatorPosition());
+	SmartDashboard::PutString("sm el", "yes");
+
 //	SmartDashboard::PutNumber("ELEVATOR VEL", GetElevatorVelocity());
 
 	switch (elevator_state) {
 
 	case INIT_STATE_E:
-		//	SmartDashboard::PutString("ELEVATOR", "INIT");
+
+		SmartDashboard::PutString("ELEVATOR.", "INIT");
+
 		InitializeElevator();
 		if (is_elevator_init) {
 			elevator_state = DOWN_STATE_E;
@@ -389,7 +417,9 @@ void Elevator::ElevatorStateMachine() {
 		break;
 
 	case DOWN_STATE_E:
-//		SmartDashboard::PutString("ELEVATOR", "DOWN");
+
+		SmartDashboard::PutString("ELEVATOR.", "DOWN");
+
 		if (last_elevator_state != DOWN_STATE_E) { //first time in state
 			elevator_profiler->SetFinalGoalElevator(DOWN_POS_E);
 			elevator_profiler->SetInitPosElevator(GetElevatorPosition());
@@ -398,7 +428,9 @@ void Elevator::ElevatorStateMachine() {
 		break;
 
 	case MID_STATE_E:
-		//	SmartDashboard::PutString("ELEVATOR", "MID");
+
+		SmartDashboard::PutString("ELEVATOR.", "MID");
+
 		if (last_elevator_state != MID_STATE_E) { //first time in state
 			elevator_profiler->SetFinalGoalElevator(MID_POS_E);
 			elevator_profiler->SetInitPosElevator(GetElevatorPosition());
@@ -407,7 +439,9 @@ void Elevator::ElevatorStateMachine() {
 		break;
 
 	case UP_STATE_E:
-		//	SmartDashboard::PutString("ELEVATOR", "UP");
+
+		SmartDashboard::PutString("ELEVATOR.", "UP");
+
 		if (last_elevator_state != UP_STATE_E) { //first time in state
 			elevator_profiler->SetFinalGoalElevator(UP_POS_E);
 			elevator_profiler->SetInitPosElevator(GetElevatorPosition());
@@ -416,13 +450,17 @@ void Elevator::ElevatorStateMachine() {
 		break;
 
 	case STOP_STATE_E:
-		//	SmartDashboard::PutString("ELEVATOR", "STOP");
+
+		SmartDashboard::PutString("ELEVATOR.", "STOP");
+
 		StopElevator();
 		last_elevator_state = STOP_STATE_E;
 		break;
 
 	case SWITCH_STATE_E:
-		//	SmartDashboard::PutString("ELEVATOR", "SWITCH");
+
+		SmartDashboard::PutString("ELEVATOR.", "SWITCH");
+
 		if (last_elevator_state != SWITCH_STATE_E) {
 			elevator_profiler->SetFinalGoalElevator(SWITCH_POS_E);
 			elevator_profiler->SetInitPosElevator(GetElevatorPosition());
@@ -461,6 +499,7 @@ void Elevator::ElevatorWrapper(Elevator *el) {
 				el->Move(profile_elevator);
 			}
 
+
 		}
 
 		double time_e = 0.01 - elevatorTimer->Get(); //change
@@ -471,6 +510,7 @@ void Elevator::ElevatorWrapper(Elevator *el) {
 		}
 
 		std::this_thread::sleep_for(std::chrono::milliseconds((int) time_e));
+
 
 	}
 

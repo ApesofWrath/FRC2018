@@ -7,12 +7,21 @@
 
 #include <DriveControllerMother.h>
 #include <WPILib.h>
+
+#include "ctre/Phoenix.h"
 //#include <pathfinder.h>
 //#include "ctre/Phoenix.h" //needed to be double included
 
-#define PI 3.1415926
+//#define PI 3.1415926
+#define CORNELIUS 0
 
 //(?) = try to prove me wrong because I am not too sure
+
+#if CORNELIUS
+
+#else
+
+#endif
 
 using namespace std::chrono;
 
@@ -576,8 +585,6 @@ void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle, //finds targets
 
 void DriveControllerMother::RotationController(Joystick *JoyWheel) {
 
-	//std::cout << "rotation controller" << std::endl;
-
 	double target_heading = init_heading
 			+ (-1.0 * JoyWheel->GetX() * (90.0 * PI / 180.0)); //scaling, conversion to radians,left should be positive
 
@@ -603,13 +610,13 @@ void DriveControllerMother::RotationController(Joystick *JoyWheel) {
  * Param: Feet forward, + = forward
  */
 //fix this
+
 //auton targets, actually just pd
 void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw vel, left vel, right vel
 
 	double refYaw = drive_ref.at(0);
 	double refLeft = drive_ref.at(1);
 	double refRight = drive_ref.at(2);
-
 	double targetYawRate = drive_ref.at(4); //0 for now
 	double tarVelLeft = drive_ref.at(5);
 	double tarVelRight = drive_ref.at(6);
@@ -627,10 +634,12 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
 	double l_dis = (((double) canTalonLeft1->GetSelectedSensorPosition(0)
 			/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
+
 	double y_dis = -1.0 * ahrs->GetYaw() * (double) (PI / 180); //current theta (yaw) value
 
 	l_error_dis_au = refLeft - l_dis;
 	r_error_dis_au = refRight - r_dis;
+
 	y_error_dis_au = refYaw - y_dis;
 
 	if (std::abs(tarVelLeft - tarVelRight) < .05 && (std::abs(r_current) < 10)
@@ -643,6 +652,8 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 
 	i_left += (l_error_dis_au);
 	d_left = (l_error_dis_au - l_last_error);
+
+	d_kick = (k_error_dis_au - kick_last_error);
 
 	i_yaw += y_error_dis_au;
 
@@ -659,11 +670,12 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 
 	double total_right = P_RIGHT_DIS + I_RIGHT_DIS + D_RIGHT_DIS;
 	double total_left = P_LEFT_DIS + I_LEFT_DIS + D_LEFT_DIS;
-	double total_yaw = P_YAW_DIS + I_YAW_DIS;
 
+	double total_yaw = P_YAW_DIS + I_YAW_DIS;
 	double target_rpm_yaw_change = total_yaw * max_y_rpm;
 	double target_rpm_right = total_right * max_y_rpm; //max rpm* gear ratio
 	double target_rpm_left = total_left * max_y_rpm;
+
 
 	target_rpm_right = target_rpm_right + target_rpm_yaw_change;
 	target_rpm_left = target_rpm_left - target_rpm_yaw_change;
@@ -693,7 +705,8 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 
 void DriveControllerMother::ShiftUp() { //high gear, inside
 
-	//SmartDashboard::PutString("GEAR", "HIGH");
+	SmartDashboard::PutString("GEAR", "HIGH");
+
 	solenoid->Set(DoubleSolenoid::Value::kForward);
 	SetGainsHigh();
 
@@ -701,7 +714,8 @@ void DriveControllerMother::ShiftUp() { //high gear, inside
 
 void DriveControllerMother::ShiftDown() { //low gear, outside
 
-	//SmartDashboard::PutString("GEAR", "LOW");
+	SmartDashboard::PutString("GEAR", "LOW");
+
 	solenoid->Set(DoubleSolenoid::Value::kReverse);
 	//std::cout << "DOWN" << std::endl;
 
@@ -789,6 +803,9 @@ void DriveControllerMother::AutoShift() {
 
 }
 
+
+//TODO: add check for encoders working
+
 void DriveControllerMother::Controller(double ref_kick, double ref_right,
 		double ref_left, double ref_yaw, double k_p_right, double k_p_left,
 		double k_p_kick, double k_p_yaw, double k_d_yaw, double k_d_right,
@@ -805,7 +822,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 
 	double yaw_error = target_yaw_rate - yaw_rate_current;
 
-//	std::cout << "kp:" << k_p_yaw << std::endl;
+
 	//std::cout << "yaw: " << yaw_error << std::endl;
 
 //	SmartDashboard::PutNumber("yaw current", yaw_rate_current);
@@ -851,8 +868,23 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	double kick_current = ((double) canTalonKicker->GetSelectedSensorVelocity(0)
 			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION; //going right is positive
 
-//	SmartDashboard::PutNumber("Left vel", l_current);
-//	SmartDashboard::PutNumber("Right vel", r_current);
+
+	if ((std::abs(l_current) <= 0.5 && canTalonLeft1->GetOutputCurrent() > 3.0) //encoders not working
+			|| (std::abs(r_current) <= 0.5
+					&& canTalonRight1->GetOutputCurrent() > 3.0)) {
+		k_p_yaw = 0.0;
+		k_d_yaw = 0.0;
+		feed_forward_l = 0.0;
+		feed_forward_r = 0.0;
+		k_p_left = 0.0;
+		k_p_right = 0.0;
+		k_d_left = 0.0;
+		k_d_right = 0.0;
+	}
+
+	SmartDashboard::PutNumber("Left vel", l_current);
+	SmartDashboard::PutNumber("Right vel.", r_current);
+
 	//std::cout << "left: " << l_current << std::endl;
 	//std::cout << "right: " << r_current << std::endl;
 	//std::cout << "yaw: " << yaw_error << std::endl;
@@ -1043,6 +1075,7 @@ void DriveControllerMother::TeleopWrapper(Joystick *JoyThrottle,
 //TODO: update thread timing
 void DriveControllerMother::AutonWrapper(
 		DriveControllerMother *driveController) {
+
 
 //	timerAuton->Start();
 //

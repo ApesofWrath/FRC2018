@@ -14,16 +14,16 @@
 //#include <iostream>
 #include <Autonomous.h>
 
-class DriveForward : public Autonomous {
+class DriveForward {// : public Autonomous {
 public:
 
   DriveController *drive_cont;
   Elevator *el;
   Intake *in;
 
-	DriveForward() : Autonomous(drive_cont, el, in) {
-
-	}
+//	DriveForward() : Autonomous(drive_cont, el, in) {
+//
+//	}
 //	virtual ~DriveForward();
 	void Generate();
 	void SetDriveRefs();

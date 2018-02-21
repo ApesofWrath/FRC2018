@@ -9,10 +9,10 @@
 
 std::vector<std::vector<double> > full_refs;
 
-DriveForward::DriveForward(DriveController *drive_cont, Elevator, *el, Intake *in) {
-
-
-}
+//DriveForward::DriveForward(DriveController *drive_cont, Elevator, *el, Intake *in) {
+//
+//
+//}
 
 void DriveForward::Generate() {
 
@@ -189,8 +189,8 @@ void DriveForward::Generate() {
 
 void DriveForward::SetDriveRefs() {
 
-	drive_controller->SetRefs(full_refs);
-	drive_controller->StartAutonThread();
+//	drive_controller->SetRefs(full_refs);
+//	drive_controller->StartAutonThread();
 
 }
 

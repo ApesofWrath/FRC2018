@@ -9,23 +9,21 @@
 #include <string>
 #include <IterativeRobot.h>
 #include <LiveWindow/LiveWindow.h>
-//#include <SmartDashboard/SendableChooser.h>
-//#include <SmartDashboard/SmartDashboard.h>
-
+#include <SmartDashboard/SendableChooser.h>
+#include <SmartDashboard/SmartDashboard.h>
+#include <Autonomous.h>
 #include "ctre/Phoenix.h"
 #include <WPILib.h>
 #include <DriveController.h>
 #include <Intake.h>
 #include <Elevator.h>
-#include <Autonomous.h>
+#include <DriveForward.h>
 #include <Joystick.h>
 #include <TeleopStateMachine.h>
-#include <DriveForward.h>
 
-#include "pathfinder.h"
-
-#define THREADS 1
+#define THREADS 0
 #define STATEMACHINE 1
+#define CORNELIUS 1 //TALONS IDS ARE ALSO DIFFERENT
 
 class Robot: public frc::IterativeRobot {
 public:
@@ -106,14 +104,12 @@ public:
 		drive_controller = new DriveController();
 		intake_ = new Intake(pdp_, intake_profiler_);
 		elevator_ = new Elevator(pdp_, elevator_profiler_);
-		autonomous_ = new Autonomous(drive_controller, elevator_, intake_);
-		drive_forward = new DriveForward(drive_controller, elevator_, intake_);
+		//autonomous_ = new Autonomous(drive_controller, elevator_, intake_);
 		teleop_state_machine = new TeleopStateMachine(elevator_, intake_);
 
 		joyThrottle = new Joystick(JOY_THROTTLE);
 		joyWheel = new Joystick(JOY_WHEEL);
 		joyOp = new Joystick(JOY_OP);
-
 
 		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
 				&is_vision, &is_fc);
@@ -133,116 +129,29 @@ public:
 
 	void AutonomousInit() override {
 
-		drive_forward->Generate();
-
-		std::cout << "auton init" << std::endl;
-//		SmartDashboard::PutNumber("auton init", 0);
-//
-//		int POINT_LENGTH = 3;
-//
-//			Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
-//
-//			Waypoint p1 = { -4, -1, d2r(45) }; // Waypoint @ x=-4, y=-1, exit angle=45 degrees
-//			Waypoint p2 = { -1, 2, 0 };  // Waypoint @ x=-1, y= 2, exit angle= 0 radians
-//			Waypoint p3 = { 2, 4, 0 };   // Waypoint @ x= 2, y= 4, exit angle= 0 radians
-//			points[0] = p1;
-//			points[1] = p2;
-//			points[2] = p3;
-//
-//			TrajectoryCandidate candidate;
-//			pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-//					PATHFINDER_SAMPLES_HIGH, 0.001, 15.0, 10.0, 60.0, &candidate);
-//
-//			int length = candidate.length;
-//			Segment *trajectory =  malloc(length * sizeof(Segment)); ///
-//
-//			SmartDashboard::PutNumber("d.", 1);
-//
-//			//pathfinder_generate(&candidate, trajectory);
-//
-//			SmartDashboard::PutNumber("fuck.", 1);
-//
-//			Segment *leftTrajectory = (Segment*) malloc(sizeof(Segment) * length);
-//			Segment *rightTrajectory = (Segment*) malloc(sizeof(Segment) * length);
-//
-//			double wheelbase_width = 0.6;
-//
-//			pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
-//					wheelbase_width);
-//
-//			SmartDashboard::PutString("PLS.", "yee");
-//
-//			 free(trajectory);
-//			 free(leftTrajectory);
-//			 free(rightTrajectory);
-
 		//start auton threads
 
 //		drive_controller->ZeroI(true);
 //		drive_controller->ZeroEncs();
 //		drive_controller->ZeroYaw();
-
 		//drive_forward->Generate();
 //
 //		elevator_->ZeroEncs();
 //		intake_->ZeroEnc();
 //
-		//drive_forward->Test();
-		//drive_forward->Create();
-//		drive_forward->Run();
-
-//		int POINT_LENGTH = 2;
-//
-//		Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
-//
-//		Waypoint p1 = { 0, 1, 0 }; // Waypoint @ x=-4, y=-1, exit angle=45 degrees
-//		Waypoint p2 = { 0, 2, 0 }; // Waypoint @ x=-1, y= 2, exit angle= 0 radians
-//
-//		points[0] = p1;
-//		points[1] = p2;
-//
-//		TrajectoryCandidate candidate;
-//		pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-//		PATHFINDER_SAMPLES_HIGH, 0.001, 15.0, 10.0, 60.0, &candidate);
-//
-//		int length = candidate.length;
-//		Segment *trajectory = (Segment*) malloc(length * sizeof(Segment)); //(Segment*)
-
-		//pathfinder_generate(&candidate, trajectory);
-//
-//		Segment *leftTrajectory = (Segment*) malloc(sizeof(Segment) * length);
-//		Segment *rightTrajectory = (Segment*) malloc(sizeof(Segment) * length);
-//
-//		//Segment leftTrajectory[];
-//		//Segment rightTrajectory[];
-//
-//		double wheelbase_width = 0.6;
-//
-//		pathfinder_modify_tank(trajectory, length, leftTrajectory,
-//				rightTrajectory, wheelbase_width);
-
-//		free(trajectory);
 
 	}
 
 	void AutonomousPeriodic() {
 
 		std::cout << "auton periodic" << std::endl;
-//
-
-//		elevator_->ElevatorStateMachine();
-//		intake_->IntakeArmStateMachine();
-//		intake_->IntakeWheelStateMachine();
-//
-//		autonomous_->RunAuton();
-
 	}
 
 	void TeleopInit() {
 
 		//disable auton threads
-//
-		drive_controller->ZeroI(true); //5% none, 17% drive controller
+
+		drive_controller->ZeroI(true);
 		drive_controller->ZeroEncs();
 		drive_controller->ZeroYaw();
 		drive_controller->ShiftDown();
@@ -272,6 +181,7 @@ public:
 
 #if !STATEMACHINE
 		intake_->ManualArm(joyOp);
+<<<<<<< HEAD
 		//	intake_->ManualWheels(joyOp);
 		elevator_->ManualElevator(joyThrottle);
 
@@ -348,6 +258,7 @@ public:
 //		elevator_->EndElevatorThread();
 //
 //	}
+
 
 	void TestPeriodic() {
 
