@@ -231,7 +231,7 @@ void Intake::Rotate(std::vector<std::vector<double> > ref_intake) { //a vector o
 	double goal_pos = ref_intake[0][0];
 	double goal_vel = ref_intake[1][0];
 
-	SmartDashboard::PutNumber("INTAKE POS", GetAngularPosition());
+//	SmartDashboard::PutNumber("INTAKE POS", GetAngularPosition());
 //	SmartDashboard::PutNumber("INTAKE REF POS", goal_pos);
 //	SmartDashboard::PutNumber("INTAKE REF VEL", goal_vel);
 
@@ -270,14 +270,14 @@ void Intake::Rotate(std::vector<std::vector<double> > ref_intake) { //a vector o
 
 void Intake::SetVoltageIntake(double voltage_i) {
 
-	SmartDashboard::PutString("INTAKE SAFETY", "none");
+	//SmartDashboard::PutString("INTAKE SAFETY", "none");
 
 	//is_at_bottom = IsAtBottomIntake(); //hall effect returns 0 when at bottom. we reverse it here
 
 	//soft limit //TODO: make the top height lower after we have initialize
 	if (GetAngularPosition() >= (1.6) && voltage_i > 0.0 && is_init_intake) { //at max height and still trying to move up //no upper soft limit when initializing
 		voltage_i = 0.0; //shouldn't crash
-		SmartDashboard::PutString("INTAKE SAFETY", "top soft limit");
+		//	SmartDashboard::PutString("INTAKE SAFETY", "top soft limit");
 	}
 
 //	if (is_at_bottom) {
@@ -293,7 +293,7 @@ void Intake::SetVoltageIntake(double voltage_i) {
 	}
 	if (voltage_i < 0.0 && GetAngularPosition() < -0.1) {
 		voltage_i = 0.0;
-		SmartDashboard::PutString("INTAKE SAFETY", "bottom soft limit");
+		//	SmartDashboard::PutString("INTAKE SAFETY", "bottom soft limit");
 	}
 
 	//voltage limit
@@ -317,7 +317,7 @@ void Intake::SetVoltageIntake(double voltage_i) {
 	}
 
 	if (voltage_safety) {
-		SmartDashboard::PutString("INTAKE SAFETY", "stall");
+		//	SmartDashboard::PutString("INTAKE SAFETY", "stall");
 		voltage_i = 0.0;
 	}
 
@@ -395,7 +395,7 @@ void Intake::IntakeArmStateMachine() {
 	switch (intake_arm_state) {
 
 	case INIT_STATE:
-		SmartDashboard::PutString("INTAKE ARM", "INIT");
+//		SmartDashboard::PutString("INTAKE ARM", "INIT");
 		InitializeIntake();
 		if (is_init_intake) { // && GetAngularPosition() == 0.35) {
 			intake_arm_state = UP_STATE; //PUT BACK IN
@@ -404,7 +404,7 @@ void Intake::IntakeArmStateMachine() {
 		break;
 
 	case UP_STATE:
-		SmartDashboard::PutString("INTAKE ARM", "UP");
+//		SmartDashboard::PutString("INTAKE ARM", "UP");
 		//	SmartDashboard::PutString("actually in up state", "yep");
 		if (last_intake_state != UP_STATE) { //first time in state
 			intake_profiler->SetFinalGoalIntake(UP_ANGLE); //is 0.0 for testing
@@ -414,7 +414,7 @@ void Intake::IntakeArmStateMachine() {
 		break;
 
 	case MID_STATE:
-		SmartDashboard::PutString("INTAKE ARM", "MID");
+//		SmartDashboard::PutString("INTAKE ARM", "MID");
 		if (last_intake_state != MID_STATE) {
 			intake_profiler->SetFinalGoalIntake(MID_ANGLE);
 			intake_profiler->SetInitPosIntake(GetAngularPosition());
@@ -423,7 +423,7 @@ void Intake::IntakeArmStateMachine() {
 		break;
 
 	case DOWN_STATE:
-		SmartDashboard::PutString("INTAKE ARM", "DOWN");
+//		SmartDashboard::PutString("INTAKE ARM", "DOWN");
 		if (last_intake_state != DOWN_STATE) {
 			intake_profiler->SetFinalGoalIntake(DOWN_ANGLE);
 			intake_profiler->SetInitPosIntake(GetAngularPosition());
@@ -432,13 +432,13 @@ void Intake::IntakeArmStateMachine() {
 		break;
 
 	case STOP_ARM_STATE: //for emergencies
-		SmartDashboard::PutString("INTAKE ARM", "STOP");
+		//	SmartDashboard::PutString("INTAKE ARM", "STOP");
 		StopArm();
 		last_intake_state = STOP_ARM_STATE;
 		break;
 
 	case SWITCH_STATE:
-		SmartDashboard::PutString("INTAKE ARM", "SWITCH");
+		//	SmartDashboard::PutString("INTAKE ARM", "SWITCH");
 		if (last_intake_state != SWITCH_STATE) {
 			intake_profiler->SetFinalGoalIntake(SWITCH_ANGLE);
 			intake_profiler->SetInitPosIntake(GetAngularPosition());
@@ -458,23 +458,23 @@ void Intake::IntakeWheelStateMachine() {
 	switch (intake_wheel_state) {
 
 	case STOP_WHEEL_STATE: //has offset, not actually stopped
-		SmartDashboard::PutString("INTAKE WHEEL", "STOP");
+		//	SmartDashboard::PutString("INTAKE WHEEL", "STOP");
 		StopWheels();
 		break;
 
 	case IN_STATE:
-		SmartDashboard::PutString("INTAKE WHEEL", "IN");
+		//	SmartDashboard::PutString("INTAKE WHEEL", "IN");
 		In();
 		break;
 
 	case OUT_STATE:
-		SmartDashboard::PutString("INTAKE WHEEL", "OUT");
+		//	SmartDashboard::PutString("INTAKE WHEEL", "OUT");
 		//std::cout << "out state" << std::endl;
 		Out();
 		break;
 
 	case SLOW_STATE:
-		SmartDashboard::PutString("INTAKE WHEEL", "SLOW");
+		//	SmartDashboard::PutString("INTAKE WHEEL", "SLOW");
 		Slow();
 		break;
 
@@ -515,20 +515,19 @@ bool Intake::ReleasedCube() {
 		} else {
 			current_counter = 0;
 		}
-		if (current_counter >= 15) {
+		if (current_counter >= 18) {
 			return true;
 		} else {
 			return false;
 		}
-	}
-	else {
+	} else {
 		if (talonIntake1->GetOutputCurrent() <= 17.0
 				&& talonIntake2->GetOutputCurrent() <= 17.0) {
 			current_counter++;
 		} else {
 			current_counter = 0;
 		}
-		if (current_counter >= 15) {
+		if (current_counter >= 18) {
 			return true;
 		} else {
 			return false;
@@ -572,9 +571,10 @@ void Intake::IntakeWrapper(Intake *in) {
 	intakeTimer->Start();
 
 	while (true) {
-		while (frc::RobotState::IsEnabled()) {
 
-			intakeTimer->Reset();
+		intakeTimer->Reset();
+
+		if (frc::RobotState::IsEnabled()) {
 
 			std::vector<std::vector<double>> profile_intake =
 					intake_profiler->GetNextRefIntake();
@@ -584,15 +584,16 @@ void Intake::IntakeWrapper(Intake *in) {
 				in->Rotate(profile_intake);
 			}
 
-			double time = .010 - intakeTimer->Get();
-
-			time *= 1000;
-			if (time < 0) {
-				time = 0;
-			}
-			std::this_thread::sleep_for(std::chrono::milliseconds((int) time));
-
 		}
+
+		double time = 0.01 - intakeTimer->Get(); //0.01
+
+		time *= 1000;
+		if (time < 0) {
+			time = 0;
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds((int) time));
+
 	}
 
 }

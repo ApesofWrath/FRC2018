@@ -550,7 +550,7 @@ void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle, //finds targets
 		joy_wheel_val *= reverse_x * JoyWheel->GetX();
 	}
 
-	if (std::abs(joy_wheel_val) < .05) {
+	if (std::abs(joy_wheel_val) < .06) {
 		joy_wheel_val = 0.0;
 	}
 
@@ -576,7 +576,7 @@ void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle, //finds targets
 
 void DriveControllerMother::RotationController(Joystick *JoyWheel) {
 
-	std::cout << "rotation controller" << std::endl;
+	//std::cout << "rotation controller" << std::endl;
 
 	double target_heading = init_heading
 			+ (-1.0 * JoyWheel->GetX() * (90.0 * PI / 180.0)); //scaling, conversion to radians,left should be positive
@@ -603,38 +603,34 @@ void DriveControllerMother::RotationController(Joystick *JoyWheel) {
  * Param: Feet forward, + = forward
  */
 //fix this
-void DriveControllerMother::AutonDrive() { //auton targets, actually just pd
+//auton targets, actually just pd
+void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw vel, left vel, right vel
 
 	double refYaw = drive_ref.at(0);
 	double refLeft = drive_ref.at(1);
 	double refRight = drive_ref.at(2);
-	double refKick = drive_ref.at(3);
-	double targetYawRate = drive_ref.at(4);
+
+	double targetYawRate = drive_ref.at(4); //0 for now
 	double tarVelLeft = drive_ref.at(5);
 	double tarVelRight = drive_ref.at(6);
-	double tarVelKick = drive_ref.at(7);
 
-	if (std::abs(tarVelKick) < .05) {
-		tarVelKick = 0.0;
-	}
+	//std::cout << refYaw << "  " << refLeft << "  " << refRight << "  " << targetYawRate << "  " << tarVelLeft <<  "   " << tarVelRight << std::endl;
 
-	double r_current = -((double) canTalonRight1->GetSelectedSensorVelocity(0) //TODO: make sure this is actually negative
-	/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
+	//rpm
+	double r_current = -((double) canTalonRight1->GetSelectedSensorVelocity(0)
+			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
 	double l_current = ((double) canTalonLeft1->GetSelectedSensorVelocity(0)
 			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
 
-	//conversion to feet
-	double r_dis = -(((double) canTalonRight1->GetSelectedSensorPosition(0)
-			/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
+	//feet
+	double r_dis = -(((double) canTalonRight1->GetSelectedSensorPosition(0) //rotations per 100 ms, distance (circumference) per 100m ms,
+	/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
 	double l_dis = (((double) canTalonLeft1->GetSelectedSensorPosition(0)
-			/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
-	double k_dis = (((double) canTalonKicker->GetSelectedSensorPosition(0)
 			/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
 	double y_dis = -1.0 * ahrs->GetYaw() * (double) (PI / 180); //current theta (yaw) value
 
 	l_error_dis_au = refLeft - l_dis;
 	r_error_dis_au = refRight - r_dis;
-	k_error_dis_au = refKick - k_dis;
 	y_error_dis_au = refYaw - y_dis;
 
 	if (std::abs(tarVelLeft - tarVelRight) < .05 && (std::abs(r_current) < 10)
@@ -648,9 +644,6 @@ void DriveControllerMother::AutonDrive() { //auton targets, actually just pd
 	i_left += (l_error_dis_au);
 	d_left = (l_error_dis_au - l_last_error);
 
-	i_kick += (k_error_dis_au);
-	d_kick = (k_error_dis_au - kick_last_error);
-
 	i_yaw += y_error_dis_au;
 
 	P_RIGHT_DIS = K_P_RIGHT_DIS * r_error_dis_au;
@@ -661,24 +654,16 @@ void DriveControllerMother::AutonDrive() { //auton targets, actually just pd
 	I_LEFT_DIS = K_I_LEFT_DIS * i_left;
 	D_LEFT_DIS = K_D_LEFT_DIS * d_left;
 
-	P_KICK_DIS = K_P_KICKER_DIS * k_error_dis_au;
-	I_KICK_DIS = K_I_KICKER_DIS * i_kick;
-	D_KICK_DIS = K_D_KICKER_DIS * d_kick;
-
 	P_YAW_DIS = K_P_YAW_DIS * y_error_dis_au;
 	I_YAW_DIS = K_I_YAW_DIS * i_yaw;
 
 	double total_right = P_RIGHT_DIS + I_RIGHT_DIS + D_RIGHT_DIS;
 	double total_left = P_LEFT_DIS + I_LEFT_DIS + D_LEFT_DIS;
-	double total_kick = P_KICK_DIS + I_KICK_DIS + D_KICK_DIS;
 	double total_yaw = P_YAW_DIS + I_YAW_DIS;
-
-	//std::cout << "Y: " << total_yaw << std::endl;
 
 	double target_rpm_yaw_change = total_yaw * max_y_rpm;
 	double target_rpm_right = total_right * max_y_rpm; //max rpm* gear ratio
 	double target_rpm_left = total_left * max_y_rpm;
-	double target_rpm_kick = total_kick * MAX_X_RPM;
 
 	target_rpm_right = target_rpm_right + target_rpm_yaw_change;
 	target_rpm_left = target_rpm_left - target_rpm_yaw_change;
@@ -695,10 +680,10 @@ void DriveControllerMother::AutonDrive() { //auton targets, actually just pd
 		target_rpm_right = -max_y_rpm;
 	}
 
-	Controller(target_rpm_kick, target_rpm_right, target_rpm_left,
-			targetYawRate, k_p_right_vel, k_p_left_vel, k_p_kick_vel,
-			k_p_yaw_au, k_d_yaw_au, k_d_left_vel, k_d_right_vel, k_d_kick_vel,
-			tarVelLeft, tarVelRight, tarVelKick);
+	Controller(0.0, target_rpm_right, target_rpm_left, targetYawRate,
+			k_p_right_vel, k_p_left_vel, k_p_kick_vel, k_p_yaw_au, k_d_yaw_au,
+			k_d_left_vel, k_d_right_vel, k_d_kick_vel, tarVelLeft, tarVelRight,
+			0.0);
 
 	l_last_error = l_error_dis_au;
 	r_last_error = r_error_dis_au;
@@ -708,7 +693,7 @@ void DriveControllerMother::AutonDrive() { //auton targets, actually just pd
 
 void DriveControllerMother::ShiftUp() { //high gear, inside
 
-	SmartDashboard::PutString("GEAR", "HIGH");
+	//SmartDashboard::PutString("GEAR", "HIGH");
 	solenoid->Set(DoubleSolenoid::Value::kForward);
 	SetGainsHigh();
 
@@ -716,7 +701,7 @@ void DriveControllerMother::ShiftUp() { //high gear, inside
 
 void DriveControllerMother::ShiftDown() { //low gear, outside
 
-	SmartDashboard::PutString("GEAR", "LOW");
+	//SmartDashboard::PutString("GEAR", "LOW");
 	solenoid->Set(DoubleSolenoid::Value::kReverse);
 	//std::cout << "DOWN" << std::endl;
 
@@ -820,12 +805,12 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 
 	double yaw_error = target_yaw_rate - yaw_rate_current;
 
-	std::cout << "kp:" << k_p_yaw << std::endl;
+//	std::cout << "kp:" << k_p_yaw << std::endl;
 	//std::cout << "yaw: " << yaw_error << std::endl;
 
-	SmartDashboard::PutNumber("yaw current", yaw_rate_current);
-	SmartDashboard::PutNumber("yaw target", target_yaw_rate);
-	SmartDashboard::PutNumber("yaw error", yaw_error);
+//	SmartDashboard::PutNumber("yaw current", yaw_rate_current);
+//	SmartDashboard::PutNumber("yaw target", target_yaw_rate);
+//	SmartDashboard::PutNumber("yaw error", yaw_error);
 
 	if (std::abs(yaw_error) < .3) {
 		yaw_error = 0.0;
@@ -866,8 +851,8 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	double kick_current = ((double) canTalonKicker->GetSelectedSensorVelocity(0)
 			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION; //going right is positive
 
-	SmartDashboard::PutNumber("Left vel", l_current);
-	SmartDashboard::PutNumber("Right vel", r_current);
+//	SmartDashboard::PutNumber("Left vel", l_current);
+//	SmartDashboard::PutNumber("Right vel", r_current);
 	//std::cout << "left: " << l_current << std::endl;
 	//std::cout << "right: " << r_current << std::endl;
 	//std::cout << "yaw: " << yaw_error << std::endl;
@@ -1019,10 +1004,11 @@ void DriveControllerMother::TeleopWrapper(Joystick *JoyThrottle,
 	timerTeleop->Start();
 
 	while (true) {
-		while (frc::RobotState::IsEnabled() && !frc::RobotState::IsAutonomous()
-				&& !(bool) *is_heading && !(bool) *is_vision) {
 
-			timerTeleop->Reset();
+		timerTeleop->Reset();
+
+		if (frc::RobotState::IsEnabled() && !frc::RobotState::IsAutonomous()
+				&& !(bool) *is_heading && !(bool) *is_vision) {
 
 			if (!tank) {
 				driveController->TeleopHDrive(JoyThrottle, JoyWheel, is_fc);
@@ -1032,35 +1018,24 @@ void DriveControllerMother::TeleopWrapper(Joystick *JoyThrottle,
 				driveController->TeleopWCDrive(JoyThrottle, JoyWheel);
 			}
 
-			double time_t = .010 - timerTeleop->Get();
-
-			time_t *= 1000;
-			if (time_t < 0) {
-				time_t = 0;
-			}
-
-			std::this_thread::sleep_for(
-					std::chrono::milliseconds((int) time_t));
-
 		}
-		while (frc::RobotState::IsEnabled() && !frc::RobotState::IsAutonomous()
-				&& (bool) *is_heading && !(bool) *is_vision) {
 
-			timerTeleop->Reset();
+		if (frc::RobotState::IsEnabled() && !frc::RobotState::IsAutonomous()
+				&& (bool) *is_heading && !(bool) *is_vision) {
 
 			driveController->RotationController(JoyWheel);
 
-			double time_a = .010 - timerTeleop->Get(); //how much time left to sleep till 10 ms have passed. timerTeleop->Get() returns seconds
-
-			time_a *= 1000; //convert to ms
-			if (time_a < 0) { //can't wait for negative time
-				time_a = 0;
-			}
-
-			std::this_thread::sleep_for(
-					std::chrono::milliseconds((int) time_a));
-
 		}
+
+
+		double time_a = 0.01 - timerTeleop->Get(); //how much time left to sleep till 10 ms have passed. timerTeleop->Get() returns seconds //change
+
+		time_a *= 1000; //convert to ms
+		if (time_a < 0) { //can't wait for negative time
+			time_a = 0;
+		}
+
+		std::this_thread::sleep_for(std::chrono::milliseconds((int) time_a));
 
 	}
 }
@@ -1069,41 +1044,42 @@ void DriveControllerMother::TeleopWrapper(Joystick *JoyThrottle,
 void DriveControllerMother::AutonWrapper(
 		DriveControllerMother *driveController) {
 
-	timerAuton->Start();
-
-	while (frc::RobotState::IsAutonomous() && frc::RobotState::IsEnabled()) {
-
-		std::this_thread::sleep_for(
-				std::chrono::milliseconds(DRIVE_SLEEP_TIME));
-
-		if (timerAuton->HasPeriodPassed(DRIVE_WAIT_TIME)) {
-
-			for (int i = 0; i < sizeof(drive_ref); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs
-
-				//drive_ref[i] = full_refs[profile_index][i]; //from SetRef()
-
-			}
-
-			if (drive_ref[12] == 1) { //vision on
-
-				//driveController->AutoVisionTrack();
-
-			} else { //vision off
-
-				driveController->AutonDrive();
-
-			}
-
-			timerAuton->Reset();
-
-			//	profile_index++;
-		}
-
-		//if (profile_index >= NUM_POINTS) { //stop at the end of the motion profile, this number is set after the creation of the array
-		//so not all of the array will be accessed, only the part before the non-zero points
-		break;
-		//}
-	}
+//	timerAuton->Start();
+//
+//	while (frc::RobotState::IsAutonomous() && frc::RobotState::IsEnabled()) {
+//
+//		std::this_thread::sleep_for(
+//				std::chrono::milliseconds(DRIVE_SLEEP_TIME));
+//
+//		if (timerAuton->HasPeriodPassed(DRIVE_WAIT_TIME)) {
+//
+//			for (int i = 0; i < sizeof(drive_ref); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs //should be fine
+//
+//				drive_ref = auton_profile.at(i); //from SetRef()
+//
+//			}
+//
+////			if (drive_ref[12] == 1) { //vision on
+////
+////				//driveController->AutoVisionTrack();
+////
+////			} else { //vision off
+////
+////				driveController->AutonDrive();
+////
+////			}
+//
+//			driveController->AutonDrive();
+//
+//			timerAuton->Reset();
+//
+//		}
+//
+////		//if (profile_index >= NUM_POINTS) { //stop at the end of the motion profile, this number is set after the creation of the array
+////		//so not all of the array will be accessed, only the part before the non-zero points
+////		break;
+////		//}
+//	}
 
 }
 

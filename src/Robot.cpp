@@ -9,8 +9,8 @@
 #include <string>
 #include <IterativeRobot.h>
 #include <LiveWindow/LiveWindow.h>
-#include <SmartDashboard/SendableChooser.h>
-#include <SmartDashboard/SmartDashboard.h>
+//#include <SmartDashboard/SendableChooser.h>
+//#include <SmartDashboard/SmartDashboard.h>
 
 #include "ctre/Phoenix.h"
 #include <WPILib.h>
@@ -20,8 +20,11 @@
 #include <Autonomous.h>
 #include <Joystick.h>
 #include <TeleopStateMachine.h>
+#include <DriveForward.h>
 
-#define THREADS 0
+#include "pathfinder.h"
+
+#define THREADS 1
 #define STATEMACHINE 1
 
 class Robot: public frc::IterativeRobot {
@@ -53,7 +56,7 @@ public:
 	const int ELEVATOR_MID = 11;
 	const int ELEVATOR_DOWN = 12;
 
-	bool acceptable_current_r, acceptable_current_l; //testperiodic
+	//bool acceptable_current_r, acceptable_current_l; //testperiodic
 
 	bool wait_for_button;
 	bool intake_spin_in;
@@ -78,6 +81,7 @@ public:
 	Elevator *elevator_;
 	Intake *intake_;
 	Autonomous *autonomous_;
+	DriveForward *drive_forward;
 	TeleopStateMachine *teleop_state_machine;
 	ElevatorMotionProfiler *elevator_profiler_;
 	IntakeMotionProfiler *intake_profiler_;
@@ -103,30 +107,128 @@ public:
 		intake_ = new Intake(pdp_, intake_profiler_);
 		elevator_ = new Elevator(pdp_, elevator_profiler_);
 		autonomous_ = new Autonomous(drive_controller, elevator_, intake_);
+		drive_forward = new DriveForward(drive_controller, elevator_, intake_);
 		teleop_state_machine = new TeleopStateMachine(elevator_, intake_);
 
 		joyThrottle = new Joystick(JOY_THROTTLE);
 		joyWheel = new Joystick(JOY_WHEEL);
 		joyOp = new Joystick(JOY_OP);
 
+
+		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
+				&is_vision, &is_fc);
+
+		intake_->StartIntakeThread(); //for controllers
+		elevator_->StartElevatorThread();
+//
+		teleop_state_machine->StartStateMachineThread(
+				&wait_for_button, //calls all state machines
+				&intake_spin_in, &intake_spin_out, &intake_spin_stop,
+				&get_cube_ground, &get_cube_station, &post_intake,
+				&raise_to_switch, &raise_to_scale, &intake_arm_up,
+				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
+				&elevator_down);
+
 	}
 
 	void AutonomousInit() override {
+
+		drive_forward->Generate();
+
+		std::cout << "auton init" << std::endl;
+//		SmartDashboard::PutNumber("auton init", 0);
+//
+//		int POINT_LENGTH = 3;
+//
+//			Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
+//
+//			Waypoint p1 = { -4, -1, d2r(45) }; // Waypoint @ x=-4, y=-1, exit angle=45 degrees
+//			Waypoint p2 = { -1, 2, 0 };  // Waypoint @ x=-1, y= 2, exit angle= 0 radians
+//			Waypoint p3 = { 2, 4, 0 };   // Waypoint @ x= 2, y= 4, exit angle= 0 radians
+//			points[0] = p1;
+//			points[1] = p2;
+//			points[2] = p3;
+//
+//			TrajectoryCandidate candidate;
+//			pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
+//					PATHFINDER_SAMPLES_HIGH, 0.001, 15.0, 10.0, 60.0, &candidate);
+//
+//			int length = candidate.length;
+//			Segment *trajectory =  malloc(length * sizeof(Segment)); ///
+//
+//			SmartDashboard::PutNumber("d.", 1);
+//
+//			//pathfinder_generate(&candidate, trajectory);
+//
+//			SmartDashboard::PutNumber("fuck.", 1);
+//
+//			Segment *leftTrajectory = (Segment*) malloc(sizeof(Segment) * length);
+//			Segment *rightTrajectory = (Segment*) malloc(sizeof(Segment) * length);
+//
+//			double wheelbase_width = 0.6;
+//
+//			pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
+//					wheelbase_width);
+//
+//			SmartDashboard::PutString("PLS.", "yee");
+//
+//			 free(trajectory);
+//			 free(leftTrajectory);
+//			 free(rightTrajectory);
 
 		//start auton threads
 
 //		drive_controller->ZeroI(true);
 //		drive_controller->ZeroEncs();
 //		drive_controller->ZeroYaw();
+
+		//drive_forward->Generate();
 //
 //		elevator_->ZeroEncs();
 //		intake_->ZeroEnc();
 //
-//		autonomous_->FillProfile("");
+		//drive_forward->Test();
+		//drive_forward->Create();
+//		drive_forward->Run();
+
+//		int POINT_LENGTH = 2;
+//
+//		Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
+//
+//		Waypoint p1 = { 0, 1, 0 }; // Waypoint @ x=-4, y=-1, exit angle=45 degrees
+//		Waypoint p2 = { 0, 2, 0 }; // Waypoint @ x=-1, y= 2, exit angle= 0 radians
+//
+//		points[0] = p1;
+//		points[1] = p2;
+//
+//		TrajectoryCandidate candidate;
+//		pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
+//		PATHFINDER_SAMPLES_HIGH, 0.001, 15.0, 10.0, 60.0, &candidate);
+//
+//		int length = candidate.length;
+//		Segment *trajectory = (Segment*) malloc(length * sizeof(Segment)); //(Segment*)
+
+		//pathfinder_generate(&candidate, trajectory);
+//
+//		Segment *leftTrajectory = (Segment*) malloc(sizeof(Segment) * length);
+//		Segment *rightTrajectory = (Segment*) malloc(sizeof(Segment) * length);
+//
+//		//Segment leftTrajectory[];
+//		//Segment rightTrajectory[];
+//
+//		double wheelbase_width = 0.6;
+//
+//		pathfinder_modify_tank(trajectory, length, leftTrajectory,
+//				rightTrajectory, wheelbase_width);
+
+//		free(trajectory);
 
 	}
 
 	void AutonomousPeriodic() {
+
+		std::cout << "auton periodic" << std::endl;
+//
 
 //		elevator_->ElevatorStateMachine();
 //		intake_->IntakeArmStateMachine();
@@ -139,29 +241,30 @@ public:
 	void TeleopInit() {
 
 		//disable auton threads
-
-		drive_controller->ZeroI(true);
+//
+		drive_controller->ZeroI(true); //5% none, 17% drive controller
 		drive_controller->ZeroEncs();
 		drive_controller->ZeroYaw();
 		drive_controller->ShiftDown();
 
 		teleop_state_machine->Initialize();
 
-//#ifndef THREADS
-		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
-				&is_vision, &is_fc);
-
-		intake_->StartIntakeThread(); //for controllers
-		elevator_->StartElevatorThread();
-
-		teleop_state_machine->StartStateMachineThread(
-				&wait_for_button, //calls all state machines
-				&intake_spin_in, &intake_spin_out, &intake_spin_stop,
-				&get_cube_ground, &get_cube_station, &post_intake,
-				&raise_to_switch, &raise_to_scale, &intake_arm_up,
-				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
-				&elevator_down);
-//#endif
+#if THREADS
+//		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
+//				&is_vision, &is_fc);
+//
+//		intake_->StartIntakeThread(); //for controllers
+//		elevator_->StartElevatorThread();
+////
+//		teleop_state_machine->StartStateMachineThread(
+//				&wait_for_button, //calls all state machines
+//				&intake_spin_in, &intake_spin_out, &intake_spin_stop,
+//				&get_cube_ground, &get_cube_station, &post_intake,
+//				&raise_to_switch, &raise_to_scale, &intake_arm_up,
+//				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
+//				&elevator_down);
+#else
+#endif
 
 	}
 
@@ -195,47 +298,56 @@ public:
 		elevator_mid = joyOp->GetRawButton(ELEVATOR_MID);
 		elevator_down = joyOp->GetRawButton(ELEVATOR_DOWN);
 
-		SmartDashboard::PutNumber("Left 1",
-				drive_controller->canTalonLeft1->GetOutputCurrent());
-		SmartDashboard::PutNumber("Left 2",
-				drive_controller->canTalonLeft2->GetOutputCurrent());
-		SmartDashboard::PutNumber("Left 3",
-				drive_controller->canTalonLeft3->GetOutputCurrent());
-		SmartDashboard::PutNumber("Left 4",
-				drive_controller->canTalonLeft4->GetOutputCurrent());
-		SmartDashboard::PutNumber("Right 1",
-				drive_controller->canTalonRight1->GetOutputCurrent());
-		SmartDashboard::PutNumber("Right 2",
-				drive_controller->canTalonRight2->GetOutputCurrent());
-		SmartDashboard::PutNumber("Right 3",
-				drive_controller->canTalonRight3->GetOutputCurrent());
-		SmartDashboard::PutNumber("Right 4",
-				drive_controller->canTalonRight4->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Left 1",
+//				drive_controller->canTalonLeft1->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Left 2",
+//				drive_controller->canTalonLeft2->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Left 3",
+//				drive_controller->canTalonLeft3->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Left 4",
+//				drive_controller->canTalonLeft4->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Right 1",
+//				drive_controller->canTalonRight1->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Right 2",
+//				drive_controller->canTalonRight2->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Right 3",
+//				drive_controller->canTalonRight3->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Right 4",
+//				drive_controller->canTalonRight4->GetOutputCurrent());
 
-		is_heading = false;
-		is_vision = false;
-		is_fc = false;
-
-		drive_controller->AutoShift();
-
-		if (low_gear) {
-			drive_controller->ShiftDown();
-		} else if (high_gear) {
-			drive_controller->ShiftUp();
-		}
+//		is_heading = false;
+//		is_vision = false;
+//		is_fc = false;
+//
+//		drive_controller->AutoShift();
+//
+//		if (low_gear) {
+//			drive_controller->ShiftDown();
+//		} else if (high_gear) {
+//			drive_controller->ShiftUp();
+//		}
 #endif
 	}
 
-	void DisabledInit() override {
+	void DisabledInit() override { //elevator
 
 		teleop_state_machine->EndStateMachineThread();
 		drive_controller->EndTeleopThreads();
-		intake_->EndIntakeThread(); //may not actually disable threads
+		intake_->EndIntakeThread(); //may not actually disable threads //22%
 		elevator_->EndElevatorThread();
 
-		teleop_state_machine->Initialize();
+		//teleop_state_machine->Initialize(); //17%
 
 	}
+//
+//	void DisabledPeriodic() override {
+//
+//		teleop_state_machine->EndStateMachineThread();
+//		drive_controller->EndTeleopThreads();
+//		intake_->EndIntakeThread(); //may not actually disable threads //22%
+//		elevator_->EndElevatorThread();
+//
+//	}
 
 	void TestPeriodic() {
 

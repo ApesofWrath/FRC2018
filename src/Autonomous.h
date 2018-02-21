@@ -13,18 +13,22 @@
 #include <Intake.h>
 #include <fstream>
 #include <DriveController.h>
+#include <pathfinder.h>
 #include <ElevatorMotionProfiler.h>
 
 class Autonomous {
 public:
+
+	DriveController *drive_controller;
+	Elevator *elevator_;
+	Intake *intake_;
 
 	Autonomous(DriveController *dc, Elevator *el, Intake *in);
 	void RunAuton();
 
 	void FillProfile(std::string profileName);
 
-	void InitPathfinder();
-
 };
 
 #endif /* SRC_AUTONOMOUS_H_ */
+
