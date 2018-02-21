@@ -30,8 +30,6 @@
 class Robot: public frc::IterativeRobot {
 public:
 
-	//std::vector<std::vector<double> > full_refs;
-
 	const int JOY_THROTTLE = 0;
 	const int JOY_WHEEL = 1;
 	const int JOY_OP = 2;
@@ -107,22 +105,37 @@ public:
 		pdp_ = new PowerDistributionPanel(3);
 		drive_controller = new DriveController();
 		intake_ = new Intake(pdp_, intake_profiler_);
-		autonomous_ = new Autonomous(drive_controller, elevator_, intake_);
-		drive_forward = new DriveForward();
 		elevator_ = new Elevator(pdp_, elevator_profiler_);
+		autonomous_ = new Autonomous(drive_controller, elevator_, intake_);
+		drive_forward = new DriveForward(drive_controller, elevator_, intake_);
 		teleop_state_machine = new TeleopStateMachine(elevator_, intake_);
 
 		joyThrottle = new Joystick(JOY_THROTTLE);
 		joyWheel = new Joystick(JOY_WHEEL);
 		joyOp = new Joystick(JOY_OP);
 
+
+		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
+				&is_vision, &is_fc);
+
+		intake_->StartIntakeThread(); //for controllers
+		elevator_->StartElevatorThread();
+//
+		teleop_state_machine->StartStateMachineThread(
+				&wait_for_button, //calls all state machines
+				&intake_spin_in, &intake_spin_out, &intake_spin_stop,
+				&get_cube_ground, &get_cube_station, &post_intake,
+				&raise_to_switch, &raise_to_scale, &intake_arm_up,
+				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
+				&elevator_down);
+
 	}
 
 	void AutonomousInit() override {
 
-		//drive_forward->Generate();
+		drive_forward->Generate();
 
-//		std::cout << "auton init" << std::endl;
+		std::cout << "auton init" << std::endl;
 //		SmartDashboard::PutNumber("auton init", 0);
 //
 //		int POINT_LENGTH = 3;
@@ -214,9 +227,8 @@ public:
 
 	void AutonomousPeriodic() {
 
-//		std::cout << "auton periodic" << std::endl;
+		std::cout << "auton periodic" << std::endl;
 //
-
 
 //		elevator_->ElevatorStateMachine();
 //		intake_->IntakeArmStateMachine();
@@ -230,7 +242,7 @@ public:
 
 		//disable auton threads
 //
-		drive_controller->ZeroI(true);
+		drive_controller->ZeroI(true); //5% none, 17% drive controller
 		drive_controller->ZeroEncs();
 		drive_controller->ZeroYaw();
 		drive_controller->ShiftDown();
@@ -238,19 +250,19 @@ public:
 		teleop_state_machine->Initialize();
 
 #if THREADS
-		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
-				&is_vision, &is_fc);
-
-		intake_->StartIntakeThread(); //for controllers
-		elevator_->StartElevatorThread();
-
-		teleop_state_machine->StartStateMachineThread(
-				&wait_for_button, //calls all state machines
-				&intake_spin_in, &intake_spin_out, &intake_spin_stop,
-				&get_cube_ground, &get_cube_station, &post_intake,
-				&raise_to_switch, &raise_to_scale, &intake_arm_up,
-				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
-				&elevator_down);
+//		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
+//				&is_vision, &is_fc);
+//
+//		intake_->StartIntakeThread(); //for controllers
+//		elevator_->StartElevatorThread();
+////
+//		teleop_state_machine->StartStateMachineThread(
+//				&wait_for_button, //calls all state machines
+//				&intake_spin_in, &intake_spin_out, &intake_spin_stop,
+//				&get_cube_ground, &get_cube_station, &post_intake,
+//				&raise_to_switch, &raise_to_scale, &intake_arm_up,
+//				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
+//				&elevator_down);
 #else
 #endif
 
@@ -317,16 +329,25 @@ public:
 #endif
 	}
 
-	void DisabledInit() override {
+	void DisabledInit() override { //elevator
 
 		teleop_state_machine->EndStateMachineThread();
 		drive_controller->EndTeleopThreads();
-		intake_->EndIntakeThread(); //may not actually disable threads
+		intake_->EndIntakeThread(); //may not actually disable threads //22%
 		elevator_->EndElevatorThread();
 
-		teleop_state_machine->Initialize();
+		//teleop_state_machine->Initialize(); //17%
 
 	}
+//
+//	void DisabledPeriodic() override {
+//
+//		teleop_state_machine->EndStateMachineThread();
+//		drive_controller->EndTeleopThreads();
+//		intake_->EndIntakeThread(); //may not actually disable threads //22%
+//		elevator_->EndElevatorThread();
+//
+//	}
 
 	void TestPeriodic() {
 

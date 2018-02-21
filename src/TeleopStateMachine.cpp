@@ -292,7 +292,7 @@ void TeleopStateMachine::StateMachineWrapper(
 
 		}
 
-		double time = 5.0 - teleopTimer->Get(); //change back 0.05
+		double time = 0.05 - teleopTimer->Get(); //change back 0.05
 
 		time *= 1000;
 		if (time < 0) {

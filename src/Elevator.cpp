@@ -463,7 +463,7 @@ void Elevator::ElevatorWrapper(Elevator *el) {
 
 		}
 
-		double time_e = 1.0 - elevatorTimer->Get(); //change
+		double time_e = 0.01 - elevatorTimer->Get(); //change
 
 		time_e *= 1000;
 		if (time_e < 0) {

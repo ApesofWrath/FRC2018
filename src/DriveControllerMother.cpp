@@ -1028,7 +1028,7 @@ void DriveControllerMother::TeleopWrapper(Joystick *JoyThrottle,
 		}
 
 
-		double time_a = 1.0 - timerTeleop->Get(); //how much time left to sleep till 10 ms have passed. timerTeleop->Get() returns seconds //change
+		double time_a = 0.01 - timerTeleop->Get(); //how much time left to sleep till 10 ms have passed. timerTeleop->Get() returns seconds //change
 
 		time_a *= 1000; //convert to ms
 		if (time_a < 0) { //can't wait for negative time

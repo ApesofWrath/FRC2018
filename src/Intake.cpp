@@ -586,7 +586,7 @@ void Intake::IntakeWrapper(Intake *in) {
 
 		}
 
-		double time = 1.0 - intakeTimer->Get(); //0.01
+		double time = 0.01 - intakeTimer->Get(); //0.01
 
 		time *= 1000;
 		if (time < 0) {

@@ -8,16 +8,25 @@
 #ifndef SRC_DRIVEFORWARD_H_
 #define SRC_DRIVEFORWARD_H_
 
-#include "pathfinder.h"
-#include <WPILib.h>
-#include <ctre/Phoenix.h>
-#include <iostream>
 
-class DriveForward {
+//#include <WPILib.h>
+//#include <ctre/Phoenix.h>
+//#include <iostream>
+#include <Autonomous.h>
+
+class DriveForward : public Autonomous {
 public:
-	DriveForward();
-	virtual ~DriveForward();
+
+  DriveController *drive_cont;
+  Elevator *el;
+  Intake *in;
+
+	DriveForward() : Autonomous(drive_cont, el, in) {
+
+	}
+//	virtual ~DriveForward();
 	void Generate();
+	void SetDriveRefs();
 	bool FollowPath();
 	void ConfigureEncoders();
 	void StopFollowing();
