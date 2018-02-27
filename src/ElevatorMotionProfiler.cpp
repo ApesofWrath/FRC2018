@@ -24,7 +24,9 @@ void ElevatorMotionProfiler::SetFinalGoalElevator(double goal) {
 }
 
 double ElevatorMotionProfiler::GetFinalGoalElevator() {
+
 	return final_goal;
+
 }
 
 void ElevatorMotionProfiler::SetInitPosElevator(double position_init) { //at every new whole profile
@@ -38,13 +40,13 @@ void ElevatorMotionProfiler::SetInitPosElevator(double position_init) { //at eve
 
 }
 
-void ElevatorMotionProfiler::SetMaxVelElevator(double max_vel) {
+void ElevatorMotionProfiler::SetMaxVelElevator(double max_vel) { //not used
 
 	max_velocity = max_vel;
 
 }
 
-void ElevatorMotionProfiler::SetMaxAccElevator(double max_acc) {
+void ElevatorMotionProfiler::SetMaxAccElevator(double max_acc) { //not used
 
 	max_acceleration = max_acc;
 
@@ -250,5 +252,7 @@ double ElevatorMotionProfiler::FindAngleElevator(std::vector<double> p1,
 }
 
 double ElevatorMotionProfiler::GetInitPosElevator() {
+
 	return init_pos;
+
 }

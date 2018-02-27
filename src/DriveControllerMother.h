@@ -31,10 +31,12 @@ public:
 
 	DoubleSolenoid *solenoid;
 
-	std::thread TeleopThread;
-	std::thread AutonThread;
+	std::thread DriveThread;
+	//std::thread AutonThread;
 
 	AHRS *ahrs;
+
+	double MAX_FPS = 0; //used in auton pathfinder
 
 	//needs the CAN IDs of all the talons and whether or not this is a west coast or HDrive train, input -1 if no kicker (or really whatever you want since it wont be used)
 	DriveControllerMother(int fl, int fr, int rl, int rr, int k, bool is_wc, bool start_low); //for HDrive or West Coast with 4 total talons
@@ -58,10 +60,11 @@ public:
 			double target_vel_kick); //The final controller, will take the references set by either teleop or auton drive function
 
 	//Motor Functions
+	void ZeroAll(bool stop_motors);
 	void StopAll();
 	void ZeroEncs();
 	void ZeroYaw();
-	void ZeroI(bool StopMotors);
+	void ZeroI();
 
 	void SetMaxRpm(double rpm);
 	double GetMaxRpm();
@@ -70,17 +73,17 @@ public:
 	void SetRefs(std::vector<std::vector<double>> profile);
 
 	//Wrapper Functions
-	static void TeleopWrapper(Joystick *JoyThrottle, Joystick *JoyWheel, bool *is_heading, bool *is_vision, bool *is_fc, DriveControllerMother *driveController);
-	static void AutonWrapper(DriveControllerMother *driveController);
+	static void DriveWrapper(Joystick *JoyThrottle, Joystick *JoyWheel, bool *is_heading, bool *is_vision, bool *is_fc, DriveControllerMother *driveController);
+	//static void AutonWrapper(DriveControllerMother *driveController);
 
 	//Auton functions for threads are in derived class
 
 	//Thread Functions
-	void StartTeleopThreads(Joystick *JoyThrottle, Joystick *JoyWheel,
+	void StartDriveThreads(Joystick *JoyThrottle, Joystick *JoyWheel,
 			bool *is_heading, bool *is_vision, bool *is_fc);
-	void EndTeleopThreads();
-	void StartAutonThreads();
-	void EndAutonThreads();
+	void EndDriveThreads();
+	//void StartAutonThreads();
+	//void EndAutonThreads();
 
 	//AutonThread functions for use in the daughter class
 	void UpdateIndex();

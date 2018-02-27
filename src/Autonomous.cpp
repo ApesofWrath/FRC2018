@@ -21,10 +21,6 @@ const int NUM_INDEX = 10; //change this
 
 double refs[NUM_POINTS][NUM_INDEX];
 
-DriveController *drive_controller; //can't be in .h
-Elevator *elevator_;
-Intake *intake_;
-
 Autonomous::Autonomous(DriveController *dc, Elevator *el, Intake *in) {
 
 	drive_controller = dc;

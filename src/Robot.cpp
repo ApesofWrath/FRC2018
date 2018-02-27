@@ -11,19 +11,20 @@
 #include <LiveWindow/LiveWindow.h>
 #include <SmartDashboard/SendableChooser.h>
 #include <SmartDashboard/SmartDashboard.h>
-#include <Autonomous.h>
 #include "ctre/Phoenix.h"
 #include <WPILib.h>
+#include <Joystick.h>
+
+#include <Autonomous.h>
 #include <DriveController.h>
 #include <Intake.h>
 #include <Elevator.h>
-#include <DriveForward.h>
-#include <Joystick.h>
+#include <AutonSequences/DriveForward.h>
 #include <TeleopStateMachine.h>
 
-#define THREADS 0
+#define THREADS 1
 #define STATEMACHINE 1
-#define CORNELIUS 1 //TALONS IDS ARE ALSO DIFFERENT
+#define CORNELIUS 1 //in every class
 
 class Robot: public frc::IterativeRobot {
 public:
@@ -54,37 +55,29 @@ public:
 	const int ELEVATOR_MID = 11;
 	const int ELEVATOR_DOWN = 12;
 
-	//bool acceptable_current_r, acceptable_current_l; //testperiodic
+	bool wait_for_button, intake_spin_in, intake_spin_out, intake_spin_stop,
+			get_cube_ground, get_cube_station, post_intake, raise_to_switch,
+			raise_to_scale, intake_arm_up, intake_arm_mid, intake_arm_down,
+			elevator_up, elevator_mid, elevator_down; //state machine
 
-	bool wait_for_button;
-	bool intake_spin_in;
-	bool intake_spin_out;
-	bool intake_spin_stop;
-	bool get_cube_ground;
-	bool get_cube_station;
-	bool post_intake;
-	bool raise_to_switch;
-	bool raise_to_scale;
-	bool intake_arm_up;
-	bool intake_arm_mid;
-	bool intake_arm_down;
-	bool elevator_up;
-	bool elevator_mid;
-	bool elevator_down;
-
-	bool is_heading, is_vision, is_fc;
+	bool is_heading, is_vision, is_fc; //drive
 
 	DriveController *drive_controller;
 	PowerDistributionPanel *pdp_;
 	Elevator *elevator_;
 	Intake *intake_;
-	Autonomous *autonomous_;
 	DriveForward *drive_forward;
 	TeleopStateMachine *teleop_state_machine;
 	ElevatorMotionProfiler *elevator_profiler_;
 	IntakeMotionProfiler *intake_profiler_;
 	Compressor *compressor_;
 	Joystick *joyThrottle, *joyWheel, *joyOp;
+
+	frc::SendableChooser<std::string> autonChooser;
+
+	const std::string driveForward = "Drive Forward";
+
+	std::string autoSelected;
 
 //	DigitalInput *wait_for_button, *intake_spin_in,
 //	*intake_spin_out, *intake_spin_stop, *get_cube_ground,
@@ -94,51 +87,56 @@ public:
 
 	void RobotInit() {
 
-		elevator_profiler_ = new ElevatorMotionProfiler(1.6, 10.0, 0.01); //will be set in intake and elevator classes for now //time steps changed
+		elevator_profiler_ = new ElevatorMotionProfiler(1.6, 10.0, 0.01);
 		intake_profiler_ = new IntakeMotionProfiler(2.0, 8.0, 0.01);
 
 		compressor_ = new Compressor(3);
 		compressor_->SetClosedLoopControl(true);
-
 		pdp_ = new PowerDistributionPanel(3);
-		drive_controller = new DriveController();
+
+		drive_controller = new DriveController(); //inherits from mother class
 		intake_ = new Intake(pdp_, intake_profiler_);
 		elevator_ = new Elevator(pdp_, elevator_profiler_);
-		//autonomous_ = new Autonomous(drive_controller, elevator_, intake_);
 		teleop_state_machine = new TeleopStateMachine(elevator_, intake_);
+
+		drive_forward = new DriveForward(drive_controller, elevator_, intake_); //will be in auton init
 
 		joyThrottle = new Joystick(JOY_THROTTLE);
 		joyWheel = new Joystick(JOY_WHEEL);
 		joyOp = new Joystick(JOY_OP);
 
-		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
+		autonChooser.AddDefault(driveForward,
+						driveForward);
+
+		frc::SmartDashboard::PutData("Auto Modes", &autonChooser);
+
+#if THREADS
+		//starting threads in robot init so that they only are created once
+		drive_controller->StartDriveThreads(joyThrottle, joyWheel, &is_heading,
 				&is_vision, &is_fc);
 
-		intake_->StartIntakeThread(); //for controllers
+		intake_->StartIntakeThread();
 		elevator_->StartElevatorThread();
-//
-		teleop_state_machine->StartStateMachineThread(
-				&wait_for_button, //calls all state machines
+
+		teleop_state_machine->StartStateMachineThread( //starts all of the state machines
+				&wait_for_button,
 				&intake_spin_in, &intake_spin_out, &intake_spin_stop,
 				&get_cube_ground, &get_cube_station, &post_intake,
 				&raise_to_switch, &raise_to_scale, &intake_arm_up,
 				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
 				&elevator_down);
-
+#else
+#endif
 	}
 
 	void AutonomousInit() override {
 
-		//start auton threads
+		autoSelected = autonChooser.GetSelected();
 
-//		drive_controller->ZeroI(true);
-//		drive_controller->ZeroEncs();
-//		drive_controller->ZeroYaw();
-		//drive_forward->Generate();
-//
-//		elevator_->ZeroEncs();
-//		intake_->ZeroEnc();
-//
+		drive_controller->ZeroAll(true);
+		drive_controller->ShiftDown(); //for now
+
+		drive_forward->Generate();
 
 	}
 
@@ -149,31 +147,10 @@ public:
 
 	void TeleopInit() {
 
-		//disable auton threads
-
-		drive_controller->ZeroI(true);
-		drive_controller->ZeroEncs();
-		drive_controller->ZeroYaw();
+		drive_controller->ZeroAll(true);
 		drive_controller->ShiftDown();
 
 		teleop_state_machine->Initialize();
-
-#if THREADS
-//		drive_controller->StartTeleopThreads(joyThrottle, joyWheel, &is_heading,
-//				&is_vision, &is_fc);
-//
-//		intake_->StartIntakeThread(); //for controllers
-//		elevator_->StartElevatorThread();
-////
-//		teleop_state_machine->StartStateMachineThread(
-//				&wait_for_button, //calls all state machines
-//				&intake_spin_in, &intake_spin_out, &intake_spin_stop,
-//				&get_cube_ground, &get_cube_station, &post_intake,
-//				&raise_to_switch, &raise_to_scale, &intake_arm_up,
-//				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
-//				&elevator_down);
-#else
-#endif
 
 	}
 
@@ -181,7 +158,6 @@ public:
 
 #if !STATEMACHINE
 		intake_->ManualArm(joyOp);
-<<<<<<< HEAD
 		//	intake_->ManualWheels(joyOp);
 		elevator_->ManualElevator(joyThrottle);
 
@@ -225,40 +201,30 @@ public:
 //		SmartDashboard::PutNumber("Right 4",
 //				drive_controller->canTalonRight4->GetOutputCurrent());
 
-//		is_heading = false;
-//		is_vision = false;
-//		is_fc = false;
-//
+		is_heading = false;
+		is_vision = false;
+		is_fc = false;
+
 //		drive_controller->AutoShift();
 //
-//		if (low_gear) {
-//			drive_controller->ShiftDown();
-//		} else if (high_gear) {
-//			drive_controller->ShiftUp();
-//		}
+		if (low_gear) {
+			drive_controller->ShiftDown();
+		} else if (high_gear) {
+			drive_controller->ShiftUp();
+		}
 #endif
 	}
 
-	void DisabledInit() override { //elevator
+	void DisabledInit() override {
 
 		teleop_state_machine->EndStateMachineThread();
-		drive_controller->EndTeleopThreads();
-		intake_->EndIntakeThread(); //may not actually disable threads //22%
+		drive_controller->EndDriveThreads();
+		intake_->EndIntakeThread(); //may not actually disable threads
 		elevator_->EndElevatorThread();
 
-		//teleop_state_machine->Initialize(); //17%
+		teleop_state_machine->Initialize(); //17%
 
 	}
-//
-//	void DisabledPeriodic() override {
-//
-//		teleop_state_machine->EndStateMachineThread();
-//		drive_controller->EndTeleopThreads();
-//		intake_->EndIntakeThread(); //may not actually disable threads //22%
-//		elevator_->EndElevatorThread();
-//
-//	}
-
 
 	void TestPeriodic() {
 

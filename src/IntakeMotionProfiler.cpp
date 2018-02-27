@@ -28,7 +28,9 @@ void IntakeMotionProfiler::SetFinalGoalIntake(double goal) {
 }
 
 double IntakeMotionProfiler::GetFinalGoalIntake() {
+
 	return final_goal;
+
 }
 
 void IntakeMotionProfiler::SetInitPosIntake(double position_init) { //at every new whole profile
@@ -42,13 +44,13 @@ void IntakeMotionProfiler::SetInitPosIntake(double position_init) { //at every n
 
 }
 
-void IntakeMotionProfiler::SetMaxVelIntake(double max_vel) {
+void IntakeMotionProfiler::SetMaxVelIntake(double max_vel) { //not used
 
 	max_velocity = max_vel;
 
 }
 
-void IntakeMotionProfiler::SetMaxAccIntake(double max_acc) {
+void IntakeMotionProfiler::SetMaxAccIntake(double max_acc) { //not used
 
 	max_acceleration = max_acc;
 

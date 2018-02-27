@@ -284,10 +284,7 @@ void TeleopStateMachine::StateMachineWrapper(
 
 		teleopTimer->Reset();
 
-		//std::cout << "threads here" << std::endl;
-
-		if (frc::RobotState::IsEnabled()) {
-
+		if (frc::RobotState::IsEnabled() && frc::RobotState::IsOperatorControl()) { //this thread will still run in auton
 
 			intake->IntakeArmStateMachine();
 			intake->IntakeWheelStateMachine();
@@ -302,11 +299,9 @@ void TeleopStateMachine::StateMachineWrapper(
 					(bool) *intake_arm_down, (bool) *elevator_up,
 					(bool) *elevator_mid, (bool) *elevator_down);
 
-			///SmartDashboard::PutNumber("TIME", teleopTimer->Get());
-
 		}
 
-		double time = 0.05 - teleopTimer->Get(); //change back 0.05
+		double time = 0.05 - teleopTimer->Get();
 
 		time *= 1000;
 		if (time < 0) {
