@@ -76,6 +76,8 @@ public:
 	frc::SendableChooser<std::string> autonChooser;
 
 	const std::string driveForward = "Drive Forward";
+	const std::string cube_switch = "Switch";
+	const std::string cube_scale = "Scale";
 
 	std::string autoSelected;
 
@@ -136,7 +138,13 @@ public:
 		drive_controller->ZeroAll(true);
 		drive_controller->ShiftDown(); //for now
 
-		drive_forward->Generate();
+		if (autoSelected == driveForward) {
+			drive_forward->Generate();
+		} else if (autoSelected == cube_switch) {
+
+		} else if (autoSelected == cube_scale) {
+
+		}
 
 	}
 
