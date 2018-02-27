@@ -48,7 +48,7 @@ const double DOWN_SHIFT_VEL = 200.0; //will be less than up shift vel (14/56) *9
 
 /////////////////////////////////////////////////////
 
-const double DRIVE_WAIT_TIME = 0.01; //seconds
+const double DRIVE_WAIT_TIME = 0.1; //seconds
 const double MINUTE_CONVERSION = 600.0; //part of the conversion from ticks velocity to rpm
 
 // Drive Gains
@@ -1015,13 +1015,18 @@ void DriveControllerMother::DriveWrapper(Joystick *JoyThrottle,
 		Joystick *JoyWheel, bool *is_heading, bool *is_vision, bool *is_fc,
 		DriveControllerMother *driveController) {
 
+	//SmartDashboard::PutString("in drive thread", "here");
+
 	timerTeleop->Start();
 
 	while (true) {
 
 		timerTeleop->Reset();
 
-		if (frc::RobotState::IsEnabled() && frc::RobotState::IsOperatorControl()) { //may have been problem that this was !auton
+		//SmartDashboard::PutString("in drive thread", "here");
+		//std::cout << "in drive thread" << std::endl;
+
+		if (frc::RobotState::IsEnabled() && !frc::RobotState::IsAutonomous()) { //may have been problem that this was !auton frc::RobotState::IsOperatorControl()
 
 			if (tank && !(bool) *is_heading && !(bool) *is_vision) {
 				driveController->TeleopWCDrive(JoyThrottle, JoyWheel);
@@ -1040,11 +1045,19 @@ void DriveControllerMother::DriveWrapper(Joystick *JoyThrottle,
 		else if (frc::RobotState::IsEnabled()
 				&& frc::RobotState::IsAutonomous()) {
 
+			std::cout << "auto drive" << std::endl;
+			//SmartDashboard::PutString("auton drive", "here");
+
+			//std::cout << "prof len " << sizeof(auton_profile) << std::endl;
+
 			for (int i = 0; i < sizeof(auton_profile); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs
 				drive_ref = auton_profile.at(i); //from SetRef()
+				std::cout << "i " << i << std::endl;
 			}
 
-			driveController->AutonDrive();
+			//SmartDashboard::PutString("auton drive", "made it");
+
+			//driveController->AutonDrive();
 		}
 
 		double time_a = DRIVE_WAIT_TIME - timerTeleop->Get(); //how much time left to sleep till 10 ms have passed. timerTeleop->Get() returns seconds

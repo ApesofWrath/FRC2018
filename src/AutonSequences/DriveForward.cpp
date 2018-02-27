@@ -7,7 +7,7 @@
 
 #include <AutonSequences/DriveForward.h>
 
-std::vector<std::vector<double> > full_refs;
+std::vector<std::vector<double> > full_refs = { {0.0} };
 
 void DriveForward::Generate() {
 
@@ -39,44 +39,33 @@ void DriveForward::Generate() {
 	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
 			wheelbase_width);
 
+	std::cout << "PATHFINDER MADE IT" << std::endl;
+
 	int l;
 	for (l = 0; l < length; l++) { ////yaw pos, left pos, right pos, yaw vel, left vel, right vel
-		Segment s = leftTrajectory[l];
-		full_refs.at(l).at(0) = s.heading; //ZERO yaw vel gains
-		full_refs.at(l).at(1) = s.position;
+		Segment sl = leftTrajectory[l];
+		full_refs.at(l).at(0) = sl.heading; //ZERO yaw vel gains
+		full_refs.at(l).at(1) = sl.position;
 		full_refs.at(l).at(3) = 0.0;
-		full_refs.at(l).at(4) = s.velocity;
-
-		// SmartDashboard::PutNumber("time step", s.dt);
-		//	       printf("Time Step: %f\n", s.dt);
-		//	       printf("Coords: (%f, %f)\n", s.x, s.y);
-		//	       printf("Position (Distance): %f\n", s.position);
-		//	       printf("Velocity: %f\n", s.velocity);
-		//	       printf("Acceleration: %f\n", s.acceleration);
-		//	       printf("Jerk (Acceleration per Second): %f\n", s.jerk);
-		//	       printf("Heading (radians): %f\n", s.heading);
+		full_refs.at(l).at(4) = sl.velocity;
 	}
 
 	int r;
 	for (r = 0; r < length; r++) { ////yaw pos, left pos, right pos, yaw vel, left vel, right vel
-		Segment s = rightTrajectory[l];
-		full_refs.at(r).at(2) = s.position; //ZERO yaw vel gains
-		full_refs.at(r).at(5) = s.velocity;
-//		full_refs.at(l).at(3) = 0.0;
-//		full_refs.at(l).at(4) = s.velocity;
-
-		// SmartDashboard::PutNumber("time step", s.dt);
-		//	       printf("Time Step: %f\n", s.dt);
-		//	       printf("Coords: (%f, %f)\n", s.x, s.y);
-		//	       printf("Position (Distance): %f\n", s.position);
-		//	       printf("Velocity: %f\n", s.velocity);
-		//	       printf("Acceleration: %f\n", s.acceleration);
-		//	       printf("Jerk (Acceleration per Second): %f\n", s.jerk);
-		//	       printf("Heading (radians): %f\n", s.heading);
+		Segment sr = rightTrajectory[r];
+		full_refs.at(r).at(2) = sr.position; //ZERO yaw vel gains
+		full_refs.at(r).at(5) = sr.velocity;
 	}
 
-	SmartDashboard::PutString("here", "yep");
-	SmartDashboard::PutNumber("pos", full_refs.at(r).at(2));
+	SmartDashboard::PutNumber("pathfinder points", sizeof(full_refs));
+	SmartDashboard::PutNumber("pathfinder point length", full_refs.at(0).size());
+
+	for (int r = 0; r < sizeof(full_refs); r++) {
+		for (int c = 0; c < full_refs.at(0).size(); c++) {
+			std::cout << full_refs.at(r).at(c) << " ";
+		}
+		std::cout << "" << std::endl;
+	}
 
 	drive_controller->SetRefs(full_refs);
 

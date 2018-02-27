@@ -22,7 +22,7 @@
 #include <AutonSequences/DriveForward.h>
 #include <TeleopStateMachine.h>
 
-#define THREADS 1
+#define THREADS 0
 #define STATEMACHINE 1
 #define CORNELIUS 1 //in every class
 
@@ -61,6 +61,8 @@ public:
 			elevator_up, elevator_mid, elevator_down; //state machine
 
 	bool is_heading, is_vision, is_fc; //drive
+
+	bool left_scale, left_switch;
 
 	DriveController *drive_controller;
 	PowerDistributionPanel *pdp_;
@@ -107,8 +109,7 @@ public:
 		joyWheel = new Joystick(JOY_WHEEL);
 		joyOp = new Joystick(JOY_OP);
 
-		autonChooser.AddDefault(driveForward,
-						driveForward);
+		autonChooser.AddDefault(driveForward, driveForward);
 
 		frc::SmartDashboard::PutData("Auto Modes", &autonChooser);
 
@@ -117,34 +118,45 @@ public:
 		drive_controller->StartDriveThreads(joyThrottle, joyWheel, &is_heading,
 				&is_vision, &is_fc);
 
+		SmartDashboard::PutString("drive thread", "yep");
+
 		intake_->StartIntakeThread();
 		elevator_->StartElevatorThread();
 
-		teleop_state_machine->StartStateMachineThread( //starts all of the state machines
-				&wait_for_button,
-				&intake_spin_in, &intake_spin_out, &intake_spin_stop,
-				&get_cube_ground, &get_cube_station, &post_intake,
-				&raise_to_switch, &raise_to_scale, &intake_arm_up,
+		teleop_state_machine->StartStateMachineThread(
+				//starts all of the state machines
+				&wait_for_button, &intake_spin_in, &intake_spin_out,
+				&intake_spin_stop, &get_cube_ground, &get_cube_station,
+				&post_intake, &raise_to_switch, &raise_to_scale, &intake_arm_up,
 				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
 				&elevator_down);
+
+		SmartDashboard::PutString("robot init", "yep");
 #else
 #endif
 	}
 
 	void AutonomousInit() override {
 
-		autoSelected = autonChooser.GetSelected();
+		SmartDashboard::PutString("auton init", "yep");
 
+//		autoSelected = autonChooser.GetSelected();
+
+		drive_forward->Generate();
 		drive_controller->ZeroAll(true);
 		drive_controller->ShiftDown(); //for now
 
-		if (autoSelected == driveForward) {
-			drive_forward->Generate();
-		} else if (autoSelected == cube_switch) {
-
-		} else if (autoSelected == cube_scale) {
-
-		}
+//		if (autoSelected == driveForward) {
+//			//drive_forward->Generate();
+//		} else if (autoSelected == cube_switch && left_switch) {
+//
+//		} else if (autoSelected == cube_switch && !left_switch) {
+//
+//		} else if (autoSelected == cube_scale && left_scale) {
+//
+//		} else if (autoSelected == cube_scale && !left_scale) {
+//
+//		}
 
 	}
 
