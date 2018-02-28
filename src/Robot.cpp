@@ -22,7 +22,7 @@
 #include <AutonSequences/DriveForward.h>
 #include <TeleopStateMachine.h>
 
-#define THREADS 0
+#define THREADS 1
 #define STATEMACHINE 1
 #define CORNELIUS 1 //in every class
 
@@ -144,7 +144,7 @@ public:
 
 		drive_forward->Generate();
 		drive_controller->ZeroAll(true);
-		drive_controller->ShiftDown(); //for now
+		drive_controller->ShiftUp(); //for now
 
 //		if (autoSelected == driveForward) {
 //			//drive_forward->Generate();
@@ -162,13 +162,13 @@ public:
 
 	void AutonomousPeriodic() {
 
-		std::cout << "auton periodic" << std::endl;
+		//std::cout << "auton periodic" << std::endl;
 	}
 
 	void TeleopInit() {
 
 		drive_controller->ZeroAll(true);
-		drive_controller->ShiftDown();
+		//drive_controller->ShiftDown();
 
 		teleop_state_machine->Initialize();
 
@@ -189,6 +189,7 @@ public:
 		wait_for_button = joyOp->GetRawButton(WAIT_FOR_BUTTON);
 		get_cube_ground = joyOp->GetRawButton(GET_CUBE_GROUND);
 		get_cube_station = joyOp->GetRawButton(GET_CUBE_STATION);
+
 		post_intake = joyOp->GetRawButton(POST_INTAKE);
 		raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
 		raise_to_scale = joyOp->GetRawButton(RAISE_TO_SCALE);
@@ -225,13 +226,13 @@ public:
 		is_vision = false;
 		is_fc = false;
 
-//		drive_controller->AutoShift();
+		drive_controller->AutoShift();
 //
-		if (low_gear) {
-			drive_controller->ShiftDown();
-		} else if (high_gear) {
-			drive_controller->ShiftUp();
-		}
+//		if (low_gear) {
+//			drive_controller->ShiftDown();
+//		} else if (high_gear) {
+//			drive_controller->ShiftUp();
+//		}
 #endif
 	}
 

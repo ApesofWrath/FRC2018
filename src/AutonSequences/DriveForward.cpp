@@ -7,7 +7,7 @@
 
 #include <AutonSequences/DriveForward.h>
 
-std::vector<std::vector<double> > full_refs = { {} };
+std::vector<std::vector<double> > full_refs (1500, std::vector<double>(6)); //initalizes each index value to 0
 
 void DriveForward::Generate() {
 
@@ -16,15 +16,16 @@ void DriveForward::Generate() {
 	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
 
 	//feet
-	Waypoint p1 = { 0, 0, 0 }; //starting position may not be allowed to be 0,0,0
-	Waypoint p2 = { 0.5, 4, 0 }; //cannot just move in Y axis because of spline math
+	Waypoint p1 = { 0.0, 0.0, 0.0 }; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
+	Waypoint p2 = { 10.0, -10.0, 0.2 }; //cannot just move in Y axis because of spline math
+
 
 	points[0] = p1;
 	points[1] = p2;
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.001, 15.0, 10.0, 60.0, &candidate); //max vel, acc, jerk
+	PATHFINDER_SAMPLES_FAST, 0.01, 20.0, 35.0, 60.0, &candidate); //max vel, acc, jerk
 
 	int length = candidate.length;
 	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));
@@ -34,64 +35,45 @@ void DriveForward::Generate() {
 	Segment *leftTrajectory = (Segment*) malloc(sizeof(Segment) * length);
 	Segment *rightTrajectory = (Segment*) malloc(sizeof(Segment) * length);
 
-	double wheelbase_width = 0.6;
+	double wheelbase_width = 2.0;
 
 	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
 			wheelbase_width);
 
-	std::cout << "PATHFINDER MADE IT" << length << std::endl;
-
-//	for (int r = 0; r < length; r++) {
-//		for (int c = 0; c < 6; c++) {
-//			full_refs.at(r).push_back(0.0);
-//			std::cout << "filling" << std::endl;
-//		}
-//	}
-//
-//	std::cout << "Filled" << std::endl;
-//	std::cout << "rows " << sizeof(full_refs) << " cols "
-//			<< full_refs.at(0).size() << std::endl;
-
-	for(int i = 0; i < 1500; i++) {
-		full_refs.push_back({});
-	}
+	//								pathfinder points				1500						6									6
+	std::cout << "PATHFINDER MADE IT " << length  << "  " << full_refs.size() << "  " << full_refs[0].size() <<  "   "  << std::endl;
 
 	int l;
-	for (l = 0; l < 1500; l++) { ////yaw pos, left pos, right pos, yaw vel, left vel, right vel //TODO: LENGTH
+	for (l = 0; l < 1500; l++) { ////yaw pos, left pos, right pos, yaw vel, left vel, right vel //TODO: LENGTH will only take first 1500 points from pathfinder
 		Segment sl = leftTrajectory[l];
 		Segment sr = rightTrajectory[l];
 
-		full_refs.at(l).push_back((double)sl.heading); //ZERO yaw vel gains
-		full_refs.at(l).push_back((double)sl.position);
-		full_refs.at(l).push_back((double)sr.position);
-		full_refs.at(l).push_back(0.0);
-		full_refs.at(l).push_back((double)sl.velocity);
-		full_refs.at(l).push_back((double)sr.velocity);
+		full_refs.at(l).at(0) = ((double)sl.heading); //ZERO yaw vel gains
+		full_refs.at(l).at(1) = ((double)sl.position);
+		full_refs.at(l).at(2) = ((double)sr.position);
+		full_refs.at(l).at(3) = (0.0);
+		full_refs.at(l).at(4) = ((double)sl.velocity);
+		full_refs.at(l).at(5) = ((double)sr.velocity);
 
-//		full_refs.at(l).at(0) = sl.heading; //ZERO yaw vel gains
-//		full_refs.at(l).at(1) = sl.position;
-//		full_refs.at(l).at(2) = sr.position;
-//		full_refs.at(l).at(3) = 0.0;
-//		full_refs.at(l).at(4) = sl.velocity;
-//		full_refs.at(l).at(5) = sr.velocity;
-
-	//	full_refs.push_back({});
-
-		std::cout << "l: " << l << std::endl;
-	}
-
-	std::cout << "filled full refs" << "  " << sizeof(full_refs) << " " << full_refs.at(0).size() << std::endl;
-
-	SmartDashboard::PutNumber("pathfinder points", sizeof(full_refs));
-	SmartDashboard::PutNumber("pathfinder point length",
-			full_refs.at(0).size());
-
-	for (int r = 0; r < sizeof(full_refs); r++) {
-		for (int c = 0; c < full_refs.at(0).size(); c++) { //not printing the 6th
-			std::cout << full_refs.at(r).at(c) << " ";
+		if(l >= length) {
+			full_refs.at(l).at(0) = full_refs.at(l-1).at(0);
+			full_refs.at(l).at(1) = full_refs.at(l-1).at(1);
+			full_refs.at(l).at(2) = full_refs.at(l-1).at(2);
+			full_refs.at(l).at(3) = full_refs.at(l-1).at(3);
+			full_refs.at(l).at(4) = full_refs.at(l-1).at(4);
+			full_refs.at(l).at(5) = full_refs.at(l-1).at(5);
 		}
-		std::cout << "" << std::endl;
 	}
+
+//wn1919
+	//wn5020
+
+//	for (int r = 0; r < full_refs.size(); r++) {
+//		for (int c = 0; c < full_refs[0].size(); c++) {
+//			std::cout << full_refs.at(r).at(c) << " ";
+//		}
+//		std::cout << "" << std::endl;
+//	}
 
 	drive_controller->SetRefs(full_refs);
 
@@ -100,10 +82,3 @@ void DriveForward::Generate() {
 	free(rightTrajectory);
 
 }
-
-//void DriveForward::SetDriveRefs() {
-//
-//	drive_controller->SetRefs(full_refs);
-//
-//}
-

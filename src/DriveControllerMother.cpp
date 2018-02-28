@@ -48,7 +48,7 @@ const double DOWN_SHIFT_VEL = 200.0; //will be less than up shift vel (14/56) *9
 
 /////////////////////////////////////////////////////
 
-const double DRIVE_WAIT_TIME = 0.1; //seconds
+const double DRIVE_WAIT_TIME = 0.01; //seconds
 const double MINUTE_CONVERSION = 600.0; //part of the conversion from ticks velocity to rpm
 
 // Drive Gains
@@ -83,9 +83,9 @@ const double K_D_YAW_AU_HD = 0.0; //0.085;
 const double K_P_YAW_AU_WC = 0.0;
 const double K_D_YAW_AU_WC = 0.0;
 
-const double K_P_RIGHT_DIS = 0.0;//0.1;
-const double K_P_LEFT_DIS = 0.0;//0.1;
-const double K_P_YAW_DIS = 0.0;//1.5;
+const double K_P_RIGHT_DIS = 0.0; //0.1;
+const double K_P_LEFT_DIS = 0.0; //0.1;
+const double K_P_YAW_DIS = 0.0; //1.5;
 const double K_P_KICKER_DIS = 0.280;
 
 const double K_I_RIGHT_DIS = 0.0;
@@ -172,13 +172,16 @@ double kick_last_error_vel = 0;
 
 double max_y_rpm, actual_max_y_rpm, max_yaw_rate;
 
-double k_p_right_vel, k_p_left_vel, k_p_yaw_vel, k_d_right_vel, k_d_left_vel, //gains vary depending on gear
+double k_p_right_vel, k_p_left_vel, k_p_yaw_vel, k_d_right_vel,
+		k_d_left_vel, //gains vary depending on gear
 		k_p_yaw_t, k_d_yaw_t, k_p_kick_vel, k_d_kick_vel, k_p_yaw_h_vel,
 		k_p_yaw_au, k_d_yaw_au;
 
 double k_p_yaw_heading_pos, k_d_vision_pos;
 
 double k_f_left_vel, k_f_right_vel;
+
+int row_index = 0;
 
 double Kv; //scale from -1 to 1
 
@@ -189,13 +192,15 @@ Timer *timerShift = new Timer();
 double init_heading = 0;
 double total_heading = 0;
 
+bool set_profile = false;
+
 bool tank = false;
 bool is_low_gear = true;
 
 int LF = 0, L2 = 0, L3 = 0, LR = 0, RF = 0, R2 = 0, R3 = 0, RR = 0, KICKER = 0;
 
 std::vector<double> drive_ref = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }; //AutonDrive, row, individual points
-std::vector<std::vector<double> > auton_profile = { {0.0} }; //rows stacked on rows, all points
+std::vector<std::vector<double> > auton_profile(1500, std::vector<double>(6)); //rows stacked on rows, all points
 
 DriveControllerMother::DriveControllerMother(int fl, int fr, int rl, int rr,
 		int k, bool is_wc, bool start_low) { //not used and not complete
@@ -556,6 +561,8 @@ void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle, //finds targets
 		target_r = -max_y_rpm;
 	}
 
+	std::cout << "target yaw rate " << target_yaw_rate << std::endl;
+
 	Controller(0.0, target_r, target_l, target_yaw_rate, k_p_right_vel,
 			k_p_left_vel, 0.0, k_p_yaw_t, 0.0, k_d_left_vel, k_d_right_vel, 0.0,
 			0.0, 0.0, 0.0);
@@ -595,11 +602,15 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	double refYaw = drive_ref.at(0);
 	double refLeft = drive_ref.at(1);
 	double refRight = drive_ref.at(2);
-	double targetYawRate = drive_ref.at(4); //0 for now
-	double tarVelLeft = drive_ref.at(5);
-	double tarVelRight = drive_ref.at(6);
+	double targetYawRate = drive_ref.at(3); //0 for now
+	double tarVelLeft = drive_ref.at(4);
+	double tarVelRight = drive_ref.at(5);
 
-	//std::cout << refYaw << "  " << refLeft << "  " << refRight << "  " << targetYawRate << "  " << tarVelLeft <<  "   " << tarVelRight << std::endl;
+//	if(refYaw > PI) { //gains?
+//		refYaw = -1.0 * refYaw - PI; //2pi - refyaw
+//	}
+
+	//std::cout << "yep" << refYaw << "  " << refLeft << "  " << refRight << "  " << targetYawRate << "  " << tarVelLeft <<  "   " << tarVelRight << std::endl;
 
 	//rpm
 	double r_current = -((double) canTalonRight1->GetSelectedSensorVelocity(0)
@@ -613,7 +624,7 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	double l_dis = (((double) canTalonLeft1->GetSelectedSensorPosition(0)
 			/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
 
-	double y_dis = -1.0 * ahrs->GetYaw() * (double) (PI / 180); //current theta (yaw) value
+	double y_dis = 0.0; //-1.0 * ahrs->GetYaw() * (double) (PI / 180); //current theta (yaw) value
 
 	l_error_dis_au = refLeft - l_dis;
 	r_error_dis_au = refRight - r_dis;
@@ -668,6 +679,8 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	} else if (target_rpm_right < -max_y_rpm) {
 		target_rpm_right = -max_y_rpm;
 	}
+
+	//std::cout << "yep " << target_rpm_right << "  " << target_rpm_left << "  " << targetYawRate  << "  " << tarVelLeft <<  "   " << tarVelRight << std::endl;
 
 	Controller(0.0, target_rpm_right, target_rpm_left, targetYawRate,
 			k_p_right_vel, k_p_left_vel, k_p_kick_vel, k_p_yaw_au, k_d_yaw_au,
@@ -798,7 +811,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 
 	double yaw_error = target_yaw_rate - yaw_rate_current;
 
-	//std::cout << "yaw: " << yaw_error << std::endl;
+	//std::cout << "left: " << ref_left << std::endl;
 
 //	SmartDashboard::PutNumber("yaw current", yaw_rate_current);
 //	SmartDashboard::PutNumber("yaw target", target_yaw_rate);
@@ -831,7 +844,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 		ref_right = -max_y_rpm;
 	}
 
-	double feed_forward_r = k_f_right_vel * ref_right; //teleop only
+	double feed_forward_r = k_f_right_vel * ref_right; //teleop only, controlled
 	double feed_forward_l = k_f_left_vel * ref_left;
 	double feed_forward_k = K_F_KICK_VEL * ref_kick;
 
@@ -846,6 +859,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	if ((std::abs(l_current) <= 0.5 && canTalonLeft1->GetOutputCurrent() > 3.0) //encoders not working
 			|| (std::abs(r_current) <= 0.5
 					&& canTalonRight1->GetOutputCurrent() > 3.0)) {
+		SmartDashboard::PutString("Drive Motor Encoders", "Not working");
 		k_p_yaw = 0.0;
 		k_d_yaw = 0.0;
 		feed_forward_l = 0.0;
@@ -856,11 +870,10 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 		k_d_right = 0.0;
 	}
 
-	SmartDashboard::PutNumber("Left vel", l_current);
-	SmartDashboard::PutNumber("Right vel.", r_current);
+//	SmartDashboard::PutNumber("Left vel", l_current);
+//	SmartDashboard::PutNumber("Right vel.", r_current);
 
-	//std::cout << "left: " << l_current << std::endl;
-	//std::cout << "right: " << r_current << std::endl;
+	//std::cout << "left: " << l_current << "  right: " << r_current << std::endl;
 	//std::cout << "yaw: " << yaw_error << std::endl;
 
 	l_error_vel_t = ref_left - l_current;
@@ -896,11 +909,13 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	}
 
 	double total_right = D_RIGHT_VEL + P_RIGHT_VEL + feed_forward_r
-			+ (Kv * target_vel_right); //Kv only in auton
+			+ (Kv * target_vel_right); //Kv only in auton, straight from motion profile
 	double total_left = D_LEFT_VEL + P_LEFT_VEL + feed_forward_l
 			+ (Kv * target_vel_left);
 	double total_kick = D_KICK_VEL + P_KICK_VEL + feed_forward_k
 			+ (Kv_KICK * target_vel_kick);
+
+	//std::cout << "total right: " << total_right << "  total left: " << total_left << std::endl;
 
 	if (total_right > 1.0) {
 		total_right = 1.0;
@@ -995,6 +1010,8 @@ void DriveControllerMother::ZeroI() {
 void DriveControllerMother::SetRefs(std::vector<std::vector<double>> profile) {
 
 	auton_profile = profile;
+	set_profile = true; //cannot re-enable to restart profile
+	row_index = 0;
 
 }
 
@@ -1014,8 +1031,6 @@ double DriveControllerMother::GetMaxRpm() {
 void DriveControllerMother::DriveWrapper(Joystick *JoyThrottle,
 		Joystick *JoyWheel, bool *is_heading, bool *is_vision, bool *is_fc,
 		DriveControllerMother *driveController) {
-
-	//SmartDashboard::PutString("in drive thread", "here");
 
 	timerTeleop->Start();
 
@@ -1043,21 +1058,24 @@ void DriveControllerMother::DriveWrapper(Joystick *JoyThrottle,
 		}
 
 		else if (frc::RobotState::IsEnabled()
-				&& frc::RobotState::IsAutonomous()) {
+				&& frc::RobotState::IsAutonomous() && set_profile) {
 
-			std::cout << "auto drive" << std::endl;
-			//SmartDashboard::PutString("auton drive", "here");
+			//std::cout << "prof size: " << auton_profile.size() << std::endl;
 
-			//std::cout << "prof len " << sizeof(auton_profile) << std::endl;
-
-			for (int i = 0; i < sizeof(auton_profile); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs
-				drive_ref = auton_profile.at(i); //from SetRef()
-				std::cout << "i " << i << std::endl;
-			}
-
+			//if (auton_profile.at(0).at(0) > 0.0) { //put in profile //was finishing the for loop before we got a profile
+				for (int i = 0; i < auton_profile[0].size(); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs
+					drive_ref.at(i) = auton_profile.at(row_index).at(i); //from SetRef()
+//					std::cout << "ref " << auton_profile.at(ro).at(5)
+//							<< std::endl;
+				}
+			///}
+			//std::cout << "AUTON DRIVE THREAD" << std::endl;
 			//SmartDashboard::PutString("auton drive", "made it");
 
-			//driveController->AutonDrive();
+			driveController->AutonDrive();
+
+			row_index++;
+
 		}
 
 		double time_a = DRIVE_WAIT_TIME - timerTeleop->Get(); //how much time left to sleep till 10 ms have passed. timerTeleop->Get() returns seconds
