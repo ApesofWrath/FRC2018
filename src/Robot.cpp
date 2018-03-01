@@ -168,7 +168,7 @@ public:
 	void TeleopInit() {
 
 		drive_controller->ZeroAll(true);
-		//drive_controller->ShiftDown();
+		drive_controller->ShiftUp();
 
 		teleop_state_machine->Initialize();
 
@@ -226,7 +226,7 @@ public:
 		is_vision = false;
 		is_fc = false;
 
-		drive_controller->AutoShift();
+	//	drive_controller->AutoShift();
 //
 //		if (low_gear) {
 //			drive_controller->ShiftDown();

@@ -12,6 +12,8 @@
 #include <Elevator.h>
 #include <Intake.h>
 #include <fstream>
+#include <vector>
+#include <list>
 #include <DriveController.h>
 #include <pathfinder.h>
 #include <ElevatorMotionProfiler.h>
@@ -24,9 +26,7 @@ public:
 	Intake *intake_;
 
 	Autonomous(DriveController *dc, Elevator *el, Intake *in);
-	void RunAuton();
-
-	void FillProfile(std::string profileName);
+	void AutonStateMachine();
 
 };
 
