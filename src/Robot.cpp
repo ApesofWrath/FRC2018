@@ -118,7 +118,7 @@ public:
 		drive_controller->StartDriveThreads(joyThrottle, joyWheel, &is_heading,
 				&is_vision, &is_fc);
 
-		SmartDashboard::PutString("drive thread", "yep");
+	///	SmartDashboard::PutString("drive thread", "yep");
 
 		intake_->StartIntakeThread();
 		elevator_->StartElevatorThread();
@@ -131,14 +131,14 @@ public:
 				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
 				&elevator_down);
 
-		SmartDashboard::PutString("robot init", "yep");
+	//	SmartDashboard::PutString("robot init", "yep");
 #else
 #endif
 	}
 
 	void AutonomousInit() override {
 
-		SmartDashboard::PutString("auton init", "yep");
+	//	SmartDashboard::PutString("auton init", "yep");
 
 //		autoSelected = autonChooser.GetSelected();
 

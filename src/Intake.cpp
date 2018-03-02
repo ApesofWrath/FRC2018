@@ -104,6 +104,9 @@ int encoder_counter = 0;
 
 int position_offset = 0;
 
+int current_counter_first = 0;
+bool cube_in = false;
+
 Intake::Intake(PowerDistributionPanel *pdp,
 		IntakeMotionProfiler *intake_profiler_) {
 
@@ -175,8 +178,24 @@ void Intake::In() { //add quick out and back in
 	talonIntake1->ConfigPeakCurrentDuration(PCD_WHEELS, 0);
 	talonIntake2->ConfigPeakCurrentDuration(PCD_WHEELS, 0);
 
-	talonIntake1->Set(ControlMode::PercentOutput, -0.95); // +2.0/12.0 maybe -0.7
-	talonIntake2->Set(ControlMode::PercentOutput, 0.95); // +2.0/12.0 maybe 0.7
+	if (talonIntake1->GetOutputCurrent() >= 5.0
+			|| talonIntake2->GetOutputCurrent() >= 5.0) {
+		current_counter_first++;
+	} else {
+		current_counter_first = 0;
+		cube_in = false;
+	}
+	if (current_counter_first >= 3) {
+		cube_in = true;
+	}
+
+	if (cube_in) {
+		talonIntake1->Set(ControlMode::PercentOutput, -0.95); // +2.0/12.0 maybe -0.7
+		talonIntake2->Set(ControlMode::PercentOutput, 0.95); // +2.0/12.0 maybe 0.7
+	} else {
+		talonIntake1->Set(ControlMode::PercentOutput, -0.60); // +2.0/12.0 maybe -0.7
+		talonIntake2->Set(ControlMode::PercentOutput, 0.60); // +2.0/12.0 maybe 0.7
+	}
 
 }
 
@@ -535,8 +554,7 @@ bool Intake::ReleasedCube() {
 		} else {
 			return false;
 		}
-	}
-	else {
+	} else {
 		if (talonIntake1->GetOutputCurrent() <= 17.0
 				&& talonIntake2->GetOutputCurrent() <= 17.0) {
 			current_counter++;

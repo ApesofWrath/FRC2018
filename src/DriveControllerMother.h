@@ -36,8 +36,6 @@ public:
 
 	AHRS *ahrs;
 
-	double MAX_FPS = 0; //used in auton pathfinder
-
 	//needs the CAN IDs of all the talons and whether or not this is a west coast or HDrive train, input -1 if no kicker (or really whatever you want since it wont be used)
 	DriveControllerMother(int fl, int fr, int rl, int rr, int k, bool is_wc, bool start_low); //for HDrive or West Coast with 4 total talons
 	DriveControllerMother(int l1, int l2, int l3, int l4, int r1, int r2, int r3, int r4, bool start_low); //for West Coast with 8 total talons
