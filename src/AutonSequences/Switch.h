@@ -17,9 +17,9 @@ public:
 
 	}
 
-private:
+	void GenerateSwitch(bool left);
 
-	void Generate(bool left);
+	void RunStateMachine();
 
 };
 

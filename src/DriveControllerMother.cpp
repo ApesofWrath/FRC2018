@@ -442,6 +442,106 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 
 }
 
+void DriveControllerMother::ShiftUp() { //high gear, inside
+
+//	SmartDashboard::PutString("GEAR", "HIGH");
+
+	solenoid->Set(DoubleSolenoid::Value::kForward);
+	SetGainsHigh();
+
+}
+
+void DriveControllerMother::ShiftDown() { //low gear, outside
+
+//	SmartDashboard::PutString("GEAR", "LOW");
+
+	solenoid->Set(DoubleSolenoid::Value::kReverse);
+	//std::cout << "DOWN" << std::endl;
+
+	SetGainsLow(); //separate for gains in case we want to initialize them by themselves in the constructor
+
+}
+
+void DriveControllerMother::SetGainsHigh() {
+
+	max_y_rpm = MAX_Y_RPM_HIGH;
+	max_yaw_rate = MAX_YAW_RATE_HIGH;
+
+	actual_max_y_rpm = ACTUAL_MAX_Y_RPM_HIGH;
+
+	MAX_FPS = 19.5;//((actual_max_y_rpm * WHEEL_DIAMETER * PI) / 12.0) / 60.0;
+	Kv = (1 / MAX_FPS);
+	max_yaw_rate = (25 / actual_max_y_rpm) * max_y_rpm;
+
+	k_p_right_vel = K_P_RIGHT_VEL_HIGH;
+	k_p_left_vel = K_P_LEFT_VEL_HIGH; //TODO: change for auton
+	k_p_yaw_t = K_P_YAW_VEL_HIGH;
+	k_d_yaw_t = K_P_YAW_VEL_HIGH;
+	k_d_right_vel = K_D_RIGHT_VEL_HIGH;
+	k_d_left_vel = K_D_LEFT_VEL_HIGH;
+
+	k_f_left_vel = 1.0 / actual_max_y_rpm;
+	k_f_right_vel = 1.0 / actual_max_y_rpm;
+
+	is_low_gear = false;
+
+}
+
+void DriveControllerMother::SetGainsLow() {
+
+	max_y_rpm = MAX_Y_RPM_LOW;
+	max_yaw_rate = MAX_YAW_RATE_LOW;
+
+	actual_max_y_rpm = ACTUAL_MAX_Y_RPM_LOW;
+
+	MAX_FPS = 19.5;//((max_y_rpm * WHEEL_DIAMETER * PI) / 12.0) / 60.0;
+	Kv = (1 / MAX_FPS);
+	max_yaw_rate = (max_yaw_rate / actual_max_y_rpm) * max_y_rpm; //(max_yaw_rate / actual_max_y_rpm) * set_max_y_rpm
+
+	k_p_right_vel = K_P_RIGHT_VEL_LOW;
+	k_p_left_vel = K_P_LEFT_VEL_LOW;
+	k_p_yaw_t = K_P_YAW_VEL_LOW;
+	k_d_yaw_t = K_D_YAW_VEL_LOW;
+	k_d_right_vel = K_D_RIGHT_VEL_LOW;
+	k_d_left_vel = K_D_LEFT_VEL_LOW;
+
+	k_f_left_vel = 1.0 / actual_max_y_rpm;
+	k_f_right_vel = 1.0 / actual_max_y_rpm;
+
+	is_low_gear = true;
+
+}
+
+void DriveControllerMother::AutoShift() {
+
+	double current_rpm_l = ((double) canTalonLeft1->GetSelectedSensorVelocity(0)
+			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
+
+	double current_rpm_r = -((double) canTalonRight1->GetSelectedSensorVelocity(
+			0) / (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
+
+//	SmartDashboard::PutNumber("left vel", current_rpm_l);
+//	SmartDashboard::PutNumber("right vel", current_rpm_r);
+
+	if (std::abs(current_rpm_l) > UP_SHIFT_VEL
+			&& std::abs(current_rpm_r) > UP_SHIFT_VEL && is_low_gear) {
+		ShiftUp();
+	}
+
+	//if in between, will stay in the gear it is in. in order to not shift back and forth at one point
+
+	else if (std::abs(current_rpm_l) < DOWN_SHIFT_VEL
+			&& std::abs(current_rpm_r) < DOWN_SHIFT_VEL && !is_low_gear) {
+//		timerShift->Start();
+//		if (timerShift->Get() > 3.0) {
+//			ShiftDown();
+//			timerShift->Reset();
+//		}
+
+	}
+
+}
+
 void DriveControllerMother::TeleopHDrive(Joystick *JoyThrottle,
 		Joystick *JoyWheel, bool *is_fc) {
 
@@ -732,106 +832,6 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 
 }
 
-void DriveControllerMother::ShiftUp() { //high gear, inside
-
-//	SmartDashboard::PutString("GEAR", "HIGH");
-
-	solenoid->Set(DoubleSolenoid::Value::kForward);
-	SetGainsHigh();
-
-}
-
-void DriveControllerMother::ShiftDown() { //low gear, outside
-
-//	SmartDashboard::PutString("GEAR", "LOW");
-
-	solenoid->Set(DoubleSolenoid::Value::kReverse);
-	//std::cout << "DOWN" << std::endl;
-
-	SetGainsLow(); //separate for gains in case we want to initialize them by themselves in the constructor
-
-}
-
-void DriveControllerMother::SetGainsHigh() {
-
-	max_y_rpm = MAX_Y_RPM_HIGH;
-	max_yaw_rate = MAX_YAW_RATE_HIGH;
-
-	actual_max_y_rpm = ACTUAL_MAX_Y_RPM_HIGH;
-
-	MAX_FPS = 19.5;//((actual_max_y_rpm * WHEEL_DIAMETER * PI) / 12.0) / 60.0;
-	Kv = (1 / MAX_FPS);
-	max_yaw_rate = (25 / actual_max_y_rpm) * max_y_rpm;
-
-	k_p_right_vel = K_P_RIGHT_VEL_HIGH;
-	k_p_left_vel = K_P_LEFT_VEL_HIGH; //TODO: change for auton
-	k_p_yaw_t = K_P_YAW_VEL_HIGH;
-	k_d_yaw_t = K_P_YAW_VEL_HIGH;
-	k_d_right_vel = K_D_RIGHT_VEL_HIGH;
-	k_d_left_vel = K_D_LEFT_VEL_HIGH;
-
-	k_f_left_vel = 1.0 / actual_max_y_rpm;
-	k_f_right_vel = 1.0 / actual_max_y_rpm;
-
-	is_low_gear = false;
-
-}
-
-void DriveControllerMother::SetGainsLow() {
-
-	max_y_rpm = MAX_Y_RPM_LOW;
-	max_yaw_rate = MAX_YAW_RATE_LOW;
-
-	actual_max_y_rpm = ACTUAL_MAX_Y_RPM_LOW;
-
-	MAX_FPS = 19.5;//((max_y_rpm * WHEEL_DIAMETER * PI) / 12.0) / 60.0;
-	Kv = (1 / MAX_FPS);
-	max_yaw_rate = (max_yaw_rate / actual_max_y_rpm) * max_y_rpm; //(max_yaw_rate / actual_max_y_rpm) * set_max_y_rpm
-
-	k_p_right_vel = K_P_RIGHT_VEL_LOW;
-	k_p_left_vel = K_P_LEFT_VEL_LOW;
-	k_p_yaw_t = K_P_YAW_VEL_LOW;
-	k_d_yaw_t = K_D_YAW_VEL_LOW;
-	k_d_right_vel = K_D_RIGHT_VEL_LOW;
-	k_d_left_vel = K_D_LEFT_VEL_LOW;
-
-	k_f_left_vel = 1.0 / actual_max_y_rpm;
-	k_f_right_vel = 1.0 / actual_max_y_rpm;
-
-	is_low_gear = true;
-
-}
-
-void DriveControllerMother::AutoShift() {
-
-	double current_rpm_l = ((double) canTalonLeft1->GetSelectedSensorVelocity(0)
-			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
-
-	double current_rpm_r = -((double) canTalonRight1->GetSelectedSensorVelocity(
-			0) / (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
-
-//	SmartDashboard::PutNumber("left vel", current_rpm_l);
-//	SmartDashboard::PutNumber("right vel", current_rpm_r);
-
-	if (std::abs(current_rpm_l) > UP_SHIFT_VEL
-			&& std::abs(current_rpm_r) > UP_SHIFT_VEL && is_low_gear) {
-		ShiftUp();
-	}
-
-	//if in between, will stay in the gear it is in. in order to not shift back and forth at one point
-
-	else if (std::abs(current_rpm_l) < DOWN_SHIFT_VEL
-			&& std::abs(current_rpm_r) < DOWN_SHIFT_VEL && !is_low_gear) {
-//		timerShift->Start();
-//		if (timerShift->Get() > 3.0) {
-//			ShiftDown();
-//			timerShift->Reset();
-//		}
-
-	}
-
-}
-
 //TODO: add check for encoders working
 
 void DriveControllerMother::Controller(double ref_kick, double ref_right,
@@ -1099,6 +1099,24 @@ double DriveControllerMother::GetMaxRpm() {
 
 }
 
+double DriveControllerMother::GetLeftPosition() {
+
+	double l_dis = (((double) canTalonLeft1->GetSelectedSensorPosition(0)
+			/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
+
+	return l_dis;
+
+}
+
+double DriveControllerMother::GetRightPosition() {
+
+	double r_dis = (((double) canTalonRight1->GetSelectedSensorPosition(0)
+			/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
+
+	return r_dis;
+
+}
+
 //TODO: add vision support
 void DriveControllerMother::DriveWrapper(Joystick *JoyThrottle,
 		Joystick *JoyWheel, bool *is_heading, bool *is_vision, bool *is_fc,
@@ -1134,15 +1152,10 @@ void DriveControllerMother::DriveWrapper(Joystick *JoyThrottle,
 
 			//std::cout << "prof size: " << auton_profile.size() << std::endl;
 
-			//if (auton_profile.at(0).at(0) > 0.0) { //put in profile //was finishing the for loop before we got a profile
+			//put in profile //was finishing the for loop before we got a profile
 			for (int i = 0; i < auton_profile[0].size(); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs
 				drive_ref.at(i) = auton_profile.at(row_index).at(i); //from SetRef()
-//					std::cout << "ref " << auton_profile.at(ro).at(5)
-//							<< std::endl;
 			}
-			///}
-			//std::cout << "AUTON DRIVE THREAD" << std::endl;
-			//SmartDashboard::PutString("auton drive", "made it");
 
 			driveController->AutonDrive();
 
@@ -1158,18 +1171,9 @@ void DriveControllerMother::DriveWrapper(Joystick *JoyThrottle,
 			time_a = 0.0;
 		}
 
-		//std::cout << "diff: " << time_a << std::endl;
-
-		//SmartDashboard::PutNumber("timer before", timerTeleop->Get());
-
 		std::this_thread::sleep_for(std::chrono::milliseconds((int) time_a));
 
 		SmartDashboard::PutNumber("time", timerTeleop->Get());
-		//std::cout << "timer: " << timerTeleop->Get() << std::endl;
-
-		//std::cout << "timer after: " << timerTeleop->Get() << std::endl;
-
-		//SmartDashboard::PutNumber("time", timerTeleop->Get());
 
 	}
 }

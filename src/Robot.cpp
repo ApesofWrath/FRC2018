@@ -20,6 +20,7 @@
 #include <Intake.h>
 #include <Elevator.h>
 #include <AutonSequences/DriveForward.h>
+#include <AutonSequences/Switch.h>
 #include <TeleopStateMachine.h>
 
 #define THREADS 1
@@ -58,7 +59,7 @@ public:
 	bool wait_for_button, intake_spin_in, intake_spin_out, intake_spin_stop,
 			get_cube_ground, get_cube_station, post_intake, raise_to_switch,
 			raise_to_scale, intake_arm_up, intake_arm_mid, intake_arm_down,
-			elevator_up, elevator_mid, elevator_down; //state machine
+			elevator_up, elevator_mid, elevator_down; //TELEOP state machine
 
 	bool is_heading, is_vision, is_fc; //drive
 
@@ -68,18 +69,20 @@ public:
 	PowerDistributionPanel *pdp_;
 	Elevator *elevator_;
 	Intake *intake_;
-	DriveForward *drive_forward;
 	TeleopStateMachine *teleop_state_machine;
 	ElevatorMotionProfiler *elevator_profiler_;
 	IntakeMotionProfiler *intake_profiler_;
 	Compressor *compressor_;
 	Joystick *joyThrottle, *joyWheel, *joyOp;
 
+	DriveForward *drive_forward;
+	Switch *switch_;
+
 	frc::SendableChooser<std::string> autonChooser;
 
 	const std::string driveForward = "Drive Forward";
-	const std::string cube_switch = "Switch";
-	const std::string cube_scale = "Scale";
+	const std::string cubeSwitch = "Switch";
+	const std::string cubeScale = "Scale";
 
 	std::string autoSelected;
 
@@ -94,7 +97,7 @@ public:
 		elevator_profiler_ = new ElevatorMotionProfiler(1.6, 10.0, 0.01);
 		intake_profiler_ = new IntakeMotionProfiler(2.0, 8.0, 0.01);
 
-		compressor_ = new Compressor(3);
+		//compressor_ = new Compressor(3);
 		pdp_ = new PowerDistributionPanel(3);
 
 		drive_controller = new DriveController(); //inherits from mother class
@@ -102,13 +105,13 @@ public:
 		elevator_ = new Elevator(pdp_, elevator_profiler_);
 		teleop_state_machine = new TeleopStateMachine(elevator_, intake_);
 
-		drive_forward = new DriveForward(drive_controller, elevator_, intake_); //will be in auton init
-
 		joyThrottle = new Joystick(JOY_THROTTLE);
 		joyWheel = new Joystick(JOY_WHEEL);
 		joyOp = new Joystick(JOY_OP);
 
 		autonChooser.AddDefault(driveForward, driveForward);
+		autonChooser.AddObject(cubeSwitch, cubeSwitch);
+		autonChooser.AddObject(cubeScale, cubeScale);
 
 		frc::SmartDashboard::PutData("Auto Modes", &autonChooser);
 
@@ -116,34 +119,40 @@ public:
 		//starting threads in robot init so that they only are created once
 		drive_controller->StartDriveThreads(joyThrottle, joyWheel, &is_heading,
 				&is_vision, &is_fc);
-//
-//	///	SmartDashboard::PutString("drive thread", "yep");
-//
+
 		intake_->StartIntakeThread();
 		elevator_->StartElevatorThread();
 		//std::cout << "HERE" << std::endl;
-		teleop_state_machine->StartStateMachineThread(
-				//starts all of the state machines
+		teleop_state_machine->StartStateMachineThread( //is here because booleans are set in teleopperiodic
 				&wait_for_button, &intake_spin_in, &intake_spin_out,
 				&intake_spin_stop, &get_cube_ground, &get_cube_station,
 				&post_intake, &raise_to_switch, &raise_to_scale, &intake_arm_up,
 				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
 				&elevator_down);
 
-	//	SmartDashboard::PutString("robot init", "yep");
 #else
 #endif
 	}
 
 	void AutonomousInit() override {
 
-	//	SmartDashboard::PutString("auton init", "yep");
+		autoSelected = autonChooser.GetSelected();
 
-//		autoSelected = autonChooser.GetSelected();
-		//compressor_->SetClosedLoopControl(false);
-		drive_forward->Generate();
 		drive_controller->ZeroAll(true);
 		drive_controller->ShiftUp(); //for now
+
+		if(autoSelected == driveForward) {
+			drive_forward = new DriveForward(drive_controller, elevator_, intake_); //starts threads
+			drive_forward->GenerateForward();
+		}
+		else if(autoSelected == cubeSwitch) {
+			switch_ = new Switch(drive_controller, elevator_, intake_);
+			switch_->GenerateSwitch(true);
+
+		}
+		else if(autoSelected == cubeScale) {
+
+		}
 
 //		if (autoSelected == driveForward) {
 //			//drive_forward->Generate();
@@ -161,11 +170,12 @@ public:
 
 	void AutonomousPeriodic() {
 
-		//std::cout << "auton periodic" << std::endl;
+		//drive thread, auton state machine thread
 	}
 
 	void TeleopInit() {
 
+		compressor_ = new Compressor(3);
 		compressor_->SetClosedLoopControl(true);
 
 		drive_controller->ZeroAll(true);

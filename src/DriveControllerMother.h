@@ -64,6 +64,9 @@ public:
 	void ZeroYaw();
 	void ZeroI();
 
+	double GetLeftPosition();
+	double GetRightPosition();
+
 	void SetMaxRpm(double rpm);
 	double GetMaxRpm();
 

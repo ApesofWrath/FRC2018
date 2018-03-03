@@ -9,7 +9,9 @@
 
 std::vector<std::vector<double> > full_refs_sw (1500, std::vector<double>(6)); //initalizes each index value to 0
 
-void Switch::Generate(bool left) {
+void Switch::GenerateSwitch(bool left) { //left center right
+
+	//Auton thread started in auton constructor
 
 	int POINT_LENGTH = 2;
 
@@ -17,7 +19,7 @@ void Switch::Generate(bool left) {
 
 	//feet
 	Waypoint p1 = { 0.0, 0.0, 0.0 }; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
-	Waypoint p2 = { 10.0, 0.2, 0.0 };
+	Waypoint p2 = {  5.0, 10.0, PI/2.0 };
 	//Waypoint p3 = { 5.0, 5.0, 0.0 }; //cannot just move in Y axis because of spline math
 	//Waypoint p3 = { 10.0, 0.0, 0.0 }; //cannot just move in Y axis because of spline math
 
@@ -27,7 +29,7 @@ void Switch::Generate(bool left) {
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.01, 20.0, 35.0, 60.0, &candidate); //max vel, acc, jerk
+		PATHFINDER_SAMPLES_FAST, 0.05, 19.0, 10.0, 100000.0, &candidate); //max vel, acc, jerk
 
 	int length = candidate.length;
 	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));
@@ -37,20 +39,17 @@ void Switch::Generate(bool left) {
 	Segment *leftTrajectory = (Segment*) malloc(sizeof(Segment) * length);
 	Segment *rightTrajectory = (Segment*) malloc(sizeof(Segment) * length);
 
-	double wheelbase_width = 2.05; //
+	double wheelbase_width = 2.1;
 
 	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
 			wheelbase_width);
 
-	//								pathfinder points				1500						6									6
-	std::cout << "PATHFINDER MADE IT " << length  << "  " << full_refs_sw.size() << "  " << full_refs_sw[0].size() <<  "   "  << std::endl;
-
 	int l;
-	for (l = 0; l < 1500; l++) { ////yaw pos, left pos, right pos, yaw vel, left vel, right vel //TODO: LENGTH will only take first 1500 points from pathfinder
+	for (l = 0; l < 1500; l++) { ////yaw pos, left pos, right pos, yaw vel, left vel, right vel
 		Segment sl = leftTrajectory[l];
 		Segment sr = rightTrajectory[l];
 
-		full_refs_sw.at(l).at(0) = ((double)sl.heading); //ZERO yaw vel gains
+		full_refs_sw.at(l).at(0) = ((double)sl.heading);
 		full_refs_sw.at(l).at(1) = ((double)sl.position);
 		full_refs_sw.at(l).at(2) = ((double)sr.position);
 		full_refs_sw.at(l).at(3) = (0.0);
@@ -67,17 +66,7 @@ void Switch::Generate(bool left) {
 		}
 	}
 
-//wn1919
-	//wn5020
-
-//	for (int r = 0; r < full_refs_sw.size(); r++) {
-//		for (int c = 0; c < full_refs_sw[0].size(); c++) {
-//			std::cout << full_refs_sw.at(r).at(c) << " ";
-//		}
-//		std::cout << "" << std::endl;
-//	}
-
-	drive_controller->SetRefs(full_refs_sw);
+	FillProfile(full_refs_sw);
 
 	free(trajectory);
 	free(leftTrajectory);
@@ -85,4 +74,16 @@ void Switch::Generate(bool left) {
 
 }
 
+void Switch::RunStateMachine() {
+
+	//no other state machine booleans needed, all other ones will stay false
+
+	if(GetLeftPos() == 10.0) {
+		raise_to_switch = true;
+	}
+	else {
+		raise_to_switch = false;
+	}
+
+}
 

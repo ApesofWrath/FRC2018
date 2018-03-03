@@ -17,7 +17,7 @@ public:
 
 	}
 
-	void Generate();
+	void GenerateForward();
 
 };
 
