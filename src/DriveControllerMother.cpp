@@ -31,7 +31,7 @@ const double MAX_Y_RPM_HD = 0; //HDrive
 
 double MAX_FPS = 0; //used in auton pathfinder
 
-const double ACTUAL_MAX_Y_RPM_LOW = 1300.0;//625.0; //668 what
+const double ACTUAL_MAX_Y_RPM_LOW = 625.0; //668 what
 const double ACTUAL_MAX_Y_RPM_HIGH = 1300.0;
 const double ACTUAL_MAX_Y_RPM_HD = 0;
 
@@ -50,7 +50,7 @@ const double DOWN_SHIFT_VEL = 200.0; //will be less than up shift vel (14/56) *9
 
 /////////////////////////////////////////////////////
 
-const double DRIVE_WAIT_TIME = 0.01; //seconds
+const double DRIVE_WAIT_TIME = 0.05; //seconds
 const double MINUTE_CONVERSION = 600.0; //part of the conversion from ticks velocity to rpm
 
 double l_last_current;
@@ -199,11 +199,11 @@ int row_index = 0;
 
 double Kv; //scale from -1 to 1
 
-Timer *timerTeleop = new Timer();
-Timer *timerAuton = new Timer();
-Timer *timerShift = new Timer();
-
-Timer *timerTest = new Timer();
+//Timer *timerTeleop = new Timer();
+//Timer *timerAuton = new Timer();
+//Timer *timerShift = new Timer();
+//
+//Timer *timerTest = new Timer();
 
 double init_heading = 0;
 double total_heading = 0;
@@ -730,7 +730,7 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 
 void DriveControllerMother::ShiftUp() { //high gear, inside
 
-	SmartDashboard::PutString("GEAR", "HIGH");
+//	SmartDashboard::PutString("GEAR", "HIGH");
 
 	solenoid->Set(DoubleSolenoid::Value::kForward);
 	SetGainsHigh();
@@ -739,7 +739,7 @@ void DriveControllerMother::ShiftUp() { //high gear, inside
 
 void DriveControllerMother::ShiftDown() { //low gear, outside
 
-	SmartDashboard::PutString("GEAR", "LOW");
+//	SmartDashboard::PutString("GEAR", "LOW");
 
 	solenoid->Set(DoubleSolenoid::Value::kReverse);
 	//std::cout << "DOWN" << std::endl;
@@ -818,11 +818,11 @@ void DriveControllerMother::AutoShift() {
 
 	else if (std::abs(current_rpm_l) < DOWN_SHIFT_VEL
 			&& std::abs(current_rpm_r) < DOWN_SHIFT_VEL && !is_low_gear) {
-		timerShift->Start();
-		if (timerShift->Get() > 3.0) {
-			ShiftDown();
-			timerShift->Reset();
-		}
+//		timerShift->Start();
+//		if (timerShift->Get() > 3.0) {
+//			ShiftDown();
+//			timerShift->Reset();
+//		}
 
 	}
 
@@ -898,7 +898,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	double kick_current = ((double) canTalonKicker->GetSelectedSensorVelocity(0)
 			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION; //going right is positive
 
-	SmartDashboard::PutNumber("Velocity", l_current);
+//	SmartDashboard::PutNumber("Velocity", l_current);
 
 	double curr_fps = ((l_current * WHEEL_DIAMETER * PI) / 12.0) / 60.0;
 	//std::cout << "curr fps: " << curr_fps << std::endl;
@@ -910,7 +910,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	if ((std::abs(l_current) <= 0.5 && canTalonLeft1->GetOutputCurrent() > 4.0) //encoders not working
 			|| (std::abs(r_current) <= 0.5
 					&& canTalonRight1->GetOutputCurrent() > 4.0)) {
-		SmartDashboard::PutString("Drive Motor Encoders", "Not working");
+	//	SmartDashboard::PutString("Drive Motor Encoders", "Not working");
 		k_p_yaw = 0.0;
 		k_d_yaw = 0.0;
 		feed_forward_l = 0.0;
@@ -969,7 +969,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	double total_kick = D_KICK_VEL + P_KICK_VEL + feed_forward_k
 			+ (Kv_KICK * target_vel_kick);
 
-	std::cout << "FF: " << ff_dr << " total: " << total_right << " teleop ff: " << feed_forward_r << std::endl;
+	//std::cout << "FF: " << ff_dr << " total: " << total_right << " teleop ff: " << feed_forward_r << std::endl;
 
 	//std::cout << "total right: " << total_right << "  total left: " << total_left << std::endl;
 
@@ -1097,11 +1097,11 @@ void DriveControllerMother::DriveWrapper(Joystick *JoyThrottle,
 		Joystick *JoyWheel, bool *is_heading, bool *is_vision, bool *is_fc,
 		DriveControllerMother *driveController) {
 
-	timerTeleop->Start();
+	//timerTeleop->Start();
 
 	while (true) {
 
-		timerTeleop->Reset();
+		//timerTeleop->Reset();
 
 		//SmartDashboard::PutString("in drive thread", "here");
 		//std::cout << "in drive thread" << std::endl;
@@ -1143,15 +1143,25 @@ void DriveControllerMother::DriveWrapper(Joystick *JoyThrottle,
 
 		}
 
-		double time_a = DRIVE_WAIT_TIME - timerTeleop->Get(); //how much time left to sleep till 10 ms have passed. timerTeleop->Get() returns seconds
+		double time_a = DRIVE_WAIT_TIME;// - timerTeleop->Get(); //how much time left to sleep till 10 ms have passed. timerTeleop->Get() returns seconds
 
-		time_a *= 1000; //convert to ms
+		time_a *= 1000.0; //convert to ms
 
-		if (time_a < 0) { //can't wait for negative time
-			time_a = 0;
+		if (time_a < 0.0) { //can't wait for negative time
+			time_a = 0.0;
 		}
 
+		//std::cout << "diff: " << time_a << std::endl;
+
+		//std::cout << "timer: " << timerTeleop->Get() << std::endl;
+
+		//SmartDashboard::PutNumber("timer before", timerTeleop->Get());
+
 		std::this_thread::sleep_for(std::chrono::milliseconds((int) time_a));
+
+		//std::cout << "timer after: " << timerTeleop->Get() << std::endl;
+
+		//SmartDashboard::PutNumber("time", timerTeleop->Get());
 
 	}
 }
@@ -1220,7 +1230,7 @@ void DriveControllerMother::StartDriveThreads(Joystick *JoyThrottle, //must pass
 
 void DriveControllerMother::EndDriveThreads() {
 
-	timerTeleop->Stop();
+	//timerTeleop->Stop();
 	DriveThread.~thread();
 
 }

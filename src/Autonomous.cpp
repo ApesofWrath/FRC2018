@@ -148,3 +148,84 @@ void Autonomous::AutonStateMachine() {
 	}
 
 }
+
+//void Autonomous::InitializeAuton() {
+//
+//	elevator->zeroing_counter_e = 0;  //moved from teleopinit
+//	intake->zeroing_counter_i = 0;
+//
+//	intake->is_init_intake = false;
+//	elevator->is_elevator_init = false;
+//
+//	state = INIT_STATE;
+//
+//}
+//
+//void Autonomous::StartStateMachineThreadAuton(bool *wait_for_button,
+//		bool *intake_spin_in, bool *intake_spin_out, bool *intake_spin_stop,
+//		bool *get_cube_ground, bool *get_cube_station, bool *post_intake,
+//		bool *raise_to_switch, bool *raise_to_scale, bool *intake_arm_up,
+//		bool *intake_arm_mid, bool *intake_arm_down, bool *elevator_up,
+//		bool *elevator_mid, bool *elevator_down) {
+//
+//	Autonomous *aut = this;
+//	AutonStateMachineThread = std::thread(&Autonomous::AutonStateMachineWrapper,
+//			aut, wait_for_button, intake_spin_in, intake_spin_out,
+//			intake_spin_stop, get_cube_ground, get_cube_station, post_intake,
+//			raise_to_switch, raise_to_scale, intake_arm_up, intake_arm_mid,
+//			intake_arm_down, elevator_up, elevator_mid, elevator_down);
+//	AutonStateMachineThread.detach();
+//
+//}
+//
+//void AutonStateMachine::AutonStateMachineWrapper(
+//		Auton *auton_state_machine, bool *wait_for_button,
+//		bool *intake_spin_in, bool *intake_spin_out, bool *intake_spin_stop,
+//		bool *get_cube_ground, bool *get_cube_station, bool *post_intake,
+//		bool *raise_to_switch, bool *raise_to_scale, bool *intake_arm_up,
+//		bool *intake_arm_mid, bool *intake_arm_down, bool *elevator_up,
+//		bool *elevator_mid, bool *elevator_down) {
+//
+//	autonTimer->Start();
+//
+//	while (true) {
+//
+//		autonTimer->Reset();
+//
+//		if (frc::RobotState::IsEnabled() && frc::RobotState::IsOperatorControl()) { //this thread will still run in auton
+//
+//			intake_->IntakeArmStateMachine();
+//			intake_->IntakeWheelStateMachine();
+//			elevator_->ElevatorStateMachine();
+//
+//			auton_state_machine->AutonStateMachine((bool) *wait_for_button,
+//					(bool) *intake_spin_in, (bool) *intake_spin_out,
+//					(bool) *intake_spin_stop, (bool) *get_cube_ground,
+//					(bool) *get_cube_station, (bool) *post_intake,
+//					(bool) *raise_to_switch, (bool) *raise_to_scale,
+//					(bool) *intake_arm_up, (bool) *intake_arm_mid,
+//					(bool) *intake_arm_down, (bool) *elevator_up,
+//					(bool) *elevator_mid, (bool) *elevator_down);
+//
+//		}
+//
+//		double time = 0.05 - autonTimer->Get();
+//
+//		time *= 1000;
+//		if (time < 0) {
+//			time = 0;
+//		}
+//
+//		std::this_thread::sleep_for(std::chrono::milliseconds((int) time));
+//
+//	}
+//
+//}
+//
+//void AutonStateMachine::EndAutonStateMachineThread() {
+//
+//	autonTimer->Stop();
+//	AutonStateMachineThread.~thread();
+//
+//}
+
