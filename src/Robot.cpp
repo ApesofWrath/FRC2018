@@ -115,14 +115,14 @@ public:
 
 #if THREADS
 		//starting threads in robot init so that they only are created once
-//		drive_controller->StartDriveThreads(joyThrottle, joyWheel, &is_heading,
-//				&is_vision, &is_fc);
+		drive_controller->StartDriveThreads(joyThrottle, joyWheel, &is_heading,
+				&is_vision, &is_fc);
 //
 //	///	SmartDashboard::PutString("drive thread", "yep");
 //
-//		intake_->StartIntakeThread();
-//		elevator_->StartElevatorThread();
-
+		intake_->StartIntakeThread();
+		elevator_->StartElevatorThread();
+		//std::cout << "HERE" << std::endl;
 		teleop_state_machine->StartStateMachineThread(
 				//starts all of the state machines
 				&wait_for_button, &intake_spin_in, &intake_spin_out,

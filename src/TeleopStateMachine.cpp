@@ -282,12 +282,12 @@ void TeleopStateMachine::StateMachineWrapper(
 
 	while (true) {
 
-		//teleopTimer->Reset();
-		teleopTimer->Stop();
-		teleopTimer->Start();
+		teleopTimer->Reset();
+//		teleopTimer->Stop();
+//		teleopTimer->Start();
 
 		if (frc::RobotState::IsEnabled() && frc::RobotState::IsOperatorControl()) { //this thread will still run in auton
-
+//
 			intake->IntakeArmStateMachine();
 			intake->IntakeWheelStateMachine();
 			elevator->ElevatorStateMachine();
@@ -303,7 +303,7 @@ void TeleopStateMachine::StateMachineWrapper(
 
 		}
 
-		double wait_time = 0.05 - teleopTimer->Get();
+		double wait_time = 0.05 - teleopTimer->Get();// teleopTimer->GetFPGATimestamp();
 
 		//std::cout << "diff: " << wait_time << std::endl;
 
@@ -312,11 +312,20 @@ void TeleopStateMachine::StateMachineWrapper(
 			wait_time = 0;
 		}
 
-		std::cout << "timer before: " << teleopTimer->Get() << " ";
+		//SmartDashboard::PutNumber("time test", teleopTimer->Get());
 
 		std::this_thread::sleep_for(std::chrono::milliseconds((int) wait_time));
 
-		std::cout << "timer after: " << teleopTimer->Get() << std::endl;
+		//std::cout << "time: " << teleopTimer->Get() << " "<< std::endl;
+		SmartDashboard::PutNumber("time", teleopTimer->Get());
+		//std::cout << "timer after: " << teleopTimer->Get() << std::endl;
+
+//		timerTest->Start();
+//		while(true) {
+//			timerTest->Reset();
+//			std::this_thread::sleep_for(std::chrono::milliseconds((int) 10));
+//			std::cout << "yup: " << timerTest->Get() << std::endl;
+//		}
 
 	}
 
@@ -324,7 +333,7 @@ void TeleopStateMachine::StateMachineWrapper(
 
 void TeleopStateMachine::EndStateMachineThread() {
 
-	teleopTimer->Stop();
+	//teleopTimer->Stop();
 	StateMachineThread.~thread();
 
 }
