@@ -11,6 +11,7 @@
 
 using namespace std::chrono;
 
+//Teleop
 const int INIT_STATE = 0;
 const int WAIT_FOR_BUTTON_STATE = 1;
 const int GET_CUBE_GROUND_STATE = 2;
@@ -25,6 +26,18 @@ int last_state = 0;
 bool state_intake_wheel = false; //set to true to override the states set in the state machine
 bool state_intake_arm = false;
 bool state_elevator = false;
+
+//Auton
+const int INIT_STATE_A = 0;
+const int WAIT_FOR_BUTTON_STATE_A = 1;
+const int GET_CUBE_GROUND_STATE_A = 2;
+const int GET_CUBE_STATION_STATE_A = 3;
+const int POST_INTAKE_STATE_A = 4;
+const int PLACE_SCALE_STATE_A = 5;
+const int PLACE_SWITCH_STATE_A = 6;
+int state_a = INIT_STATE_A;
+
+int last_state_a = 0;
 
 Elevator *elevator;
 Intake *intake;
@@ -241,9 +254,119 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 
 }
 
+void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
+		bool intake_spin_in, bool intake_spin_out, bool intake_spin_stop,
+		bool get_cube_ground, bool get_cube_station, bool post_intake,
+		bool raise_to_switch, bool raise_to_scale, bool intake_arm_up,
+		bool intake_arm_mid, bool intake_arm_down, bool elevator_up,
+		bool elevator_mid, bool elevator_down) {
+
+	switch (state_a) {
+
+	case INIT_STATE_A:
+
+		SmartDashboard::PutString("STATE", "INIT");
+		elevator->elevator_state = elevator->INIT_STATE_E_H;
+		intake->intake_arm_state = intake->INIT_STATE_H;
+		intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
+		state_a = WAIT_FOR_BUTTON_STATE_A;
+		last_state_a = INIT_STATE_A;
+		break;
+
+	case WAIT_FOR_BUTTON_STATE_A: //will look at position
+
+		SmartDashboard::PutString("STATE", "WAIT FOR BUTTON");
+
+		if (get_cube_ground) { //can go to all states below wfb state
+			state_a = GET_CUBE_GROUND_STATE_A;
+		} else if (get_cube_station) {
+			state_a = GET_CUBE_STATION_STATE_A;
+		} else if (post_intake) {
+			state_a = POST_INTAKE_STATE_A;
+		} else if (raise_to_scale) { //should not need to go from wfb state to a raise state, but in case
+			state_a = PLACE_SCALE_STATE_A;
+		} else if (raise_to_switch) {
+			state_a = PLACE_SWITCH_STATE_A;
+		}
+		last_state_a = WAIT_FOR_BUTTON_STATE_A;
+		break;
+
+	case GET_CUBE_GROUND_STATE_A:
+
+		SmartDashboard::PutString("STATE", "GET CUBE GROUND");
+		elevator->elevator_state = elevator->DOWN_STATE_E_H;
+		intake->intake_wheel_state = intake->IN_STATE_H;
+		intake->intake_arm_state = 3;
+		if (intake->HaveCube()) {
+			state_a = POST_INTAKE_STATE_A;
+		}
+		last_state_a = GET_CUBE_GROUND_STATE_A;
+		break;
+
+	case GET_CUBE_STATION_STATE_A: //human player station
+
+		SmartDashboard::PutString("STATE", "GET CUBE STATION");
+		elevator->elevator_state = elevator->SWITCH_STATE_E_H;
+		intake->intake_wheel_state = intake->IN_STATE_H;
+		intake->intake_arm_state = intake->DOWN_STATE_H;
+		if (intake->HaveCube()) {
+			state_a = POST_INTAKE_STATE_A;
+		}
+		last_state_a = GET_CUBE_STATION_STATE_A;
+		break;
+
+	case POST_INTAKE_STATE_A: //have cube, waiting to place cube
+		elevator->elevator_state = elevator->DOWN_STATE_E_H;
+		intake->intake_arm_state = intake->UP_STATE_H;
+		intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
+		if (raise_to_scale) { //go to place from this state, return to this state after placing and then wfb
+			state_a = PLACE_SCALE_STATE_A;
+		} else if (raise_to_switch) {
+			state_a = PLACE_SWITCH_STATE_A;
+		} else if (last_state_a == PLACE_SCALE_STATE_A
+				|| last_state_a == PLACE_SWITCH_STATE_A) { //came from placing
+			state_a = WAIT_FOR_BUTTON_STATE_A;
+		}
+		last_state_a = POST_INTAKE_STATE_A;
+		//can always go back to wait for button state
+		break;
+
+	case PLACE_SCALE_STATE_A:
+
+		SmartDashboard::PutString("STATE", "SCALE");
+		intake->intake_arm_state = intake->UP_STATE_H;
+		elevator->elevator_state = elevator->UP_STATE_E_H;
+		if (elevator->GetElevatorPosition() >= 0.55) { //start shooting at 0.6
+			intake->intake_wheel_state = intake->OUT_STATE_H;
+			if (intake->ReleasedCube()) {
+				state_a = POST_INTAKE_STATE_A;
+			}
+		}
+		last_state_a = PLACE_SCALE_STATE_A;
+		//stay in this state when spitting cube, then return to WFB
+		break;
+
+	case PLACE_SWITCH_STATE_A:
+
+		SmartDashboard::PutString("STATE", "SWITCH");
+		elevator->elevator_state = elevator->MID_STATE_E_H;
+		intake->intake_arm_state = intake->MID_STATE_H;
+		if (std::abs(intake->GetAngularPosition() - intake->MID_ANGLE) <= 0.2) { //start shooting when high enough
+			intake->intake_wheel_state = intake->SLOW_STATE_H;
+			if (intake->ReleasedCube()) {
+				state_a = POST_INTAKE_STATE_A;
+			}
+		}
+		last_state_a = PLACE_SWITCH_STATE_A;
+		//stay in this state when spitting cube, then return to WFB
+		break;
+	}
+
+}
+
 void TeleopStateMachine::Initialize() {
 
-	elevator->zeroing_counter_e = 0;  //moved from teleopinit
+	elevator->zeroing_counter_e = 0;
 	intake->zeroing_counter_i = 0;
 
 	intake->is_init_intake = false;
@@ -283,11 +406,10 @@ void TeleopStateMachine::StateMachineWrapper(
 	while (true) {
 
 		teleopTimer->Reset();
-//		teleopTimer->Stop();
-//		teleopTimer->Start();
 
-		if (frc::RobotState::IsEnabled() && frc::RobotState::IsOperatorControl()) { //this thread will still run in auton
-//
+		if (frc::RobotState::IsEnabled()
+				&& frc::RobotState::IsOperatorControl()) {
+
 			intake->IntakeArmStateMachine();
 			intake->IntakeWheelStateMachine();
 			elevator->ElevatorStateMachine();
@@ -303,29 +425,34 @@ void TeleopStateMachine::StateMachineWrapper(
 
 		}
 
-		double wait_time = 0.05 - teleopTimer->Get();// teleopTimer->GetFPGATimestamp();
+		else if (frc::RobotState::IsEnabled()
+				&& frc::RobotState::IsAutonomous()) {
 
-		//std::cout << "diff: " << wait_time << std::endl;
+			std::cout << "Auton thread" << std::endl;
+
+			intake->IntakeArmStateMachine();
+			intake->IntakeWheelStateMachine();
+			elevator->ElevatorStateMachine();
+
+			teleop_state_machine->AutonStateMachine((bool) *wait_for_button,
+					(bool) *intake_spin_in, (bool) *intake_spin_out,
+					(bool) *intake_spin_stop, (bool) *get_cube_ground,
+					(bool) *get_cube_station, (bool) *post_intake,
+					(bool) *raise_to_switch, (bool) *raise_to_scale,
+					(bool) *intake_arm_up, (bool) *intake_arm_mid,
+					(bool) *intake_arm_down, (bool) *elevator_up,
+					(bool) *elevator_mid, (bool) *elevator_down);
+
+		}
+
+		double wait_time = 0.05 - teleopTimer->Get();
 
 		wait_time *= 1000;
 		if (wait_time < 0) {
 			wait_time = 0;
 		}
 
-		//SmartDashboard::PutNumber("time test", teleopTimer->Get());
-
 		std::this_thread::sleep_for(std::chrono::milliseconds((int) wait_time));
-
-		//std::cout << "time: " << teleopTimer->Get() << " "<< std::endl;
-		SmartDashboard::PutNumber("time", teleopTimer->Get());
-		//std::cout << "timer after: " << teleopTimer->Get() << std::endl;
-
-//		timerTest->Start();
-//		while(true) {
-//			timerTest->Reset();
-//			std::this_thread::sleep_for(std::chrono::milliseconds((int) 10));
-//			std::cout << "yup: " << timerTest->Get() << std::endl;
-//		}
 
 	}
 
@@ -333,7 +460,6 @@ void TeleopStateMachine::StateMachineWrapper(
 
 void TeleopStateMachine::EndStateMachineThread() {
 
-	//teleopTimer->Stop();
-	StateMachineThread.~thread();
+	StateMachineThread.~thread(); //does not actually kill the thread
 
 }

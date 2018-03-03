@@ -8,7 +8,6 @@
 #include <AutonSequences/DriveForward.h>
 
 std::vector<std::vector<double> > full_refs_df (1500, std::vector<double>(6)); //initalizes each index value to 0
-//std::vector<std::vector<double> > full_refs (1500, std::vector<double>(6)); //initalizes each index value to 0
 
 void DriveForward::GenerateForward() {
 

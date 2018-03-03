@@ -976,7 +976,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 			+ (Kv_KICK * target_vel_kick);
 
 	SmartDashboard::PutNumber("FF", ff_dr);
-	std::cout << "FF: " << ff_dr << " total: " << total_right << std::endl;
+	//std::cout << "FF: " << ff_dr << " total: " << total_right << std::endl;
 
 	//std::cout << "total right: " << total_right << "  total left: " << total_left << std::endl;
 
@@ -1128,9 +1128,6 @@ void DriveControllerMother::DriveWrapper(Joystick *JoyThrottle,
 
 		timerTeleop->Reset();
 
-		//SmartDashboard::PutString("in drive thread", "here");
-		//std::cout << "in drive thread" << std::endl;
-
 		if (frc::RobotState::IsEnabled() && !frc::RobotState::IsAutonomous()) { //may have been problem that this was !auton frc::RobotState::IsOperatorControl()
 
 			if (tank && !(bool) *is_heading && !(bool) *is_vision) {
@@ -1150,14 +1147,14 @@ void DriveControllerMother::DriveWrapper(Joystick *JoyThrottle,
 		else if (frc::RobotState::IsEnabled() && frc::RobotState::IsAutonomous()
 				&& set_profile) {
 
-			//std::cout << "prof size: " << auton_profile.size() << std::endl;
+			std::cout << "Auton drive" << std::endl;
 
 			//put in profile //was finishing the for loop before we got a profile
 			for (int i = 0; i < auton_profile[0].size(); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs
 				drive_ref.at(i) = auton_profile.at(row_index).at(i); //from SetRef()
 			}
 
-			driveController->AutonDrive();
+			driveController->AutonDrive(); //send each row to auton drive before getting the next row
 
 			row_index++;
 
@@ -1173,53 +1170,10 @@ void DriveControllerMother::DriveWrapper(Joystick *JoyThrottle,
 
 		std::this_thread::sleep_for(std::chrono::milliseconds((int) time_a));
 
-		SmartDashboard::PutNumber("time", timerTeleop->Get());
+		//SmartDashboard::PutNumber("time", timerTeleop->Get());
 
 	}
 }
-
-//TODO: update thread timing
-//void DriveControllerMother::AutonWrapper(
-//	DriveControllerMother *driveController) {
-
-//	timerAuton->Start();
-//
-//	while (frc::RobotState::IsAutonomous() && frc::RobotState::IsEnabled()) {
-//
-//		std::this_thread::sleep_for(
-//				std::chrono::milliseconds(DRIVE_SLEEP_TIME));
-//
-//		if (timerAuton->HasPeriodPassed(DRIVE_WAIT_TIME)) {
-//
-//			for (int i = 0; i < sizeof(drive_ref); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs //should be fine
-//
-//				drive_ref = auton_profile.at(i); //from SetRef()
-//
-//			}
-//
-////			if (drive_ref[12] == 1) { //vision on
-////
-////				//driveController->AutoVisionTrack();
-////
-////			} else { //vision off
-////
-////				driveController->AutonDrive();
-////
-////			}
-//
-//			driveController->AutonDrive();
-//
-//			timerAuton->Reset();
-//
-//		}
-//
-////		//if (profile_index >= NUM_POINTS) { //stop at the end of the motion profile, this number is set after the creation of the array
-////		//so not all of the array will be accessed, only the part before the non-zero points
-////		break;
-////		//}
-//	}
-
-//}
 
 void DriveControllerMother::StartDriveThreads(Joystick *JoyThrottle, //must pass in parameters to wrapper to use them in functions
 		Joystick *JoyWheel, bool *is_heading, bool *is_vision, bool *is_fc) {
@@ -1231,26 +1185,9 @@ void DriveControllerMother::StartDriveThreads(Joystick *JoyThrottle, //must pass
 	DriveThread.detach();
 }
 
-//void DriveControllerMother::StartAutonThreads() { //not used
-//
-//	DriveControllerMother *dc = this;
-//
-//	AutonThread = std::thread(&DriveControllerMother::AutonWrapper, dc);
-//	AutonThread.detach();
-//
-//}
-
 void DriveControllerMother::EndDriveThreads() {
 
 	//timerTeleop->Stop();
 	DriveThread.~thread();
 
 }
-
-//void DriveControllerMother::EndAutonThreads() {
-//
-//	timerAuton->Stop();
-//	AutonThread.~thread();
-//
-//}
-

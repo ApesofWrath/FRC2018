@@ -19,7 +19,7 @@ public:
 
 	void GenerateSwitch(bool left);
 
-	void RunStateMachine();
+	void RunStateMachine(bool *place_switch);
 
 };
 

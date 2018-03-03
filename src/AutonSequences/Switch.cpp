@@ -74,15 +74,17 @@ void Switch::GenerateSwitch(bool left) { //left center right
 
 }
 
-void Switch::RunStateMachine() {
+void Switch::RunStateMachine(bool *place_switch) {
 
 	//no other state machine booleans needed, all other ones will stay false
 
-	if(GetLeftPos() == 10.0) {
-		raise_to_switch = true;
+	std::cout << "CHANGE THE BOOL" << std::endl;
+
+	if(GetLeftPos() == 0.0) {
+		*place_switch = true;
 	}
 	else {
-		raise_to_switch = false;
+		*place_switch = false;
 	}
 
 }
