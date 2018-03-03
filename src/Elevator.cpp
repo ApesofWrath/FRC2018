@@ -70,7 +70,7 @@ std::vector<std::vector<double> > error_e = { { 0.0 }, { 0.0 } };
 
 ElevatorMotionProfiler *elevator_profiler;
 
-//Timer *elevatorTimer = new Timer();
+Timer *elevatorTimer = new Timer();
 
 bool is_at_bottom_e = false;
 bool is_at_top = false;
@@ -483,11 +483,11 @@ void Elevator::StartElevatorThread() {
 
 void Elevator::ElevatorWrapper(Elevator *el) {
 
-//	elevatorTimer->Start();
+	elevatorTimer->Start();
 
 	while (true) {
 
-		//elevatorTimer->Reset();
+		elevatorTimer->Reset();
 
 		if (frc::RobotState::IsEnabled()) {
 
@@ -502,7 +502,7 @@ void Elevator::ElevatorWrapper(Elevator *el) {
 
 		}
 
-		double time_e = 0.01;// - elevatorTimer->Get(); //change
+		double time_e = 0.01 - elevatorTimer->Get(); //change
 
 		time_e *= 1000;
 		if (time_e < 0) {
@@ -511,7 +511,7 @@ void Elevator::ElevatorWrapper(Elevator *el) {
 
 		std::this_thread::sleep_for(std::chrono::milliseconds((int) time_e));
 
-
+		//std::cout << "time el: " << elevatorTimer->Get() << std::endl;
 	}
 
 }

@@ -50,7 +50,7 @@ const double DOWN_SHIFT_VEL = 200.0; //will be less than up shift vel (14/56) *9
 
 /////////////////////////////////////////////////////
 
-const double DRIVE_WAIT_TIME = 0.05; //seconds
+const double DRIVE_WAIT_TIME = 0.01; //seconds
 const double MINUTE_CONVERSION = 600.0; //part of the conversion from ticks velocity to rpm
 
 double l_last_current;
@@ -199,7 +199,7 @@ int row_index = 0;
 
 double Kv; //scale from -1 to 1
 
-//Timer *timerTeleop = new Timer();
+Timer *timerTeleop = new Timer();
 //Timer *timerAuton = new Timer();
 //Timer *timerShift = new Timer();
 //
@@ -1097,11 +1097,11 @@ void DriveControllerMother::DriveWrapper(Joystick *JoyThrottle,
 		Joystick *JoyWheel, bool *is_heading, bool *is_vision, bool *is_fc,
 		DriveControllerMother *driveController) {
 
-	//timerTeleop->Start();
+	timerTeleop->Start();
 
 	while (true) {
 
-		//timerTeleop->Reset();
+		timerTeleop->Reset();
 
 		//SmartDashboard::PutString("in drive thread", "here");
 		//std::cout << "in drive thread" << std::endl;
@@ -1143,7 +1143,7 @@ void DriveControllerMother::DriveWrapper(Joystick *JoyThrottle,
 
 		}
 
-		double time_a = DRIVE_WAIT_TIME;// - timerTeleop->Get(); //how much time left to sleep till 10 ms have passed. timerTeleop->Get() returns seconds
+		double time_a = DRIVE_WAIT_TIME - timerTeleop->Get(); //how much time left to sleep till 10 ms have passed. timerTeleop->Get() returns seconds
 
 		time_a *= 1000.0; //convert to ms
 
@@ -1153,11 +1153,11 @@ void DriveControllerMother::DriveWrapper(Joystick *JoyThrottle,
 
 		//std::cout << "diff: " << time_a << std::endl;
 
-		//std::cout << "timer: " << timerTeleop->Get() << std::endl;
-
 		//SmartDashboard::PutNumber("timer before", timerTeleop->Get());
 
 		std::this_thread::sleep_for(std::chrono::milliseconds((int) time_a));
+
+		//std::cout << "timer: " << timerTeleop->Get() << std::endl;
 
 		//std::cout << "timer after: " << timerTeleop->Get() << std::endl;
 
