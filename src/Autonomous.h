@@ -28,6 +28,10 @@ public:
 	Autonomous(DriveController *dc, Elevator *el, Intake *in);
 	void AutonStateMachine();
 
+	void InitializeAuton();
+	void StartStateMachineThreadAuton();
+	void EndStateMachineThreadAuton();
+
 };
 
 #endif /* SRC_AUTONOMOUS_H_ */

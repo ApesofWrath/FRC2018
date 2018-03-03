@@ -27,7 +27,7 @@ void DriveForward::Generate() {
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.01, 19.0, 35.0, 100000.0, &candidate); //max vel, acc, jerk
+	PATHFINDER_SAMPLES_FAST, 0.05, 19.0, 35.0, 100000.0, &candidate); //max vel, acc, jerk
 
 	int length = candidate.length;
 	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));

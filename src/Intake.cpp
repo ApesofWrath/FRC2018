@@ -79,7 +79,7 @@ std::vector<std::vector<double> > X_i = { { 0.0 }, //state matrix filled with th
 
 std::vector<std::vector<double> > error_i = { { 0.0 }, { 0.0 } };
 
-Timer *intakeTimer = new Timer();
+//Timer *intakeTimer = new Timer();
 
 PowerDistributionPanel *pdp_i;
 
@@ -602,11 +602,11 @@ bool Intake::ZeroEnc() { //called in Initialize() and in SetVoltage()
 
 void Intake::IntakeWrapper(Intake *in) {
 
-	intakeTimer->Start();
+	//intakeTimer->Start();
 
 	while (true) {
 
-		intakeTimer->Reset();
+		//intakeTimer->Reset();
 
 		if (frc::RobotState::IsEnabled()) {
 
@@ -618,7 +618,7 @@ void Intake::IntakeWrapper(Intake *in) {
 				in->Rotate(profile_intake);
 			}
 
-			double time = .010 - intakeTimer->Get();
+			double time = .010;// - intakeTimer->Get();
 
 			time *= 1000;
 			if (time < 0) {
@@ -642,7 +642,7 @@ void Intake::StartIntakeThread() {
 
 void Intake::EndIntakeThread() {
 
-	intakeTimer->Stop();
+	//intakeTimer->Stop();
 	IntakeThread.~thread();
 
 }

@@ -282,7 +282,9 @@ void TeleopStateMachine::StateMachineWrapper(
 
 	while (true) {
 
-		teleopTimer->Reset();
+		//teleopTimer->Reset();
+		teleopTimer->Stop();
+		teleopTimer->Start();
 
 		if (frc::RobotState::IsEnabled() && frc::RobotState::IsOperatorControl()) { //this thread will still run in auton
 
@@ -301,14 +303,20 @@ void TeleopStateMachine::StateMachineWrapper(
 
 		}
 
-		double time = 0.05 - teleopTimer->Get();
+		double wait_time = 0.05 - teleopTimer->Get();
 
-		time *= 1000;
-		if (time < 0) {
-			time = 0;
+		//std::cout << "diff: " << wait_time << std::endl;
+
+		wait_time *= 1000;
+		if (wait_time < 0) {
+			wait_time = 0;
 		}
 
-		std::this_thread::sleep_for(std::chrono::milliseconds((int) time));
+		std::cout << "timer before: " << teleopTimer->Get() << " ";
+
+		std::this_thread::sleep_for(std::chrono::milliseconds((int) wait_time));
+
+		std::cout << "timer after: " << teleopTimer->Get() << std::endl;
 
 	}
 
