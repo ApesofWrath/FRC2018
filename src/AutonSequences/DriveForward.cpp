@@ -12,22 +12,25 @@ std::vector<std::vector<double> > full_refs_df (1500, std::vector<double>(6)); /
 void DriveForward::Generate() {
 
 	int POINT_LENGTH = 2;
-
+//center left switch scale
 	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
 
 	//feet
 	Waypoint p1 = { 0.0, 0.0, 0.0 }; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
-	Waypoint p2 = { 10.0, 0.2, 0.0 };
-	//Waypoint p3 = { 5.0, 5.0, 0.0 }; //cannot just move in Y axis because of spline math
+	Waypoint p2 = { 5.0, 10.0, PI/2.0};//1.0, 7.5, .78};
+	//forward : 10.0, 0.2, 0.0
+	//Waypoint p3 = { 4.5, 8.0, 0.0 };
+   //Waypoint p4 = { 9.0, 11.0, 0.0}; //cannot just move in Y axis because of spline math
 	//Waypoint p3 = { 10.0, 0.0, 0.0 }; //cannot just move in Y axis because of spline math
 
 	points[0] = p1;
 	points[1] = p2;
 	//points[2] = p3;
+	//points[3] = p4;
 
 	TrajectoryCandidate candidate;
-	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.05, 19.0, 35.0, 100000.0, &candidate); //max vel, acc, jerk
+	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC, //19
+	PATHFINDER_SAMPLES_FAST, 0.05, 4.0, 10.0, 100000.0, &candidate); //max vel, acc, jerk //profile speed must equal drive thread time step
 
 	int length = candidate.length;
 	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));

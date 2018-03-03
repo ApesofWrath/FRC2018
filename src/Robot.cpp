@@ -95,7 +95,6 @@ public:
 		intake_profiler_ = new IntakeMotionProfiler(2.0, 8.0, 0.01);
 
 		compressor_ = new Compressor(3);
-		compressor_->SetClosedLoopControl(true);
 		pdp_ = new PowerDistributionPanel(3);
 
 		drive_controller = new DriveController(); //inherits from mother class
@@ -141,7 +140,7 @@ public:
 	//	SmartDashboard::PutString("auton init", "yep");
 
 //		autoSelected = autonChooser.GetSelected();
-
+		//compressor_->SetClosedLoopControl(false);
 		drive_forward->Generate();
 		drive_controller->ZeroAll(true);
 		drive_controller->ShiftUp(); //for now
@@ -166,6 +165,8 @@ public:
 	}
 
 	void TeleopInit() {
+
+		compressor_->SetClosedLoopControl(true);
 
 		drive_controller->ZeroAll(true);
 		drive_controller->ShiftUp();
