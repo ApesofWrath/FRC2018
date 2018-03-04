@@ -19,7 +19,7 @@ void Switch::GenerateSwitch(bool left) { //left center right
 
 	//feet
 	Waypoint p1 = { 0.0, 0.0, 0.0 }; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
-	Waypoint p2 = {  1.0, 0.2, 0.0 };
+	Waypoint p2 = { 8.5, 6.0, 0.0 }; //3.0, 10.0, d2r(90)};
 	//Waypoint p3 = { 5.0, 5.0, 0.0 }; //cannot just move in Y axis because of spline math
 	//Waypoint p3 = { 10.0, 0.0, 0.0 }; //cannot just move in Y axis because of spline math
 
@@ -29,9 +29,9 @@ void Switch::GenerateSwitch(bool left) { //left center right
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-		PATHFINDER_SAMPLES_FAST, 0.05, 19.0, 10.0, 100000.0, &candidate); //max vel, acc, jerk
+		PATHFINDER_SAMPLES_FAST, 0.05, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk
 
-	int length = candidate.length;
+	length = candidate.length;
 	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));
 
 	pathfinder_generate(&candidate, trajectory);
@@ -78,9 +78,9 @@ void Switch::RunStateMachine(bool *place_switch) {
 
 	//no other state machine booleans needed, all other ones will stay false
 
-	std::cout << "CHANGE THE BOOL" << std::endl;
+	//std::cout << "CHANGE THE BOOL" << std::endl;
 
-	if(GetLeftPos() == GetLeftPos()) {
+	if(GetIndex() >= length || GetLeftPos() > 10.5) {
 		*place_switch = true; //must run once initialized!
 	}
 	else {

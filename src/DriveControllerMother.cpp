@@ -76,7 +76,7 @@ const double K_D_YAW_VEL_HIGH = 0.000;
 
 const double K_P_YAW_HEADING_POS_HD = 0.0;
 const double K_D_VISION_POS_HD = 0.0;
-const double K_P_YAW_HEADING_POS_WC = 0.0;
+const double K_P_YAW_HEADING_POS_WC = 0.01;
 const double K_D_VISION_POS_WC = 0.0;
 
 const double K_P_KICK_VEL = 0.00365; //0.00311
@@ -93,9 +93,9 @@ const double K_D_YAW_AU_WC = 0.0; //0.085;
 //const double k_p_left_vel_au = 0; k_p_kick_vel_au,
 ////			k_d_left_vel_au, k_d_right_vel_au, k_d_kick_vel_au
 
-const double K_P_RIGHT_DIS = 0.017; //0.1;
-const double K_P_LEFT_DIS = 0.017; // 0.1;
-const double K_P_YAW_DIS = 0.0; //1.5;
+const double K_P_RIGHT_DIS = 0.1;//0.085; //0.1;
+const double K_P_LEFT_DIS = 0.1;//0.085; // 0.1;
+const double K_P_YAW_DIS = 0.5; //1.5;
 const double K_P_KICKER_DIS = 0.280;
 
 const double K_I_RIGHT_DIS = 0.0;
@@ -198,6 +198,9 @@ double k_p_yaw_heading_pos, k_d_vision_pos;
 double k_f_left_vel, k_f_right_vel;
 
 int row_index = 0;
+
+bool is_last_index = false;
+int drive_index = 0;
 
 double Kv; //scale from -1 to 1
 
@@ -727,8 +730,14 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	double tarVelLeft = drive_ref.at(4);
 	double tarVelRight = drive_ref.at(5);
 
+	if(refYaw > PI) {
+		refYaw -= 2*PI;
+	}
+
 	SmartDashboard::PutNumber("refLeft", refLeft);
 	SmartDashboard::PutNumber("refRight", refRight);
+	SmartDashboard::PutNumber("refLeftVel", tarVelLeft);
+	SmartDashboard::PutNumber("refRightVel", tarVelRight);
 	SmartDashboard::PutNumber("refYaw", refYaw);
 
 //	std::cout << "yep " << refYaw << "  " << refLeft << "  " << refRight << "  "
@@ -739,20 +748,26 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 
 	//rpm //not needed besides check for jitter
 	double r_current = -((double) canTalonRight1->GetSelectedSensorVelocity(0)
-			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
+				/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
 	double l_current = ((double) canTalonLeft1->GetSelectedSensorVelocity(0)
-			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
+				/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
 
 	//SmartDashboard::PutNumber("Actual left", l_current);
 
 	//feet
-	double r_dis = -(((double) canTalonRight1->GetSelectedSensorPosition(0) //rotations per 100 ms, distance (circumference) per 100m ms,
-	/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
-	double l_dis = (((double) canTalonLeft1->GetSelectedSensorPosition(0)
-			/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
+//	double r_dis = -(((double) canTalonRight1->GetSelectedSensorPosition(0) //rotations per 100 ms, distance (circumference) per 100m ms,
+//	/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
+//	double l_dis = (((double) canTalonLeft1->GetSelectedSensorPosition(0)
+//			/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
 
-	SmartDashboard::PutNumber("actualLeft", l_dis);
-	SmartDashboard::PutNumber("actualRight", r_dis);
+	double r_dis = -((double) canTalonRight1->GetSelectedSensorPosition(0) / 1205.0);
+	double l_dis = ((double) canTalonLeft1->GetSelectedSensorPosition(0) / 1205.0);
+
+	SmartDashboard::PutNumber("actualLeftDis", l_dis);
+	SmartDashboard::PutNumber("actualRightDis", r_dis);
+	SmartDashboard::PutNumber("actualLeftVel", l_current);
+	SmartDashboard::PutNumber("actualRightVel", r_current);
+
 
 	//std::cout << "Right: " << r_dis << " Left: " << l_dis << std::endl;
 
@@ -764,7 +779,8 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 
 	double y_dis = -1.0 * ahrs->GetYaw() * (double) (PI / 180); //current theta (yaw) value
 
-	SmartDashboard::PutNumber("actualYaw", y_dis);
+	SmartDashboard::PutNumber("Target Heading", refYaw);
+	SmartDashboard::PutNumber("Actual Heading", y_dis);
 
 	l_error_dis_au = refLeft - l_dis;
 	r_error_dis_au = refRight - r_dis;
@@ -907,10 +923,9 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 
 //	SmartDashboard::PutNumber("Velocity", l_current);
 
-	double curr_fps = ((l_current * WHEEL_DIAMETER * PI) / 12.0) / 60.0;
+	double curr_fps = (l_current * TICKS_PER_ROT/1205.0) / 60.0;
 
 	SmartDashboard::PutNumber("Left fps", curr_fps);
-	//std::cout << "curr fps: " << curr_fps << std::endl;
 
 	//timerTest->Start();
 
@@ -1104,19 +1119,29 @@ double DriveControllerMother::GetMaxRpm() {
 
 double DriveControllerMother::GetLeftPosition() {
 
-	double l_dis = (((double) canTalonLeft1->GetSelectedSensorPosition(0)
-			/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
+	double l_dis = ((double) canTalonLeft1->GetSelectedSensorPosition(0) / 1205.0);
 
-	return 0.0;
+	return l_dis;
 
 }
 
 double DriveControllerMother::GetRightPosition() {
 
-	double r_dis = (((double) canTalonRight1->GetSelectedSensorPosition(0)
-			/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
+	double r_dis = -((double) canTalonLeft1->GetSelectedSensorPosition(0) / 1205.0);
 
 	return r_dis;
+
+}
+
+bool DriveControllerMother::IsLastIndex() {
+
+	return is_last_index;
+
+}
+
+int DriveControllerMother::GetDriveIndex() {
+
+	return drive_index;
 
 }
 
@@ -1155,6 +1180,7 @@ void DriveControllerMother::DriveWrapper(Joystick *JoyThrottle,
 			//put in profile //was finishing the for loop before we got a profile
 			for (int i = 0; i < auton_profile[0].size(); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs
 				drive_ref.at(i) = auton_profile.at(row_index).at(i); //from SetRef()
+				drive_index = i;
 			}
 
 			driveController->AutonDrive(); //send each row to auton drive before getting the next row

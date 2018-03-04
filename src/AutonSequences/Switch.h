@@ -21,6 +21,8 @@ public:
 
 	void RunStateMachine(bool *place_switch);
 
+	int length;
+
 };
 
 #endif /* SRC_AUTONSEQUENCES_SWITCH_H_ */

@@ -31,6 +31,9 @@ public:
 	double GetLeftPos();
 	double GetRightPos();
 
+	bool IsLastDriveIndex();
+	int GetIndex();
+
 };
 
 #endif /* SRC_AUTONOMOUS_H_ */

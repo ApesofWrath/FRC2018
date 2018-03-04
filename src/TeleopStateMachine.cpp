@@ -343,13 +343,13 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 		elevator->elevator_state = elevator->DOWN_STATE_E_H;
 		intake->intake_arm_state = intake->UP_STATE_H;
 		intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
-		if (raise_to_scale) { //go to place from this state, return to this state after placing and then wfb
-			state_a = PLACE_SCALE_STATE_A;
+		if (last_state_a == PLACE_SCALE_STATE_A
+				|| last_state_a == PLACE_SWITCH_STATE_A) { //go to place from this state, return to this state after placing and then wfb
+			state_a = WAIT_FOR_BUTTON_STATE_A;
 		} else if (raise_to_switch) {
 			state_a = PLACE_SWITCH_STATE_A;
-		} else if (last_state_a == PLACE_SCALE_STATE_A
-				|| last_state_a == PLACE_SWITCH_STATE_A) { //came from placing
-			state_a = WAIT_FOR_BUTTON_STATE_A;
+		} else if (raise_to_scale) { //came from placing
+			state_a = PLACE_SCALE_STATE_A;
 		}
 		last_state_a = POST_INTAKE_STATE_A;
 		//can always go back to wait for button state
@@ -378,7 +378,7 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 		if (std::abs(intake->GetAngularPosition() - intake->MID_ANGLE) <= 0.2) { //start shooting when high enough
 			intake->intake_wheel_state = intake->SLOW_STATE_H;
 			if (intake->ReleasedCube()) {
-				//state_a = POST_INTAKE_STATE_A;
+				state_a = POST_INTAKE_STATE_A;
 			}
 		}
 		last_state_a = PLACE_SWITCH_STATE_A;

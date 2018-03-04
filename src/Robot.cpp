@@ -145,17 +145,20 @@ public:
 		drive_controller->ZeroAll(true);
 		drive_controller->ShiftUp(); //for now
 
-		if (autoSelected == driveForward) {
-			drive_forward = new DriveForward(drive_controller, elevator_,
-					intake_);
-			drive_forward->GenerateForward();
-		} else if (autoSelected == cubeSwitch) {
-			switch_ = new Switch(drive_controller, elevator_, intake_);
-			switch_->GenerateSwitch(true);
+//		if (autoSelected == driveForward) {
+//			drive_forward = new DriveForward(drive_controller, elevator_,
+//					intake_);
+//			drive_forward->GenerateForward();
+//		} else if (autoSelected == cubeSwitch) {
+//			switch_ = new Switch(drive_controller, elevator_, intake_);
+//			switch_->GenerateSwitch(true);
+//
+//		} else if (autoSelected == cubeScale) {
+//
+//		}
 
-		} else if (autoSelected == cubeScale) {
-
-		}
+		switch_ = new Switch(drive_controller, elevator_, intake_);
+		switch_->GenerateSwitch(true);
 
 //		if (autoSelected == driveForward) {
 //			//drive_forward->Generate();
@@ -175,14 +178,14 @@ public:
 
 		//drive thread, auton state machine thread
 
-		if (autoSelected == driveForward) {
-
-		} else if (autoSelected == cubeSwitch) {
+//		if (autoSelected == driveForward) {
+//
+//		} else if (autoSelected == cubeSwitch) {
 			switch_->RunStateMachine(&raise_to_switch);
 
-		} else if (autoSelected == cubeScale) {
-
-		}
+//		} else if (autoSelected == cubeScale) {
+//
+//		}
 	}
 
 	void TeleopInit() {

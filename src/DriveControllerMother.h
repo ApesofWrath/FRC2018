@@ -90,6 +90,9 @@ public:
 	void UpdateIndex();
 	void ResetIndex();
 
+	bool IsLastIndex();
+	int GetDriveIndex();
+
 
 };
 

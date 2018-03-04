@@ -55,3 +55,15 @@ double Autonomous::GetRightPos() {
 	return drive_controller->GetRightPosition();
 
 }
+
+bool Autonomous::IsLastDriveIndex() {
+
+	return drive_controller->IsLastIndex();
+
+}
+
+int Autonomous::GetIndex() {
+
+	return drive_controller->GetDriveIndex();
+
+}
