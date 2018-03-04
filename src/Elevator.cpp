@@ -6,7 +6,7 @@
  */
 
 #include <Elevator.h>
-//#include "ctre/Phoenix.h"
+#include "ctre/Phoenix.h"
 #include <WPILib.h>
 
 #define PI 3.14159265
@@ -70,6 +70,8 @@ std::vector<std::vector<double> > error_e = { { 0.0 }, { 0.0 } };
 
 ElevatorMotionProfiler *elevator_profiler;
 
+Intake *intake_e;
+
 Timer *elevatorTimer = new Timer();
 
 bool is_at_bottom_e = false;
@@ -83,7 +85,9 @@ int init_counter = 0;
 int encoder_counter_e = 0;
 
 Elevator::Elevator(PowerDistributionPanel *pdp,
-		ElevatorMotionProfiler *elevator_profiler_) {
+		ElevatorMotionProfiler *elevator_profiler_, Intake *in_) {
+
+	intake_e = in_;
 
 	hallEffectTop = new DigitalInput(2);
 	hallEffectBottom = new DigitalInput(1);
@@ -222,6 +226,13 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 
 //	SmartDashboard::PutNumber("HALL EFF BOT", is_at_bottom_e);
 //	SmartDashboard::PutNumber("HALL EFF TOP", is_at_top);
+
+	//safety to make sure that the elevator doesn't go down when the arm is up
+	if (intake_e->GetAngularPosition() > 1.7 && elevator_voltage < 0.0){
+
+		elevator_voltage = 0.0;
+
+	}
 
 	//upper soft limit
 	if (GetElevatorPosition() >= (0.92) && elevator_voltage > 0.0) { //at max height and still trying to move up
@@ -525,8 +536,7 @@ void Elevator::EndElevatorThread() {
 
 void Elevator::SetZeroOffsetElevator() {
 
-	position_offset_e =
-			talonElevator1->GetSensorCollection().GetQuadraturePosition();
+	position_offset_e = talonElevator1->GetSensorCollection().GetQuadraturePosition();
 }
 
 bool Elevator::ZeroEncs() {

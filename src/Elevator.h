@@ -15,11 +15,12 @@
 #include <chrono>
 #include <Timer.h>
 #include <thread>
+#include <Intake.h>
 
 class Elevator {
 public:
 
-	Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_);
+	Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_, Intake *in);
 
 	TalonSRX *talonElevator1, *talonElevator2;
 
