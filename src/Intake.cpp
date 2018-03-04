@@ -19,7 +19,7 @@ double offset_angle = 1.65;
 double SLOW_SPEED = 0.25;
 #else
 double ff_percent_i = 0.6;
-double offset_angle = PI/2.0;
+double offset_angle = 1.6; //1.5; with the new flippy back arm
 double SLOW_SPEED = 0.25;
 #endif
 
@@ -31,6 +31,7 @@ const int MID_STATE = 2;
 const int DOWN_STATE = 3;
 const int STOP_ARM_STATE = 4;
 const int SWITCH_STATE = 5;
+const int SWITCH_BACK_SHOT_STATE = 6;
 
 const int STOP_WHEEL_STATE = 0; //wheel state machine
 const int IN_STATE = 1;
@@ -82,7 +83,7 @@ std::vector<std::vector<double> > error_i = { { 0.0 }, { 0.0 } };
 Timer *intakeTimer = new Timer();
 
 PowerDistributionPanel *pdp_i;
-
+Elevator *elevator_i;
 IntakeMotionProfiler *intake_profiler;
 
 double starting_pos = 0.0;
@@ -108,9 +109,11 @@ int current_counter_first = 0;
 bool cube_in = false;
 
 Intake::Intake(PowerDistributionPanel *pdp,
-		IntakeMotionProfiler *intake_profiler_) {
+		IntakeMotionProfiler *intake_profiler_, Elevator *el_) {
 
 	intake_profiler = intake_profiler_;
+
+	elevator_i = el_;
 
 //	intake_profiler->SetMaxAccIntake(MAX_ACCELERATION_I);
 //	intake_profiler->SetMaxVelIntake(MAX_VELOCITY_I);
@@ -309,23 +312,31 @@ void Intake::SetVoltageIntake(double voltage_i) {
 	//is_at_bottom = IsAtBottomIntake(); //hall effect returns 0 when at bottom. we reverse it here
 
 	//soft limit //TODO: make the top height lower after we have initialize
-	if (GetAngularPosition() >= (1.6) && voltage_i > 0.0 && is_init_intake) { //at max height and still trying to move up //no upper soft limit when initializing
-		voltage_i = 0.0; //shouldn't crash
-		SmartDashboard::PutString("INTAKE SAFETY", "top soft limit");
+	if (elevator_i->GetElevatorPosition() < elevator_safety_position) {
+		if (GetAngularPosition() >= (1.6) && voltage_i > 0.0
+				&& is_init_intake) { //at max height and still trying to move up //no upper soft limit when initializing
+			voltage_i = 0.0; //shouldn't crash
+			SmartDashboard::PutString("INTAKE SAFETY", "top soft limit");
+		}
+	} else {
+		if (GetAngularPosition() >= (INTAKE_BACKWARDS_SOFT_LIMIT) //can go farther back if high up enough on elevator
+				&& voltage_i > 0.0 && is_init_intake) { //at max height and still trying to move up //no upper soft limit when initializing
+			voltage_i = 0.0; //shouldn't crash
+			SmartDashboard::PutString("INTAKE SAFETY", "top soft limit");
+		}
 	}
 
 	SmartDashboard::PutNumber("IA C", talonIntakeArm->GetOutputCurrent());
 
-//	if (is_at_bottom) {
 	if (talonIntakeArm->GetOutputCurrent() > 3.0) {
 		counter_i++;
 		if (counter_i > 1) {
 			if (ZeroEnc()) { //successfully zeroed enc one time
 				is_init_intake = true;
 			}
+		} else {
+			counter_i = 0;
 		}
-	} else {
-		counter_i = 0;
 	}
 	if (voltage_i < 0.0 && GetAngularPosition() < -0.1) {
 		voltage_i = 0.0;
@@ -345,8 +356,7 @@ void Intake::SetVoltageIntake(double voltage_i) {
 	} else {
 		encoder_counter = 0;
 	}
-
-	if (encoder_counter > 10) { //10
+	if (encoder_counter > 5) { //10
 		voltage_safety = true;
 	} else {
 		voltage_safety = false;
@@ -386,13 +396,13 @@ double Intake::GetAngularPosition() {
 	//2pi radians per rotations
 	double ang_pos =
 			((talonIntakeArm->GetSensorCollection().GetQuadraturePosition()
-					- position_offset) //position offset
+					- position_offset)	//position offset
 			/ (TICKS_PER_ROT_I)) * (2.0 * PI) * -1.0;
 	//double ang_pos = 0.0;
 
 	//double offset_angle = 1.5; //amount that the arm will stick up in radians// the top angle. greater offset = lower 0
 
-	return ang_pos + offset_angle; //the angular position from the encoder plus the angle when we zero minus the offset for zeroing
+	return ang_pos + offset_angle;//the angular position from the encoder plus the angle when we zero minus the offset for zeroing
 
 }
 
@@ -471,6 +481,15 @@ void Intake::IntakeArmStateMachine() {
 		SmartDashboard::PutString("INTAKE ARM", "STOP");
 		StopArm();
 		last_intake_state = STOP_ARM_STATE;
+		break;
+
+	case SWITCH_BACK_SHOT_STATE:
+		SmartDashboard::PutString("INTAKE ARM", "DOWN");
+		if (last_intake_state != SWITCH_BACK_SHOT_STATE) {
+			intake_profiler->SetFinalGoalIntake(BACK_SHOT_ANGLE);
+			intake_profiler->SetInitPosIntake(GetAngularPosition());
+		}
+		last_intake_state = SWITCH_BACK_SHOT_STATE;
 		break;
 
 	case SWITCH_STATE:
@@ -630,7 +649,7 @@ void Intake::IntakeWrapper(Intake *in) {
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds((int) time));
 
-	//	std::cout << "time: " << intakeTimer->Get() << std::endl;
+		//	std::cout << "time: " << intakeTimer->Get() << std::endl;
 	}
 
 }
