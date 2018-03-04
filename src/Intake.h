@@ -29,8 +29,8 @@ public:
 
 	std::thread IntakeThread;
 
-	const double elevator_safety_position = 0.89;
-	const double INTAKE_BACKWARDS_SOFT_LIMIT = 1.884;
+	const double elevator_safety_position = 0.85;
+	const double INTAKE_BACKWARDS_SOFT_LIMIT = 2.05;
 	int zeroing_counter_i = 0;
 
 	bool is_init_intake = false; //is arm initialized
@@ -54,7 +54,7 @@ public:
 	const double MID_ANGLE = 0.55;
 	const double SWITCH_ANGLE = 0.8;
 	const double UP_ANGLE = 1.4; //starting pos -> also the shooting position
-	const double BACK_SHOT_ANGLE = 1.825; // 120 ish degrees for the flippy back arm shot
+	const double BACK_SHOT_ANGLE = 2.0; // 120 ish degrees for the flippy back arm shot
 
 	Intake(PowerDistributionPanel *pdp, IntakeMotionProfiler *intake_profiler, Elevator *el_);
 

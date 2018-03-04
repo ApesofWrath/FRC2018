@@ -181,12 +181,12 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		break;
 
 	case POST_INTAKE_STATE: //have cube, waiting to place cube
-		if (last_state == PLACE_SCALE_BACKWARDS_STATE && state_elevator && intake->GetAngularPosition() < (intake->UP_ANGLE + 0.2)) {
+		if (state_elevator && (intake->GetAngularPosition() < (intake->UP_ANGLE + 0.05))) { //last_state == PLACE_SCALE_BACKWARDS_STATE && dont need this in the check since it will only be true the first time
 			elevator->elevator_state = elevator->DOWN_STATE_E_H;
 		}
-		else if (state_elevator) {
-			elevator->elevator_state = elevator->DOWN_STATE_E_H;
-		}
+//		else if (state_elevator) {
+//			elevator->elevator_state = elevator->DOWN_STATE_E_H;
+//		}
 		if (state_intake_arm) {
 			intake->intake_arm_state = intake->UP_STATE_H;
 		}
@@ -198,7 +198,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		} else if (raise_to_switch) { //TODO: add raise to switch backwards
 			state = PLACE_SWITCH_STATE;
 		} else if (last_state == PLACE_SCALE_STATE
-				|| last_state == PLACE_SWITCH_STATE || last_state == PLACE_SCALE_BACKWARDS_STATE) {
+				|| last_state == PLACE_SWITCH_STATE || (last_state == POST_INTAKE_STATE && (intake->GetAngularPosition() < (intake->UP_ANGLE + 0.05)))) { //little bit of ahack but the check wont run if it only goes through this state once
 			state = WAIT_FOR_BUTTON_STATE;
 		}
 		last_state = POST_INTAKE_STATE;
@@ -239,7 +239,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 			elevator->elevator_state = elevator->UP_STATE_E_H;
 		}
 		if (elevator->GetElevatorPosition() >= 0.85
-				&& intake->GetAngularPosition() > 1.75 && state_intake_wheel) { //shoot if the height of the elevator and the angle of the arm is good enough
+				&& intake->GetAngularPosition() > 1.98 && state_intake_wheel) { //shoot if the height of the elevator and the angle of the arm is good enough
 			intake->intake_wheel_state = intake->OUT_STATE_H;
 			if (intake->ReleasedCube()) {
 				state = POST_INTAKE_STATE;
