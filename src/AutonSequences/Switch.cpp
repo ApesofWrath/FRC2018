@@ -19,7 +19,7 @@ void Switch::GenerateSwitch(bool left) { //left center right
 
 	//feet
 	Waypoint p1 = { 0.0, 0.0, 0.0 }; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
-	Waypoint p2 = { 8.5, 6.0, 0.0 }; //3.0, 10.0, d2r(90)};
+	Waypoint p2 = { 9.5, 7.0, 0.0 }; //3.0, 10.0, d2r(90)}; //-3.25
 	//Waypoint p3 = { 5.0, 5.0, 0.0 }; //cannot just move in Y axis because of spline math
 	//Waypoint p3 = { 10.0, 0.0, 0.0 }; //cannot just move in Y axis because of spline math
 
@@ -66,6 +66,8 @@ void Switch::GenerateSwitch(bool left) { //left center right
 		}
 	}
 
+	SmartDashboard::PutNumber("length", length);
+
 	FillProfile(full_refs_sw);
 
 	free(trajectory);
@@ -79,8 +81,11 @@ void Switch::RunStateMachine(bool *place_switch) {
 	//no other state machine booleans needed, all other ones will stay false
 
 	//std::cout << "CHANGE THE BOOL" << std::endl;
+	bool index_qual = GetIndex() >= length;
 
-	if(GetIndex() >= length || GetLeftPos() > 10.5) {
+	std::cout << "isShoot: " << !IsShoot() << " indexQual: " << index_qual << std::endl;
+
+	if(GetIndex() >= length && !IsShoot()) { //at the end of the drive, while we have not released a cube //GetIndex() >= length &&
 		*place_switch = true; //must run once initialized!
 	}
 	else {

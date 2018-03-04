@@ -131,7 +131,6 @@ void Elevator::InitializeElevator() {
 //				elevator_volt);
 	}
 
-
 	//SmartDashboard::PutString("init elev", "yes");
 
 	//double up_volt = (0.2 * -1.0) / pdp_e->GetVoltage(); //to not crash down
@@ -320,7 +319,6 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 	//SmartDashboard::PutNumber("EL VOLT", elevator_voltage);
 	///std::cout << "el volt: " << elevator_voltage << std::endl;
 
-
 	elevator_voltage /= 12.0;
 
 	elevator_voltage *= -1.0; //reverse at END
@@ -421,10 +419,10 @@ void Elevator::ElevatorStateMachine() {
 	case INIT_STATE_E:
 
 		SmartDashboard::PutString("ELEVATOR.", "INIT");
-
-		InitializeElevator();
 		if (is_elevator_init) {
 			elevator_state = DOWN_STATE_E;
+		} else {
+			InitializeElevator();
 		}
 		last_elevator_state = INIT_STATE_E;
 		break;
@@ -512,7 +510,6 @@ void Elevator::ElevatorWrapper(Elevator *el) {
 				el->Move(profile_elevator);
 			}
 
-
 		}
 
 		double time_e = 0.01 - elevatorTimer->Get(); //change
@@ -538,7 +535,8 @@ void Elevator::EndElevatorThread() {
 
 void Elevator::SetZeroOffsetElevator() {
 
-	position_offset_e = talonElevator1->GetSensorCollection().GetQuadraturePosition();
+	position_offset_e =
+			talonElevator1->GetSensorCollection().GetQuadraturePosition();
 }
 
 bool Elevator::ZeroEncs() {

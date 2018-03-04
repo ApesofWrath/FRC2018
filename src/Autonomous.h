@@ -34,6 +34,10 @@ public:
 	bool IsLastDriveIndex();
 	int GetIndex();
 
+	bool IsCubeReleased();
+
+	bool IsShoot();
+
 };
 
 #endif /* SRC_AUTONOMOUS_H_ */

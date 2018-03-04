@@ -64,14 +64,14 @@ const double K_P_RIGHT_VEL_LOW = 0.001;
 const double K_P_LEFT_VEL_LOW = 0.001;
 const double K_D_RIGHT_VEL_LOW = 0.000;
 const double K_D_LEFT_VEL_LOW = 0.000;
-const double K_P_YAW_VEL_LOW = 85.0;
+const double K_P_YAW_VEL_LOW = 30.0;//85.0;
 const double K_D_YAW_VEL_LOW = 0.0;
 
 const double K_P_RIGHT_VEL_HIGH = 0.001;
 const double K_P_LEFT_VEL_HIGH = 0.001;
 const double K_D_RIGHT_VEL_HIGH = 0.00;
 const double K_D_LEFT_VEL_HIGH = 0.0;
-const double K_P_YAW_VEL_HIGH = 120.0;
+const double K_P_YAW_VEL_HIGH = 90.0;//120.0;
 const double K_D_YAW_VEL_HIGH = 0.000;
 
 const double K_P_YAW_HEADING_POS_HD = 0.0;
@@ -200,7 +200,7 @@ double k_f_left_vel, k_f_right_vel;
 int row_index = 0;
 
 bool is_last_index = false;
-int drive_index = 0;
+//int drive_index = 0;
 
 double Kv; //scale from -1 to 1
 
@@ -1141,7 +1141,7 @@ bool DriveControllerMother::IsLastIndex() {
 
 int DriveControllerMother::GetDriveIndex() {
 
-	return drive_index;
+	return row_index;
 
 }
 
@@ -1180,7 +1180,7 @@ void DriveControllerMother::DriveWrapper(Joystick *JoyThrottle,
 			//put in profile //was finishing the for loop before we got a profile
 			for (int i = 0; i < auton_profile[0].size(); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs
 				drive_ref.at(i) = auton_profile.at(row_index).at(i); //from SetRef()
-				drive_index = i;
+				//std::cout << "actual: " << i << std::endl;
 			}
 
 			driveController->AutonDrive(); //send each row to auton drive before getting the next row

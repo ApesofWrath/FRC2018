@@ -38,24 +38,28 @@ public:
 	const int HIGH_GEAR_BUTTON = 9;
 
 	const int WAIT_FOR_BUTTON = 1;
+
 	const int GET_CUBE_GROUND = 2;
 	const int GET_CUBE_STATION = 3;
 	const int POST_INTAKE = 4;
 	const int RAISE_TO_SWITCH = 5;
 	const int RAISE_TO_SCALE = 6;
-	const int RAISE_TO_SCALE_BACKWARDS = 3;
+	const int RAISE_TO_SCALE_BACKWARDS = 3; //
 
 	const int INTAKE_SPIN_IN = 9; //THROTTLE
 	const int INTAKE_SPIN_OUT = 10;
 	const int INTAKE_SPIN_STOP = 11;
+	//no slow
 
 	const int INTAKE_ARM_UP = 7;
 	const int INTAKE_ARM_MID = 8;
 	const int INTAKE_ARM_DOWN = 9;
+	const int INTAKE_ARM_BACKWARDS = 99;
 
 	const int ELEVATOR_UP = 10;
 	const int ELEVATOR_MID = 11;
 	const int ELEVATOR_DOWN = 12;
+	//no human player height
 
 	bool wait_for_button, intake_spin_in, intake_spin_out, intake_spin_stop,
 			get_cube_ground, get_cube_station, post_intake, raise_to_switch,
@@ -191,7 +195,7 @@ public:
 	void TeleopInit() {
 
 		compressor_->SetClosedLoopControl(true);
-		teleop_state_machine->Initialize();
+		//teleop_state_machine->Initialize();
 		drive_controller->ZeroAll(true);
 		drive_controller->ShiftUp();
 
@@ -261,14 +265,14 @@ public:
 #endif
 	}
 
-	void DisabledInit() override {
+	void DisabledInit() override { //between auton and teleop
 
 		teleop_state_machine->EndStateMachineThread();
 		drive_controller->EndDriveThreads();
 		intake_->EndIntakeThread(); //may not actually disable threads
 		elevator_->EndElevatorThread();
 
-		teleop_state_machine->Initialize(); //17%
+		//teleop_state_machine->Initialize(); //17%
 
 	}
 

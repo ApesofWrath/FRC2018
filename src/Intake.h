@@ -40,7 +40,7 @@ public:
 	const int MID_STATE_H = 2;
 	const int DOWN_STATE_H = 3;
 	const int STOP_ARM_STATE_H = 4;
-	const int SWITCH_STATE_H = 5;
+	const int SWITCH_STATE_H = 5; //not used
 	const int SWITCH_BACK_SHOT_STATE_H = 6; //new for the flippy back arm
 	int intake_arm_state = INIT_STATE_H;
 
@@ -52,7 +52,7 @@ public:
 
 	const double DOWN_ANGLE = 0.02; //instead of changing the offset
 	const double MID_ANGLE = 0.55;
-	const double SWITCH_ANGLE = 0.8;
+	const double SWITCH_ANGLE = 0.8; //not used
 	const double UP_ANGLE = 1.4; //starting pos -> also the shooting position
 	const double BACK_SHOT_ANGLE = 2.0; // 120 ish degrees for the flippy back arm shot
 

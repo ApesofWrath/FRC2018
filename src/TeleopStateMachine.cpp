@@ -36,6 +36,7 @@ const int GET_CUBE_STATION_STATE_A = 3;
 const int POST_INTAKE_STATE_A = 4;
 const int PLACE_SCALE_STATE_A = 5;
 const int PLACE_SWITCH_STATE_A = 6;
+const int PLACE_SCALE_BACKWARDS_STATE_A = 7;
 int state_a = INIT_STATE_A;
 
 int last_state_a = 0;
@@ -114,9 +115,10 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 	case INIT_STATE:
 
 		SmartDashboard::PutString("STATE", "INIT");
-
-		elevator->elevator_state = elevator->INIT_STATE_E_H;
-		intake->intake_arm_state = intake->INIT_STATE_H;
+		elevator->elevator_state = elevator->DOWN_STATE_E_H; //still initializes
+		intake->intake_arm_state = intake->UP_STATE_H;
+		//elevator->elevator_state = elevator->INIT_STATE_E_H;
+		//intake->intake_arm_state = intake->INIT_STATE_H;
 		intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
 		state = WAIT_FOR_BUTTON_STATE;
 		last_state = INIT_STATE;
@@ -181,7 +183,8 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		break;
 
 	case POST_INTAKE_STATE: //have cube, waiting to place cube
-		if (state_elevator && (intake->GetAngularPosition() < (intake->UP_ANGLE + 0.05))) { //last_state == PLACE_SCALE_BACKWARDS_STATE && dont need this in the check since it will only be true the first time
+		if (state_elevator
+				&& (intake->GetAngularPosition() < (intake->UP_ANGLE + 0.05))) { //last_state == PLACE_SCALE_BACKWARDS_STATE && dont need this in the check since it will only be true the first time
 			elevator->elevator_state = elevator->DOWN_STATE_E_H;
 		}
 //		else if (state_elevator) {
@@ -197,8 +200,11 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 			state = PLACE_SCALE_STATE;
 		} else if (raise_to_switch) { //TODO: add raise to switch backwards
 			state = PLACE_SWITCH_STATE;
-		} else if (last_state == PLACE_SCALE_STATE
-				|| last_state == PLACE_SWITCH_STATE || (last_state == POST_INTAKE_STATE && (intake->GetAngularPosition() < (intake->UP_ANGLE + 0.05)))) { //little bit of ahack but the check wont run if it only goes through this state once
+		} else if (last_state == PLACE_SCALE_STATE //will keep checking if arm is low enough to start lowering the elevator
+		|| last_state == PLACE_SWITCH_STATE
+				|| (last_state == POST_INTAKE_STATE
+						&& (intake->GetAngularPosition()
+								< (intake->UP_ANGLE + 0.05)))) { //little bit of ahack but the check wont run if it only goes through this state once
 			state = WAIT_FOR_BUTTON_STATE;
 		}
 		last_state = POST_INTAKE_STATE;
@@ -274,12 +280,13 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 
 }
 
+//TODO: add backwards shoot
 void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 		bool intake_spin_in, bool intake_spin_out, bool intake_spin_stop,
 		bool get_cube_ground, bool get_cube_station, bool post_intake,
 		bool raise_to_switch, bool raise_to_scale, bool intake_arm_up,
 		bool intake_arm_mid, bool intake_arm_down, bool elevator_up,
-		bool elevator_mid, bool elevator_down) {
+		bool elevator_mid, bool elevator_down, bool raise_to_scale_backwards) {
 
 	switch (state_a) {
 
@@ -297,7 +304,7 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 
 	case WAIT_FOR_BUTTON_STATE_A: //will look at position
 
-		SmartDashboard::PutString("STATE", "WAIT FOR BUTTON");
+		SmartDashboard::PutString("STATE", "WAIT FOR BUTTON"); //was fighting between this state and place switch
 
 		if (elevator->is_elevator_init && intake->is_init_intake) {
 			if (get_cube_ground) { //can go to all states below wfb state
@@ -396,7 +403,7 @@ void TeleopStateMachine::Initialize() {
 	intake->is_init_intake = false;
 	elevator->is_elevator_init = false;
 
-	state = INIT_STATE;
+	state = INIT_STATE; //won't initialize arm and elevator
 	state_a = INIT_STATE_A;
 
 }
@@ -470,7 +477,8 @@ void TeleopStateMachine::StateMachineWrapper(
 					(bool) *raise_to_switch, (bool) *raise_to_scale,
 					(bool) *intake_arm_up, (bool) *intake_arm_mid,
 					(bool) *intake_arm_down, (bool) *elevator_up,
-					(bool) *elevator_mid, (bool) *elevator_down);
+					(bool) *elevator_mid, (bool) *elevator_down,
+					(bool) *raise_to_scale_backwards);
 
 		}
 

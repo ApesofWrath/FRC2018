@@ -67,3 +67,18 @@ int Autonomous::GetIndex() {
 	return drive_controller->GetDriveIndex();
 
 }
+
+bool Autonomous::IsCubeReleased() {
+
+	return intake_->ReleasedCube();
+
+}
+
+bool Autonomous::IsShoot() {
+
+	if(intake_->intake_arm_state == intake_->SLOW_STATE_H && intake_->intake_arm_state == intake_->OUT_STATE_H) {
+		return true;
+	}
+	return false;
+
+}

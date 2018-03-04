@@ -20,7 +20,7 @@ double SLOW_SPEED = 0.25;
 #else
 double ff_percent_i = 0.6;
 double offset_angle = 1.75; //1.5; with the new flippy back arm
-double SLOW_SPEED = 0.25;
+double SLOW_SPEED = 0.3;
 #endif
 
 using namespace std::chrono;
@@ -172,24 +172,24 @@ void Intake::In() { //add quick out and back in
 	talonIntake1->ConfigPeakCurrentDuration(PCD_WHEELS, 0);
 	talonIntake2->ConfigPeakCurrentDuration(PCD_WHEELS, 0);
 
-	if (talonIntake1->GetOutputCurrent() >= 5.0
-			|| talonIntake2->GetOutputCurrent() >= 5.0) {
-		current_counter_first++;
-	} else {
-		current_counter_first = 0;
-		cube_in = false;
-	}
-	if (current_counter_first >= 3) {
-		cube_in = true;
-	}
+//	if (talonIntake1->GetOutputCurrent() >= 5.0
+//			|| talonIntake2->GetOutputCurrent() >= 5.0) {
+//		current_counter_first++;
+//	} else {
+//		current_counter_first = 0;
+//		cube_in = false;
+//	}
+//	if (current_counter_first >= 3) {
+//		cube_in = true;
+//	}
 
-	if (cube_in) {
+	//if (cube_in) {
 		talonIntake1->Set(ControlMode::PercentOutput, -0.95); // +2.0/12.0 maybe -0.7
 		talonIntake2->Set(ControlMode::PercentOutput, 0.95); // +2.0/12.0 maybe 0.7
-	} else {
-		talonIntake1->Set(ControlMode::PercentOutput, -0.60); // +2.0/12.0 maybe -0.7
-		talonIntake2->Set(ControlMode::PercentOutput, 0.60); // +2.0/12.0 maybe 0.7
-	}
+	//} else {
+	//	talonIntake1->Set(ControlMode::PercentOutput, -0.60); // +2.0/12.0 maybe -0.7
+	//	talonIntake2->Set(ControlMode::PercentOutput, 0.60); // +2.0/12.0 maybe 0.7
+	//}
 
 }
 
@@ -439,9 +439,11 @@ void Intake::IntakeArmStateMachine() {
 
 	case INIT_STATE:
 		SmartDashboard::PutString("INTAKE ARM", "INIT");
-		InitializeIntake();
 		if (is_init_intake) { // && GetAngularPosition() == 0.35) {
 			intake_arm_state = UP_STATE; //PUT BACK IN
+		}
+		else {
+			InitializeIntake();
 		}
 		last_intake_state = INIT_STATE;
 		break;
@@ -561,15 +563,17 @@ bool Intake::HaveCube() {
 bool Intake::ReleasedCube() {
 
 	if (intake_wheel_state == SLOW_STATE) { //out slow
-		if (talonIntake1->GetOutputCurrent() <= 4.0
-				&& talonIntake2->GetOutputCurrent() <= 4.0) {
+		if (talonIntake1->GetOutputCurrent() <= 30.0
+				&& talonIntake2->GetOutputCurrent() <= 30.0) {
 			current_counter++;
 		} else {
 			current_counter = 0;
 		}
-		if (current_counter >= 20) {
+		if (current_counter >= 1) {
+			current_counter = 0;
 			return true;
 		} else {
+			current_counter = 0;
 			return false;
 		}
 	} else {
@@ -580,8 +584,10 @@ bool Intake::ReleasedCube() {
 			current_counter = 0;
 		}
 		if (current_counter >= 10) {
+			current_counter = 0;
 			return true;
 		} else {
+			current_counter = 0;
 			return false;
 		}
 	}
