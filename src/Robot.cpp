@@ -43,6 +43,7 @@ public:
 	const int POST_INTAKE = 4;
 	const int RAISE_TO_SWITCH = 5;
 	const int RAISE_TO_SCALE = 6;
+	const int RAISE_TO_SCALE_BACKWARDS = 3;
 
 	const int INTAKE_SPIN_IN = 9; //THROTTLE
 	const int INTAKE_SPIN_OUT = 10;
@@ -59,7 +60,7 @@ public:
 	bool wait_for_button, intake_spin_in, intake_spin_out, intake_spin_stop,
 			get_cube_ground, get_cube_station, post_intake, raise_to_switch,
 			raise_to_scale, intake_arm_up, intake_arm_mid, intake_arm_down,
-			elevator_up, elevator_mid, elevator_down; //BOTH state machines
+			elevator_up, elevator_mid, elevator_down, raise_to_scale_backwards; //BOTH state machines
 
 	bool is_heading, is_vision, is_fc; //drive
 
@@ -101,8 +102,8 @@ public:
 		pdp_ = new PowerDistributionPanel(3);
 
 		drive_controller = new DriveController(); //inherits from mother class
-		intake_ = new Intake(pdp_, intake_profiler_);
 		elevator_ = new Elevator(pdp_, elevator_profiler_);
+		intake_ = new Intake(pdp_, intake_profiler_, elevator_);
 		teleop_state_machine = new TeleopStateMachine(elevator_, intake_);
 
 		joyThrottle = new Joystick(JOY_THROTTLE);
@@ -128,7 +129,7 @@ public:
 				&get_cube_ground, &get_cube_station, &post_intake,
 				&raise_to_switch, &raise_to_scale, &intake_arm_up,
 				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
-				&elevator_down);
+				&elevator_down, &raise_to_scale_backwards);
 
 #else
 #endif
@@ -177,7 +178,6 @@ public:
 		if (autoSelected == driveForward) {
 
 		} else if (autoSelected == cubeSwitch) {
-			//std::cout << "p e r" << std::endl;
 			switch_->RunStateMachine(&raise_to_switch);
 
 		} else if (autoSelected == cubeScale) {
@@ -188,7 +188,7 @@ public:
 	void TeleopInit() {
 
 		compressor_->SetClosedLoopControl(true);
-
+		teleop_state_machine->Initialize();
 		drive_controller->ZeroAll(true);
 		drive_controller->ShiftUp();
 
@@ -213,6 +213,8 @@ public:
 		post_intake = joyOp->GetRawButton(POST_INTAKE);
 		raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
 		raise_to_scale = joyOp->GetRawButton(RAISE_TO_SCALE);
+
+		raise_to_scale_backwards = joyThrottle->GetRawButton(RAISE_TO_SCALE_BACKWARDS);
 
 		intake_spin_in = joyThrottle->GetRawButton(INTAKE_SPIN_IN);
 		intake_spin_out = joyThrottle->GetRawButton(INTAKE_SPIN_OUT);

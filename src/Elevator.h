@@ -56,6 +56,7 @@ public:
 	void Move(std::vector<std::vector<double> > ref_elevator);
 	void StopElevator();
 
+	double GetVoltageElevator();
 	void SetVoltageElevator(double elevator_voltage);
 
 	void ManualElevator(Joystick *joyOpElev);

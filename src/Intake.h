@@ -19,16 +19,18 @@
 #include <list>
 #include <DigitalInput.h>
 #include <IntakeMotionProfiler.h>
+#include <Elevator.h>
 
 class Intake {
 public:
 
 	TalonSRX *talonIntake1, *talonIntake2, *talonIntakeArm;
-
 	DigitalInput *hallEffectIntake; //for bottom
 
 	std::thread IntakeThread;
 
+	const double elevator_safety_position = 0.85;
+	const double INTAKE_BACKWARDS_SOFT_LIMIT = 2.05;
 	int zeroing_counter_i = 0;
 
 	bool is_init_intake = false; //is arm initialized
@@ -39,6 +41,7 @@ public:
 	const int DOWN_STATE_H = 3;
 	const int STOP_ARM_STATE_H = 4;
 	const int SWITCH_STATE_H = 5;
+	const int SWITCH_BACK_SHOT_STATE_H = 6; //new for the flippy back arm
 	int intake_arm_state = INIT_STATE_H;
 
 	const int STOP_WHEEL_STATE_H = 0; //wheel state machine
@@ -50,9 +53,10 @@ public:
 	const double DOWN_ANGLE = 0.02; //instead of changing the offset
 	const double MID_ANGLE = 0.55;
 	const double SWITCH_ANGLE = 0.8;
-	const double UP_ANGLE = 1.4; //starting pos
+	const double UP_ANGLE = 1.4; //starting pos -> also the shooting position
+	const double BACK_SHOT_ANGLE = 2.0; // 120 ish degrees for the flippy back arm shot
 
-	Intake(PowerDistributionPanel *pdp, IntakeMotionProfiler *intake_profiler);
+	Intake(PowerDistributionPanel *pdp, IntakeMotionProfiler *intake_profiler, Elevator *el_);
 
 	void InitializeIntake();
 	void SetStartingPos(double start);

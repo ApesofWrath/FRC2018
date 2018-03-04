@@ -6,7 +6,7 @@
  */
 
 #include <Elevator.h>
-//#include "ctre/Phoenix.h"
+#include "ctre/Phoenix.h"
 #include <WPILib.h>
 
 #define PI 3.14159265
@@ -203,6 +203,12 @@ void Elevator::Move(std::vector<std::vector<double> > ref_elevator) {
 
 }
 
+double Elevator::GetVoltageElevator() {
+
+	return u_e;
+
+}
+
 void Elevator::SetVoltageElevator(double elevator_voltage) {
 
 //	int enc = talonElevator1->GetSensorCollection().GetQuadraturePosition(); //encoders return ints?
@@ -222,6 +228,13 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 
 //	SmartDashboard::PutNumber("HALL EFF BOT", is_at_bottom_e);
 //	SmartDashboard::PutNumber("HALL EFF TOP", is_at_top);
+
+//	//safety to make sure that the elevator doesn't go down when the arm is up
+//	if (intake_e->GetAngularPosition() > 1.7 && elevator_voltage < 0.0){
+//
+//		elevator_voltage = 0.0;
+//
+//	}
 
 	//upper soft limit
 	if (GetElevatorPosition() >= (0.92) && elevator_voltage > 0.0) { //at max height and still trying to move up
@@ -304,7 +317,7 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 
 	}
 
-	SmartDashboard::PutNumber("EL VOLT", elevator_voltage);
+	//SmartDashboard::PutNumber("EL VOLT", elevator_voltage);
 	///std::cout << "el volt: " << elevator_voltage << std::endl;
 
 
@@ -525,8 +538,7 @@ void Elevator::EndElevatorThread() {
 
 void Elevator::SetZeroOffsetElevator() {
 
-	position_offset_e =
-			talonElevator1->GetSensorCollection().GetQuadraturePosition();
+	position_offset_e = talonElevator1->GetSensorCollection().GetQuadraturePosition();
 }
 
 bool Elevator::ZeroEncs() {

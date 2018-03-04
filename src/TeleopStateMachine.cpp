@@ -19,6 +19,7 @@ const int GET_CUBE_STATION_STATE = 3;
 const int POST_INTAKE_STATE = 4;
 const int PLACE_SCALE_STATE = 5;
 const int PLACE_SWITCH_STATE = 6;
+const int PLACE_SCALE_BACKWARDS_STATE = 7;
 int state = INIT_STATE;
 
 int last_state = 0;
@@ -58,10 +59,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		bool get_cube_station, bool post_intake, bool raise_to_switch,
 		bool raise_to_scale, bool intake_arm_up, bool intake_arm_mid,
 		bool intake_arm_down, bool elevator_up, bool elevator_mid,
-		bool elevator_down) {
-
-//	SmartDashboard::PutBoolean("state intake arm", state_intake_arm);
-//	SmartDashboard::PutBoolean("intake arm up", intake_arm_up);
+		bool elevator_down, bool raise_to_scale_backwards) {
 
 	if (wait_for_button) { //can always return to wait for button state
 		state = WAIT_FOR_BUTTON_STATE;
@@ -85,19 +83,17 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 	if (intake_arm_up) {
 		state_intake_arm = false;
 		intake->intake_arm_state = intake->UP_STATE_H;
-		intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H; //will never not need this //ADD MORE OF THEESE
+		intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
 	} else if (intake_arm_mid) {
 		state_intake_arm = false;
 		intake->intake_arm_state = intake->MID_STATE_H;
-		//intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H; //will never not need this
 	} else if (intake_arm_down) {
 		state_intake_arm = false;
 		intake->intake_arm_state = intake->DOWN_STATE_H;
 	} else {
 		state_intake_arm = true;
 	}
-
-	//state_intake_arm = true;
+//TODO: add manual for intake all the way back
 
 	//elevator
 	if (elevator_up) {
@@ -140,6 +136,8 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 			state = PLACE_SCALE_STATE;
 		} else if (raise_to_switch) {
 			state = PLACE_SWITCH_STATE;
+		} else if (raise_to_scale_backwards) {
+			state = PLACE_SCALE_BACKWARDS_STATE;
 		}
 		last_state = WAIT_FOR_BUTTON_STATE;
 		break;
@@ -148,19 +146,14 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 
 		SmartDashboard::PutString("STATE", "GET CUBE GROUND");
 
-		//std::cout << "state intake " << state_intake_arm << std::endl;
 		if (state_elevator) {
 			elevator->elevator_state = elevator->DOWN_STATE_E_H;
-			//SmartDashboard::PutBoolean("state elevator", state_elevator);
 		}
 		if (state_intake_wheel) {
 			intake->intake_wheel_state = intake->IN_STATE_H;
-			//SmartDashboard::PutBoolean("state wheel", state_intake_wheel);
 		}
 		if (state_intake_arm) {
 			intake->intake_arm_state = 3;
-//			std::cout << "intake arm state: " << intake->intake_arm_state
-//					<< std::endl;
 		}
 		if (intake->HaveCube() || post_intake) {
 			state = POST_INTAKE_STATE;
@@ -188,11 +181,13 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		break;
 
 	case POST_INTAKE_STATE: //have cube, waiting to place cube
-		if (state_elevator) {
+		if (state_elevator && (intake->GetAngularPosition() < (intake->UP_ANGLE + 0.05))) { //last_state == PLACE_SCALE_BACKWARDS_STATE && dont need this in the check since it will only be true the first time
 			elevator->elevator_state = elevator->DOWN_STATE_E_H;
 		}
+//		else if (state_elevator) {
+//			elevator->elevator_state = elevator->DOWN_STATE_E_H;
+//		}
 		if (state_intake_arm) {
-			//std::cout << "uP /state " << std::endl;
 			intake->intake_arm_state = intake->UP_STATE_H;
 		}
 		if (state_intake_wheel) {
@@ -200,10 +195,10 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		}
 		if (raise_to_scale) { //go to place from this state, return to this state after placing and then wfb
 			state = PLACE_SCALE_STATE;
-		} else if (raise_to_switch) {
+		} else if (raise_to_switch) { //TODO: add raise to switch backwards
 			state = PLACE_SWITCH_STATE;
 		} else if (last_state == PLACE_SCALE_STATE
-				|| last_state == PLACE_SWITCH_STATE) {
+				|| last_state == PLACE_SWITCH_STATE || (last_state == POST_INTAKE_STATE && (intake->GetAngularPosition() < (intake->UP_ANGLE + 0.05)))) { //little bit of ahack but the check wont run if it only goes through this state once
 			state = WAIT_FOR_BUTTON_STATE;
 		}
 		last_state = POST_INTAKE_STATE;
@@ -212,7 +207,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 
 	case PLACE_SCALE_STATE:
 
-		SmartDashboard::PutString("STATE", "SCALE");
+		SmartDashboard::PutString("STATE", "SCALE FORWARDS");
 
 		if (state_intake_arm) {
 			intake->intake_arm_state = intake->UP_STATE_H;
@@ -228,6 +223,31 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		}
 		last_state = PLACE_SCALE_STATE;
 		//stay in this state when spitting cube, then return to WFB
+		break;
+
+	case PLACE_SCALE_BACKWARDS_STATE:
+
+		SmartDashboard::PutString("STATE", "SCALE BACKWARDS");
+
+		if (state_intake_arm && elevator->GetElevatorPosition() >= .85) { //move to the flippy angle when safe
+			intake->intake_arm_state = intake->SWITCH_BACK_SHOT_STATE_H;
+		} else if (state_intake_arm && elevator->GetElevatorPosition() < .85) { //move to normal up angle if not safe to go all the way to flippy angle
+			intake->intake_arm_state = intake->UP_STATE_H;
+		}
+
+		if (state_elevator) {
+			elevator->elevator_state = elevator->UP_STATE_E_H;
+		}
+		if (elevator->GetElevatorPosition() >= 0.85
+				&& intake->GetAngularPosition() > 1.98 && state_intake_wheel) { //shoot if the height of the elevator and the angle of the arm is good enough
+			intake->intake_wheel_state = intake->OUT_STATE_H;
+			if (intake->ReleasedCube()) {
+				state = POST_INTAKE_STATE;
+			}
+		}
+
+		last_state = PLACE_SCALE_BACKWARDS_STATE;
+
 		break;
 
 	case PLACE_SWITCH_STATE:
@@ -377,6 +397,7 @@ void TeleopStateMachine::Initialize() {
 	elevator->is_elevator_init = false;
 
 	state = INIT_STATE;
+	state_a = INIT_STATE_A;
 
 }
 
@@ -385,14 +406,16 @@ void TeleopStateMachine::StartStateMachineThread(bool *wait_for_button,
 		bool *get_cube_ground, bool *get_cube_station, bool *post_intake,
 		bool *raise_to_switch, bool *raise_to_scale, bool *intake_arm_up,
 		bool *intake_arm_mid, bool *intake_arm_down, bool *elevator_up,
-		bool *elevator_mid, bool *elevator_down) {
+		bool *elevator_mid, bool *elevator_down,
+		bool *raise_to_scale_backwards) {
 
 	TeleopStateMachine *tsm = this;
 	StateMachineThread = std::thread(&TeleopStateMachine::StateMachineWrapper,
 			tsm, wait_for_button, intake_spin_in, intake_spin_out,
 			intake_spin_stop, get_cube_ground, get_cube_station, post_intake,
 			raise_to_switch, raise_to_scale, intake_arm_up, intake_arm_mid,
-			intake_arm_down, elevator_up, elevator_mid, elevator_down);
+			intake_arm_down, elevator_up, elevator_mid, elevator_down,
+			raise_to_scale_backwards);
 	StateMachineThread.detach();
 
 }
@@ -403,7 +426,8 @@ void TeleopStateMachine::StateMachineWrapper(
 		bool *get_cube_ground, bool *get_cube_station, bool *post_intake,
 		bool *raise_to_switch, bool *raise_to_scale, bool *intake_arm_up,
 		bool *intake_arm_mid, bool *intake_arm_down, bool *elevator_up,
-		bool *elevator_mid, bool *elevator_down) {
+		bool *elevator_mid, bool *elevator_down,
+		bool *raise_to_scale_backwards) {
 
 	teleopTimer->Start();
 
@@ -425,7 +449,8 @@ void TeleopStateMachine::StateMachineWrapper(
 					(bool) *raise_to_switch, (bool) *raise_to_scale,
 					(bool) *intake_arm_up, (bool) *intake_arm_mid,
 					(bool) *intake_arm_down, (bool) *elevator_up,
-					(bool) *elevator_mid, (bool) *elevator_down);
+					(bool) *elevator_mid, (bool) *elevator_down,
+					(bool) *raise_to_scale_backwards);
 
 		}
 
