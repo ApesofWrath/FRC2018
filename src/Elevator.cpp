@@ -70,8 +70,6 @@ std::vector<std::vector<double> > error_e = { { 0.0 }, { 0.0 } };
 
 ElevatorMotionProfiler *elevator_profiler;
 
-Intake *intake_e;
-
 Timer *elevatorTimer = new Timer();
 
 bool is_at_bottom_e = false;
@@ -85,9 +83,7 @@ int init_counter = 0;
 int encoder_counter_e = 0;
 
 Elevator::Elevator(PowerDistributionPanel *pdp,
-		ElevatorMotionProfiler *elevator_profiler_, Intake *in_) {
-
-	intake_e = in_;
+		ElevatorMotionProfiler *elevator_profiler_) {
 
 	hallEffectTop = new DigitalInput(2);
 	hallEffectBottom = new DigitalInput(1);
@@ -207,6 +203,12 @@ void Elevator::Move(std::vector<std::vector<double> > ref_elevator) {
 
 }
 
+double Elevator::GetVoltageElevator() {
+
+	return u_e;
+
+}
+
 void Elevator::SetVoltageElevator(double elevator_voltage) {
 
 //	int enc = talonElevator1->GetSensorCollection().GetQuadraturePosition(); //encoders return ints?
@@ -227,12 +229,12 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 //	SmartDashboard::PutNumber("HALL EFF BOT", is_at_bottom_e);
 //	SmartDashboard::PutNumber("HALL EFF TOP", is_at_top);
 
-	//safety to make sure that the elevator doesn't go down when the arm is up
-	if (intake_e->GetAngularPosition() > 1.7 && elevator_voltage < 0.0){
-
-		elevator_voltage = 0.0;
-
-	}
+//	//safety to make sure that the elevator doesn't go down when the arm is up
+//	if (intake_e->GetAngularPosition() > 1.7 && elevator_voltage < 0.0){
+//
+//		elevator_voltage = 0.0;
+//
+//	}
 
 	//upper soft limit
 	if (GetElevatorPosition() >= (0.92) && elevator_voltage > 0.0) { //at max height and still trying to move up
@@ -315,7 +317,7 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 
 	}
 
-	SmartDashboard::PutNumber("EL VOLT", elevator_voltage);
+	//SmartDashboard::PutNumber("EL VOLT", elevator_voltage);
 	///std::cout << "el volt: " << elevator_voltage << std::endl;
 
 

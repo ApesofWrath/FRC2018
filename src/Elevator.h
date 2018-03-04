@@ -15,12 +15,11 @@
 #include <chrono>
 #include <Timer.h>
 #include <thread>
-#include <Intake.h>
 
 class Elevator {
 public:
 
-	Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_, Intake *in);
+	Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_);
 
 	TalonSRX *talonElevator1, *talonElevator2;
 
@@ -57,6 +56,7 @@ public:
 	void Move(std::vector<std::vector<double> > ref_elevator);
 	void StopElevator();
 
+	double GetVoltageElevator();
 	void SetVoltageElevator(double elevator_voltage);
 
 	void ManualElevator(Joystick *joyOpElev);

@@ -19,7 +19,7 @@ double offset_angle = 1.65;
 double SLOW_SPEED = 0.25;
 #else
 double ff_percent_i = 0.6;
-double offset_angle = 1.6; //1.5; with the new flippy back arm
+double offset_angle = 1.75; //1.5; with the new flippy back arm
 double SLOW_SPEED = 0.25;
 #endif
 
@@ -115,14 +115,10 @@ Intake::Intake(PowerDistributionPanel *pdp,
 
 	elevator_i = el_;
 
-//	intake_profiler->SetMaxAccIntake(MAX_ACCELERATION_I);
-//	intake_profiler->SetMaxVelIntake(MAX_VELOCITY_I);
-
 	hallEffectIntake = new DigitalInput(0);
 
 	talonIntake1 = new TalonSRX(17);
 	talonIntake2 = new TalonSRX(25);
-	//talonIntake2->Set(ControlMode::Follower, 2);
 
 	talonIntake1->EnableCurrentLimit(true);
 	talonIntake2->EnableCurrentLimit(true);
@@ -155,14 +151,9 @@ void Intake::SetStartingPos(double start) { //not used
 
 void Intake::InitializeIntake() {
 
-	if (!is_init_intake) { //this has to be here for some reason
-		//if (GetAngularPosition() < (starting_pos - 0.5)) {
+	if (!is_init_intake) {
 		SetVoltageIntake(2.5); //offset is changed accordingly
-		//} else {
-		//	SetVoltageIntake(-6.0);
-		//}
 
-		//SetVoltageIntake(0.5);
 	}
 
 }
@@ -311,7 +302,7 @@ void Intake::SetVoltageIntake(double voltage_i) {
 
 	//is_at_bottom = IsAtBottomIntake(); //hall effect returns 0 when at bottom. we reverse it here
 
-	//soft limit //TODO: make the top height lower after we have initialize
+	//soft limit
 	if (elevator_i->GetElevatorPosition() < elevator_safety_position) {
 		if (GetAngularPosition() >= (1.6) && voltage_i > 0.0
 				&& is_init_intake) { //at max height and still trying to move up //no upper soft limit when initializing
@@ -319,66 +310,66 @@ void Intake::SetVoltageIntake(double voltage_i) {
 			SmartDashboard::PutString("INTAKE SAFETY", "top soft limit");
 		}
 	} else {
-
-
-		if (GetAngularPosition() >= (INTAKE_BACKWARDS_SOFT_LIMIT) && voltage_i > 0.0
-				&& is_init_intake) { //at max height and still trying to move up //no upper soft limit when initializing
+		if (GetAngularPosition() >= (INTAKE_BACKWARDS_SOFT_LIMIT)
+				&& voltage_i > 0.0 && is_init_intake) { //at max height and still trying to move up //no upper soft limit when initializing
 			voltage_i = 0.0; //shouldn't crash
 			SmartDashboard::PutString("INTAKE SAFETY", "top soft limit");
-
 		}
 	}
 
+	//safety to make sure that the elevator doesn't go down when the arm is up
+	if (GetAngularPosition() > 1.7 && elevator_i->GetVoltageElevator() < 0.0) { //checking and changing u_e
+		elevator_i->SetVoltageElevator(0.0);
+	}
+
 //	if (is_at_bottom) {
-		if (talonIntakeArm->GetOutputCurrent() > 2.0) {
-			counter_i++;
-			if (counter_i > 0) {
-				if (ZeroEnc()) { //successfully zeroed enc one time
-					is_init_intake = true;
-				}
+	if (talonIntakeArm->GetOutputCurrent() > 3.0) {
+		counter_i++;
+		if (counter_i > 1) {
+			if (ZeroEnc()) { //successfully zeroed enc one time
+				is_init_intake = true;
 			}
-		} else {
-			counter_i = 0;
 		}
-		if (voltage_i < 0.0 && GetAngularPosition() < -0.1) {
-			voltage_i = 0.0;
-			SmartDashboard::PutString("INTAKE SAFETY", "bottom soft limit");
-		}
+	} else {
+		counter_i = 0;
+	}
+	if (voltage_i < 0.0 && GetAngularPosition() < -0.1) {
+		voltage_i = 0.0;
+		SmartDashboard::PutString("INTAKE SAFETY", "bottom soft limit");
+	}
 
-		//voltage limit
-		if (voltage_i > MAX_VOLTAGE_I) {
-			voltage_i = MAX_VOLTAGE_I;
-		} else if (voltage_i < MIN_VOLTAGE_I) {
-			voltage_i = MIN_VOLTAGE_I;
-		}
+	//voltage limit
+	if (voltage_i > MAX_VOLTAGE_I) {
+		voltage_i = MAX_VOLTAGE_I;
+	} else if (voltage_i < MIN_VOLTAGE_I) {
+		voltage_i = MIN_VOLTAGE_I;
+	}
 
-		if (std::abs(GetAngularVelocity()) <= 0.05
-				&& std::abs(voltage_i) > 3.0) { //outputting current, not moving, should be moving
-			encoder_counter++;
-			//std::cout << "VEL: " << GetAngularVelocity() << "  VOLT: " << voltage_i << std::endl;
-		} else {
-			encoder_counter = 0;
-		}
+	if (std::abs(GetAngularVelocity()) <= 0.05 && std::abs(voltage_i) > 3.0) { //outputting current, not moving, should be moving
+		encoder_counter++;
+		//std::cout << "VEL: " << GetAngularVelocity() << "  VOLT: " << voltage_i << std::endl;
+	} else {
+		encoder_counter = 0;
+	}
 
-		if (encoder_counter > 10) { //10
-			voltage_safety = true;
-		} else {
-			voltage_safety = false;
-		}
+	if (encoder_counter > 10) { //10
+		voltage_safety = true;
+	} else {
+		voltage_safety = false;
+	}
 
-		if (voltage_safety) {
-			SmartDashboard::PutString("INTAKE SAFETY", "stall");
-			voltage_i = 0.0;
-		}
+	if (voltage_safety) {
+		SmartDashboard::PutString("INTAKE SAFETY", "stall");
+		voltage_i = 0.0;
+	}
 
-		//SmartDashboard::PutNumber("INTAKE VOLT", voltage_i);
+	//SmartDashboard::PutNumber("INTAKE VOLT", voltage_i);
 
-		voltage_i /= 12.0; //scale from -1 to 1 for the talon
+	voltage_i /= 12.0; //scale from -1 to 1 for the talon
 
-		voltage_i *= -1.0; //set AT END
+	voltage_i *= -1.0; //set AT END
 
-		talonIntakeArm->Set(ControlMode::PercentOutput, voltage_i);
-
+	talonIntakeArm->Set(ControlMode::PercentOutput, voltage_i);
 
 }
 
@@ -387,8 +378,8 @@ double Intake::GetAngularVelocity() {
 	//Native vel units are in ticks per 100ms so divide by TICKS_PER_ROT to get rotations per 100ms then multiply 10 to get per second
 	//multiply by 2pi to get into radians per second (2pi radians are in one revolution)
 	double ang_vel =
-	(talonIntakeArm->GetSensorCollection().GetQuadratureVelocity()
-			/ (TICKS_PER_ROT_I)) * (2.0 * PI) * (10.0) * -1.0;
+			(talonIntakeArm->GetSensorCollection().GetQuadratureVelocity()
+					/ (TICKS_PER_ROT_I)) * (2.0 * PI) * (10.0) * -1.0;
 	//double ang_vel = 0.0;
 
 	return ang_vel;
@@ -402,8 +393,8 @@ double Intake::GetAngularPosition() {
 	double ang_pos =
 
 	((talonIntakeArm->GetSensorCollection().GetQuadraturePosition()
-					- position_offset)//position offset
-			/ (TICKS_PER_ROT_I)) * (2.0 * PI) * -1.0;
+			- position_offset)	//position offset
+	/ (TICKS_PER_ROT_I)) * (2.0 * PI) * -1.0;
 	//double ang_pos = 0.0;
 
 	//double offset_angle = 1.5; //amount that the arm will stick up in radians// the top angle. greater offset = lower 0
@@ -446,26 +437,26 @@ void Intake::IntakeArmStateMachine() {
 
 	switch (intake_arm_state) {
 
-		case INIT_STATE:
+	case INIT_STATE:
 		SmartDashboard::PutString("INTAKE ARM", "INIT");
 		InitializeIntake();
 		if (is_init_intake) { // && GetAngularPosition() == 0.35) {
-			intake_arm_state = UP_STATE;//PUT BACK IN
+			intake_arm_state = UP_STATE; //PUT BACK IN
 		}
 		last_intake_state = INIT_STATE;
 		break;
 
-		case UP_STATE:
+	case UP_STATE:
 		SmartDashboard::PutString("INTAKE ARM", "UP");
 		//	SmartDashboard::PutString("actually in up state", "yep");
 		if (last_intake_state != UP_STATE) { //first time in state
-			intake_profiler->SetFinalGoalIntake(UP_ANGLE);//is 0.0 for testing
-			intake_profiler->SetInitPosIntake(GetAngularPosition());//is 0
+			intake_profiler->SetFinalGoalIntake(UP_ANGLE); //is 0.0 for testing
+			intake_profiler->SetInitPosIntake(GetAngularPosition()); //is 0
 		}
 		last_intake_state = UP_STATE;
 		break;
 
-		case MID_STATE:
+	case MID_STATE:
 		SmartDashboard::PutString("INTAKE ARM", "MID");
 		if (last_intake_state != MID_STATE) {
 			intake_profiler->SetFinalGoalIntake(MID_ANGLE);
@@ -474,7 +465,7 @@ void Intake::IntakeArmStateMachine() {
 		last_intake_state = MID_STATE;
 		break;
 
-		case DOWN_STATE:
+	case DOWN_STATE:
 		SmartDashboard::PutString("INTAKE ARM", "DOWN");
 		if (last_intake_state != DOWN_STATE) {
 			intake_profiler->SetFinalGoalIntake(DOWN_ANGLE);
@@ -483,13 +474,13 @@ void Intake::IntakeArmStateMachine() {
 		last_intake_state = DOWN_STATE;
 		break;
 
-		case STOP_ARM_STATE: //for emergencies
+	case STOP_ARM_STATE: //for emergencies
 		SmartDashboard::PutString("INTAKE ARM", "STOP");
 		StopArm();
 		last_intake_state = STOP_ARM_STATE;
 		break;
 
-		case SWITCH_BACK_SHOT_STATE:
+	case SWITCH_BACK_SHOT_STATE:
 		SmartDashboard::PutString("INTAKE ARM", "DOWN");
 		if (last_intake_state != SWITCH_BACK_SHOT_STATE) {
 			intake_profiler->SetFinalGoalIntake(BACK_SHOT_ANGLE);
@@ -498,7 +489,7 @@ void Intake::IntakeArmStateMachine() {
 		last_intake_state = SWITCH_BACK_SHOT_STATE;
 		break;
 
-		case SWITCH_STATE:
+	case SWITCH_STATE:
 		SmartDashboard::PutString("INTAKE ARM", "SWITCH");
 		if (last_intake_state != SWITCH_STATE) {
 			intake_profiler->SetFinalGoalIntake(SWITCH_ANGLE);
@@ -518,23 +509,23 @@ void Intake::IntakeWheelStateMachine() {
 
 	switch (intake_wheel_state) {
 
-		case STOP_WHEEL_STATE: //has offset, not actually stopped
+	case STOP_WHEEL_STATE: //has offset, not actually stopped
 		SmartDashboard::PutString("INTAKE WHEEL", "STOP");
 		StopWheels();
 		break;
 
-		case IN_STATE:
+	case IN_STATE:
 		SmartDashboard::PutString("INTAKE WHEEL", "IN");
 		In();
 		break;
 
-		case OUT_STATE:
+	case OUT_STATE:
 		SmartDashboard::PutString("INTAKE WHEEL", "OUT");
 		//std::cout << "out state" << std::endl;
 		Out();
 		break;
 
-		case SLOW_STATE:
+	case SLOW_STATE:
 		SmartDashboard::PutString("INTAKE WHEEL", "SLOW");
 		Slow();
 		break;
@@ -569,7 +560,7 @@ bool Intake::HaveCube() {
 
 bool Intake::ReleasedCube() {
 
-	if (intake_wheel_state == SLOW_STATE) {
+	if (intake_wheel_state == SLOW_STATE) { //out slow
 		if (talonIntake1->GetOutputCurrent() <= 4.0
 				&& talonIntake2->GetOutputCurrent() <= 4.0) {
 			current_counter++;
@@ -588,7 +579,7 @@ bool Intake::ReleasedCube() {
 		} else {
 			current_counter = 0;
 		}
-		if (current_counter >= 15) {
+		if (current_counter >= 10) {
 			return true;
 		} else {
 			return false;
@@ -600,7 +591,7 @@ bool Intake::ReleasedCube() {
 void Intake::SetZeroOffset() {
 
 	position_offset =
-	(talonIntakeArm->GetSensorCollection().GetQuadraturePosition());
+			(talonIntakeArm->GetSensorCollection().GetQuadraturePosition());
 }
 
 bool Intake::ZeroEnc() { //called in Initialize() and in SetVoltage()
@@ -638,7 +629,7 @@ void Intake::IntakeWrapper(Intake *in) {
 		if (frc::RobotState::IsEnabled()) {
 
 			std::vector<std::vector<double>> profile_intake =
-			intake_profiler->GetNextRefIntake();
+					intake_profiler->GetNextRefIntake();
 
 			if (in->intake_arm_state != STOP_ARM_STATE
 					&& in->intake_arm_state != INIT_STATE) {
