@@ -177,7 +177,7 @@ public:
 		if (autoSelected == driveForward) {
 
 		} else if (autoSelected == cubeSwitch) {
-			std::cout << "p e r" << std::endl;
+			//std::cout << "p e r" << std::endl;
 			switch_->RunStateMachine(&raise_to_switch);
 
 		} else if (autoSelected == cubeScale) {

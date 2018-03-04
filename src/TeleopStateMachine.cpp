@@ -264,12 +264,14 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 	switch (state_a) {
 
 	case INIT_STATE_A:
-
+		//this always has to run only once
 		SmartDashboard::PutString("STATE", "INIT");
 		elevator->elevator_state = elevator->INIT_STATE_E_H;
 		intake->intake_arm_state = intake->INIT_STATE_H;
 		intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
+		//	if (elevator->elevator_state == elevator->DOWN_STATE_E_H && intake->intake_arm_state == intake->UP_STATE_H) { //this check is very important: nothing should happen until everything has initialized
 		state_a = WAIT_FOR_BUTTON_STATE_A;
+		//	}
 		last_state_a = INIT_STATE_A;
 		break;
 
@@ -277,16 +279,18 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 
 		SmartDashboard::PutString("STATE", "WAIT FOR BUTTON");
 
-		if (get_cube_ground) { //can go to all states below wfb state
-			state_a = GET_CUBE_GROUND_STATE_A;
-		} else if (get_cube_station) {
-			state_a = GET_CUBE_STATION_STATE_A;
-		} else if (post_intake) {
-			state_a = POST_INTAKE_STATE_A;
-		} else if (raise_to_scale) { //should not need to go from wfb state to a raise state, but in case
-			state_a = PLACE_SCALE_STATE_A;
-		} else if (raise_to_switch) {
-			state_a = PLACE_SWITCH_STATE_A;
+		if (elevator->is_elevator_init && intake->is_init_intake) {
+			if (get_cube_ground) { //can go to all states below wfb state
+				state_a = GET_CUBE_GROUND_STATE_A;
+			} else if (get_cube_station) {
+				state_a = GET_CUBE_STATION_STATE_A;
+			} else if (post_intake) {
+				state_a = POST_INTAKE_STATE_A;
+			} else if (raise_to_scale) { //should not need to go from wfb state to a raise state, but in case
+				state_a = PLACE_SCALE_STATE_A;
+			} else if (raise_to_switch) {
+				state_a = PLACE_SWITCH_STATE_A;
+			}
 		}
 		last_state_a = WAIT_FOR_BUTTON_STATE_A;
 		break;
@@ -354,7 +358,7 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 		if (std::abs(intake->GetAngularPosition() - intake->MID_ANGLE) <= 0.2) { //start shooting when high enough
 			intake->intake_wheel_state = intake->SLOW_STATE_H;
 			if (intake->ReleasedCube()) {
-				state_a = POST_INTAKE_STATE_A;
+				//state_a = POST_INTAKE_STATE_A;
 			}
 		}
 		last_state_a = PLACE_SWITCH_STATE_A;
@@ -428,7 +432,7 @@ void TeleopStateMachine::StateMachineWrapper(
 		else if (frc::RobotState::IsEnabled()
 				&& frc::RobotState::IsAutonomous()) {
 
-			std::cout << "Auton thread" << std::endl;
+			//std::cout << "Auton thread" << std::endl;
 
 			intake->IntakeArmStateMachine();
 			intake->IntakeWheelStateMachine();

@@ -19,7 +19,7 @@ void DriveForward::GenerateForward() {
 
 	//feet
 	Waypoint p1 = { 0.0, 0.0, 0.0 };
-	Waypoint p2 = { 10.0, 0.2, 0.0 };
+	Waypoint p2 = { 1.0, 0.2, 0.0 }; //10
 
 	points[0] = p1;
 	points[1] = p2;

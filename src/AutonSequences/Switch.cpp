@@ -19,7 +19,7 @@ void Switch::GenerateSwitch(bool left) { //left center right
 
 	//feet
 	Waypoint p1 = { 0.0, 0.0, 0.0 }; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
-	Waypoint p2 = {  5.0, 10.0, PI/2.0 };
+	Waypoint p2 = {  1.0, 0.2, 0.0 };
 	//Waypoint p3 = { 5.0, 5.0, 0.0 }; //cannot just move in Y axis because of spline math
 	//Waypoint p3 = { 10.0, 0.0, 0.0 }; //cannot just move in Y axis because of spline math
 
@@ -80,8 +80,8 @@ void Switch::RunStateMachine(bool *place_switch) {
 
 	std::cout << "CHANGE THE BOOL" << std::endl;
 
-	if(GetLeftPos() == 0.0) {
-		*place_switch = true;
+	if(GetLeftPos() == GetLeftPos()) {
+		*place_switch = true; //must run once initialized!
 	}
 	else {
 		*place_switch = false;

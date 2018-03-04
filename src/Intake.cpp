@@ -19,7 +19,7 @@ double offset_angle = 1.65;
 double SLOW_SPEED = 0.25;
 #else
 double ff_percent_i = 0.6;
-double offset_angle = 1.5;
+double offset_angle = PI/2.0;
 double SLOW_SPEED = 0.25;
 #endif
 
@@ -154,7 +154,7 @@ void Intake::InitializeIntake() {
 
 	if (!is_init_intake) { //this has to be here for some reason
 		//if (GetAngularPosition() < (starting_pos - 0.5)) {
-		SetVoltageIntake(2.0); //offset is changed accordingly
+		SetVoltageIntake(2.5); //offset is changed accordingly
 		//} else {
 		//	SetVoltageIntake(-6.0);
 		//}
@@ -314,10 +314,12 @@ void Intake::SetVoltageIntake(double voltage_i) {
 		SmartDashboard::PutString("INTAKE SAFETY", "top soft limit");
 	}
 
+	SmartDashboard::PutNumber("IA C", talonIntakeArm->GetOutputCurrent());
+
 //	if (is_at_bottom) {
-	if (talonIntakeArm->GetOutputCurrent() > 2.0) {
+	if (talonIntakeArm->GetOutputCurrent() > 3.0) {
 		counter_i++;
-		if (counter_i > 0) {
+		if (counter_i > 1) {
 			if (ZeroEnc()) { //successfully zeroed enc one time
 				is_init_intake = true;
 			}

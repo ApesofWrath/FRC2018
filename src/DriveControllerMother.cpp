@@ -729,6 +729,7 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 
 	SmartDashboard::PutNumber("refLeft", refLeft);
 	SmartDashboard::PutNumber("refRight", refRight);
+	SmartDashboard::PutNumber("refYaw", refYaw);
 
 //	std::cout << "yep " << refYaw << "  " << refLeft << "  " << refRight << "  "
 //			<< targetYawRate << "  " << tarVelLeft << "   " << tarVelRight
@@ -762,6 +763,8 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	//SmartDashboard::PutNumber("POS", l_dis);
 
 	double y_dis = -1.0 * ahrs->GetYaw() * (double) (PI / 180); //current theta (yaw) value
+
+	SmartDashboard::PutNumber("actualYaw", y_dis);
 
 	l_error_dis_au = refLeft - l_dis;
 	r_error_dis_au = refRight - r_dis;
@@ -1104,7 +1107,7 @@ double DriveControllerMother::GetLeftPosition() {
 	double l_dis = (((double) canTalonLeft1->GetSelectedSensorPosition(0)
 			/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
 
-	return l_dis;
+	return 0.0;
 
 }
 
@@ -1147,7 +1150,7 @@ void DriveControllerMother::DriveWrapper(Joystick *JoyThrottle,
 		else if (frc::RobotState::IsEnabled() && frc::RobotState::IsAutonomous()
 				&& set_profile) {
 
-			std::cout << "Auton drive" << std::endl;
+			//std::cout << "Auton drive" << std::endl;
 
 			//put in profile //was finishing the for loop before we got a profile
 			for (int i = 0; i < auton_profile[0].size(); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs

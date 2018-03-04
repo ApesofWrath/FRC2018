@@ -132,7 +132,7 @@ void Elevator::InitializeElevator() {
 	}
 
 
-	SmartDashboard::PutString("init elev", "yes");
+	//SmartDashboard::PutString("init elev", "yes");
 
 	//double up_volt = (0.2 * -1.0) / pdp_e->GetVoltage(); //to not crash down
 	//talonElevator1->Set(ControlMode::PercentOutput, up_volt);
@@ -399,7 +399,7 @@ void Elevator::ManualElevator(Joystick *joyOpElev) {
 
 void Elevator::ElevatorStateMachine() {
 
-	SmartDashboard::PutString("sm el", "yes");
+//	SmartDashboard::PutString("sm el", "yes");
 
 //	SmartDashboard::PutNumber("ELEVATOR VEL", GetElevatorVelocity());
 
