@@ -221,7 +221,9 @@ public:
 //		} else if (autoSelected == cubeSwitch) {
 		//switch_->RunStateMachine(&raise_to_switch);
 
-		scale_->RunStateMachine(&raise_to_scale_backwards);
+		std::cout << "AUTON PERIODIC" << std::endl;
+
+		scale_->RunStateMachine(&raise_to_scale_backwards, &raise_to_switch, &get_cube_ground);
 
 //		} else if (autoSelected == cubeScale) {
 //

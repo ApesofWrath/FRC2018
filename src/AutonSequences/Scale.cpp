@@ -61,27 +61,35 @@ void Scale::GenerateScale(bool left, bool switch_left) { //left center right //l
 		Segment sl = leftTrajectory[l];
 		Segment sr = rightTrajectory[l];
 
-		full_refs_sc.at(l).at(0) = ((double) sl.heading) - PI; //profile tries to turn robot around and go straight, in order to go backwards
-		full_refs_sc.at(l).at(1) = -((double) sl.position);
-		full_refs_sc.at(l).at(2) = -((double) sr.position);
+		full_refs_sc.at(l).at(0) = ((double) sl.heading); //profile tries to turn robot around and go straight, in order to go backwards
+		full_refs_sc.at(l).at(1) = ((double) sl.position);
+		full_refs_sc.at(l).at(2) = ((double) sr.position); //couldn't just reverse these
 		full_refs_sc.at(l).at(3) = (0.0);
-		full_refs_sc.at(l).at(4) = -((double) sl.velocity);
-		full_refs_sc.at(l).at(5) = -((double) sr.velocity);
+		full_refs_sc.at(l).at(4) = ((double) sl.velocity);
+		full_refs_sc.at(l).at(5) = ((double) sr.velocity);
+
+//		full_refs_sc.at(l).at(0) = ((double) sl.heading) - PI; //profile tries to turn robot around and go straight, in order to go backwards
+//		full_refs_sc.at(l).at(1) = -((double) sl.position);
+//		full_refs_sc.at(l).at(2) = -((double) sr.position);
+//		full_refs_sc.at(l).at(3) = (0.0);
+//		full_refs_sc.at(l).at(4) = -((double) sl.velocity);
+//		full_refs_sc.at(l).at(5) = -((double) sr.velocity);
 
 		if (l >= length) { //still have more in the 1500 allotted points
-			if (switch_left) {
-				GenerateAddedSwitch(true);
-			} else {
+//			if (switch_left) {
+//				GenerateAddedSwitch(true);
+//			} else {
 				full_refs_sc.at(l).at(0) = full_refs_sc.at(l - 1).at(0);
 				full_refs_sc.at(l).at(1) = full_refs_sc.at(l - 1).at(1);
 				full_refs_sc.at(l).at(2) = full_refs_sc.at(l - 1).at(2);
 				full_refs_sc.at(l).at(3) = full_refs_sc.at(l - 1).at(3);
 				full_refs_sc.at(l).at(4) = full_refs_sc.at(l - 1).at(4);
 				full_refs_sc.at(l).at(5) = full_refs_sc.at(l - 1).at(5);
-			}
+			//}
 		}
 	}
 
+	//std::cout << "MADE IT PAST CREATING PROFILES" << std::endl;
 	//SmartDashboard::PutNumber("length", length);
 
 	FillProfile(full_refs_sc);
@@ -156,7 +164,7 @@ void Scale::GenerateAddedSwitch(bool left) { //new trajectory so that old spline
 
 }
 
-void Scale::RunStateMachine(bool *place_scale) {
+void Scale::RunStateMachine(bool *place_scale, bool *place_switch, bool *get_cube_ground) {
 
 //no other state machine booleans needed, all other ones will stay false
 
@@ -165,8 +173,16 @@ void Scale::RunStateMachine(bool *place_scale) {
 		if (!StartedShoot()) { //still need to change this to be reusable
 			*place_scale = true; //must run once initialized!
 		}
-	} else {
-		*place_scale = false;
+		else {
+			*place_scale = false;
+		}
+		if(IsCubeReleased()) {
+			*get_cube_ground = true;
+		}
+
+		if(GetIndex() >= (scale_traj_len + added_switch_len)) {
+			*place_switch = true;
+		}
 	}
 
 }
