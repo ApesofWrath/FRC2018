@@ -723,12 +723,14 @@ void DriveControllerMother::RotationController(Joystick *JoyWheel) {
 //auton targets, actually just pd
 void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw vel, left vel, right vel
 
-	double refYaw = drive_ref.at(0) - PI; //reversed in Generate
-	double refLeft = -1.0 * drive_ref.at(1);
-	double refRight = -1.0 * drive_ref.at(2);
+	double refYaw = drive_ref.at(0); //reversed in Generate
+	double refLeft = drive_ref.at(1);
+	double refRight = drive_ref.at(2);
 	double targetYawRate = drive_ref.at(3); //0 for now
-	double tarVelLeft = -1.0 * drive_ref.at(4);
-	double tarVelRight = -1.0 * drive_ref.at(5);
+	double tarVelLeft = drive_ref.at(4);
+	double tarVelRight = drive_ref.at(5);
+
+	//may need to reverse here rather than in Generate, may be too slow
 
 	if(refYaw > PI) {
 		refYaw -= 2*PI;

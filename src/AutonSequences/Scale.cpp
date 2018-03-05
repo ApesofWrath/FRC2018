@@ -61,12 +61,12 @@ void Scale::GenerateScale(bool left, bool switch_left) { //left center right //l
 		Segment sl = leftTrajectory[l];
 		Segment sr = rightTrajectory[l];
 
-		full_refs_sc.at(l).at(0) = ((double) sl.heading); //profile tries to turn robot around and go straight, in order to go backwards
-		full_refs_sc.at(l).at(1) = ((double) sl.position);
-		full_refs_sc.at(l).at(2) = ((double) sr.position); //couldn't just reverse these
+		full_refs_sc.at(l).at(0) = ((double) sl.heading) - PI; //profile tries to turn robot around and go straight, in order to go backwards
+		full_refs_sc.at(l).at(1) = -1.0 * ((double) sl.position);
+		full_refs_sc.at(l).at(2) = -1.0 * ((double) sr.position); //couldn't just reverse these
 		full_refs_sc.at(l).at(3) = (0.0);
-		full_refs_sc.at(l).at(4) = ((double) sl.velocity);
-		full_refs_sc.at(l).at(5) = ((double) sr.velocity);
+		full_refs_sc.at(l).at(4) = -1.0 * ((double) sl.velocity);
+		full_refs_sc.at(l).at(5) = -1.0 *((double) sr.velocity);
 
 //		full_refs_sc.at(l).at(0) = ((double) sl.heading) - PI; //profile tries to turn robot around and go straight, in order to go backwards
 //		full_refs_sc.at(l).at(1) = -((double) sl.position);
@@ -76,16 +76,16 @@ void Scale::GenerateScale(bool left, bool switch_left) { //left center right //l
 //		full_refs_sc.at(l).at(5) = -((double) sr.velocity);
 
 		if (l >= length) { //still have more in the 1500 allotted points
-//			if (switch_left) {
-//				GenerateAddedSwitch(true);
-//			} else {
+			if (switch_left) {
+				GenerateAddedSwitch(true);
+			} else {
 				full_refs_sc.at(l).at(0) = full_refs_sc.at(l - 1).at(0);
 				full_refs_sc.at(l).at(1) = full_refs_sc.at(l - 1).at(1);
 				full_refs_sc.at(l).at(2) = full_refs_sc.at(l - 1).at(2);
 				full_refs_sc.at(l).at(3) = full_refs_sc.at(l - 1).at(3);
 				full_refs_sc.at(l).at(4) = full_refs_sc.at(l - 1).at(4);
 				full_refs_sc.at(l).at(5) = full_refs_sc.at(l - 1).at(5);
-			//}
+			}
 		}
 	}
 
