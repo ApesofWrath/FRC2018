@@ -22,6 +22,8 @@ const int NUM_INDEX = 10; //change this
 
 double refs[NUM_POINTS][NUM_INDEX];
 
+bool has_started_shoot = false;
+
 std::thread AutonStateMachineThread;
 
 Timer *autonTimer = new Timer();
@@ -74,11 +76,16 @@ bool Autonomous::IsCubeReleased() {
 
 }
 
-bool Autonomous::IsShoot() {
+bool Autonomous::StartedShoot() { //has_started_shoot never resets to false
 
-	if(intake_->intake_arm_state == intake_->SLOW_STATE_H && intake_->intake_arm_state == intake_->OUT_STATE_H) {
-		return true;
+	if ((intake_->intake_wheel_state == intake_->SLOW_STATE_H
+			|| intake_->intake_wheel_state == intake_->OUT_STATE_H)) {
+		has_started_shoot = true;
 	}
-	return false;
+	if (has_started_shoot) {
+		return true;
+	} else {
+		return false;
+	}
 
 }

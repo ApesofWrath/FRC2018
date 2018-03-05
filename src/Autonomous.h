@@ -36,7 +36,7 @@ public:
 
 	bool IsCubeReleased();
 
-	bool IsShoot();
+	bool StartedShoot();
 
 };
 

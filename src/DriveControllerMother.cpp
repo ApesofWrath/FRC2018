@@ -71,7 +71,7 @@ const double K_P_RIGHT_VEL_HIGH = 0.001;
 const double K_P_LEFT_VEL_HIGH = 0.001;
 const double K_D_RIGHT_VEL_HIGH = 0.00;
 const double K_D_LEFT_VEL_HIGH = 0.0;
-const double K_P_YAW_VEL_HIGH = 90.0;//120.0;
+const double K_P_YAW_VEL_HIGH = 10.0;//120.0;
 const double K_D_YAW_VEL_HIGH = 0.000;
 
 const double K_P_YAW_HEADING_POS_HD = 0.0;
@@ -723,7 +723,7 @@ void DriveControllerMother::RotationController(Joystick *JoyWheel) {
 //auton targets, actually just pd
 void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw vel, left vel, right vel
 
-	double refYaw = drive_ref.at(0);
+	double refYaw = drive_ref.at(0); //reversed in Generate
 	double refLeft = drive_ref.at(1);
 	double refRight = drive_ref.at(2);
 	double targetYawRate = drive_ref.at(3); //0 for now

@@ -21,6 +21,7 @@
 #include <Elevator.h>
 #include <AutonSequences/DriveForward.h>
 #include <AutonSequences/Switch.h>
+#include <AutonSequences/Scale.h>
 #include <TeleopStateMachine.h>
 
 #define THREADS 1
@@ -82,14 +83,21 @@ public:
 
 	DriveForward *drive_forward;
 	Switch *switch_;
+	Scale *scale_;
 
 	frc::SendableChooser<std::string> autonChooser;
+	frc::SendableChooser<std::string> positionChooser;
 
 	const std::string driveForward = "Drive Forward";
 	const std::string cubeSwitch = "Switch";
 	const std::string cubeScale = "Scale";
 
+	const std::string center = "Center";
+	const std::string left = "Left";
+	const std::string right = "Right";
+
 	std::string autoSelected;
+	std::string positionSelected;
 
 //	DigitalInput *wait_for_button, *intake_spin_in,
 //	*intake_spin_out, *intake_spin_stop, *get_cube_ground,
@@ -118,7 +126,12 @@ public:
 		autonChooser.AddObject(cubeSwitch, cubeSwitch);
 		autonChooser.AddObject(cubeScale, cubeScale);
 
+		positionChooser.AddDefault(center, center);
+		positionChooser.AddObject(left, left);
+		positionChooser.AddObject(right, right);
+
 		frc::SmartDashboard::PutData("Auto Modes", &autonChooser);
+		frc::SmartDashboard::PutData("Position", &positionChooser);
 
 #if THREADS
 		//starting threads in robot init so that they only are created once
@@ -128,7 +141,8 @@ public:
 		intake_->StartIntakeThread(); //controllers
 		elevator_->StartElevatorThread();
 
-		teleop_state_machine->StartStateMachineThread(&wait_for_button, //both auton and teleop state machines
+		teleop_state_machine->StartStateMachineThread(
+				&wait_for_button, //both auton and teleop state machines
 				&intake_spin_in, &intake_spin_out, &intake_spin_stop,
 				&get_cube_ground, &get_cube_station, &post_intake,
 				&raise_to_switch, &raise_to_scale, &intake_arm_up,
@@ -141,7 +155,11 @@ public:
 
 	void AutonomousInit() override {
 
+		std::string GameData;
+		GameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
+
 		autoSelected = autonChooser.GetSelected();
+		positionSelected = positionChooser.GetSelected();
 
 		teleop_state_machine->Initialize();
 		compressor_->Stop();
@@ -149,20 +167,36 @@ public:
 		drive_controller->ZeroAll(true);
 		drive_controller->ShiftUp(); //for now
 
-//		if (autoSelected == driveForward) {
-//			drive_forward = new DriveForward(drive_controller, elevator_,
-//					intake_);
-//			drive_forward->GenerateForward();
-//		} else if (autoSelected == cubeSwitch) {
-//			switch_ = new Switch(drive_controller, elevator_, intake_);
-//			switch_->GenerateSwitch(true);
-//
-//		} else if (autoSelected == cubeScale) {
-//
-//		}
+		if (autoSelected == driveForward) {
+			drive_forward = new DriveForward(drive_controller, elevator_,
+					intake_);
+			drive_forward->GenerateForward();
+		} else if (autoSelected == cubeSwitch) {
 
-		switch_ = new Switch(drive_controller, elevator_, intake_);
-		switch_->GenerateSwitch(true);
+			switch_ = new Switch(drive_controller, elevator_, intake_);
+
+			if (positionSelected == left) {
+
+			} else if (positionSelected == right) {
+
+			} else if (positionSelected == center) {
+				switch_->GenerateSwitch(false); //add side of switch desired, right for now
+
+			}
+
+		} else if (autoSelected == cubeScale) {
+			scale_ = new Scale(drive_controller, elevator_, intake_);
+
+			if (positionSelected == left) {
+
+			} else if (positionSelected == right) {
+
+			} else if (positionSelected == center) {
+				scale_->GenerateScale(true, true); //add side of switch desired, right for now
+
+			}
+
+		}
 
 //		if (autoSelected == driveForward) {
 //			//drive_forward->Generate();
@@ -185,7 +219,9 @@ public:
 //		if (autoSelected == driveForward) {
 //
 //		} else if (autoSelected == cubeSwitch) {
-			switch_->RunStateMachine(&raise_to_switch);
+		//switch_->RunStateMachine(&raise_to_switch);
+
+		scale_->RunStateMachine(&raise_to_scale_backwards);
 
 //		} else if (autoSelected == cubeScale) {
 //
@@ -221,7 +257,8 @@ public:
 		raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
 		raise_to_scale = joyOp->GetRawButton(RAISE_TO_SCALE);
 
-		raise_to_scale_backwards = joyThrottle->GetRawButton(RAISE_TO_SCALE_BACKWARDS);
+		raise_to_scale_backwards = joyThrottle->GetRawButton(
+				RAISE_TO_SCALE_BACKWARDS);
 
 		intake_spin_in = joyThrottle->GetRawButton(INTAKE_SPIN_IN);
 		intake_spin_out = joyThrottle->GetRawButton(INTAKE_SPIN_OUT);

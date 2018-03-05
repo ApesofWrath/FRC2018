@@ -7,29 +7,36 @@
 
 #include <AutonSequences/Switch.h>
 
-std::vector<std::vector<double> > full_refs_sw (1500, std::vector<double>(6)); //initalizes each index value to 0
+std::vector<std::vector<double> > full_refs_sw(1500, std::vector<double>(6)); //initalizes each index value to 0
 
-void Switch::GenerateSwitch(bool left) { //left center right
+void Switch::GenerateSwitch(bool left) { //left center right //left is positive for x and for angle
 
 	//Auton thread started in auton constructor
 
-	int POINT_LENGTH = 2;
+	int POINT_LENGTH = 3;
 
 	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
 
-	//feet
-	Waypoint p1 = { 0.0, 0.0, 0.0 }; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
-	Waypoint p2 = { 9.5, 7.0, 0.0 }; //3.0, 10.0, d2r(90)}; //-3.25
-	//Waypoint p3 = { 5.0, 5.0, 0.0 }; //cannot just move in Y axis because of spline math
-	//Waypoint p3 = { 10.0, 0.0, 0.0 }; //cannot just move in Y axis because of spline math
+	Waypoint p1, p2, p3;
 
+	//feet
+	if (left) {
+		p1 = { 0.0, 0.0, 0.0 }; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
+		p2 = { 6.0, 3.0, d2r(20.0) }; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
+		p3 = { 9.5, 4.5, d2r(0) }; //cannot just move in Y axis because of spline math
+	}
+	else {
+		p1 = { 0.0, 0.0, 0.0 }; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
+		p2 = { 6.0, -3.0, d2r(-20.0) }; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
+		p3 = { 9.5, -3.5, d2r(0) }; //cannot just move in Y axis because of spline math
+	}
 	points[0] = p1;
 	points[1] = p2;
-	//points[2] = p3;
+	points[2] = p3;
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-		PATHFINDER_SAMPLES_FAST, 0.05, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk
+	PATHFINDER_SAMPLES_FAST, 0.05, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk
 
 	length = candidate.length;
 	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));
@@ -49,20 +56,20 @@ void Switch::GenerateSwitch(bool left) { //left center right
 		Segment sl = leftTrajectory[l];
 		Segment sr = rightTrajectory[l];
 
-		full_refs_sw.at(l).at(0) = ((double)sl.heading);
-		full_refs_sw.at(l).at(1) = ((double)sl.position);
-		full_refs_sw.at(l).at(2) = ((double)sr.position);
+		full_refs_sw.at(l).at(0) = ((double) sl.heading);
+		full_refs_sw.at(l).at(1) = ((double) sl.position);
+		full_refs_sw.at(l).at(2) = ((double) sr.position);
 		full_refs_sw.at(l).at(3) = (0.0);
-		full_refs_sw.at(l).at(4) = ((double)sl.velocity);
-		full_refs_sw.at(l).at(5) = ((double)sr.velocity);
+		full_refs_sw.at(l).at(4) = ((double) sl.velocity);
+		full_refs_sw.at(l).at(5) = ((double) sr.velocity);
 
-		if(l >= length) {
-			full_refs_sw.at(l).at(0) = full_refs_sw.at(l-1).at(0);
-			full_refs_sw.at(l).at(1) = full_refs_sw.at(l-1).at(1);
-			full_refs_sw.at(l).at(2) = full_refs_sw.at(l-1).at(2);
-			full_refs_sw.at(l).at(3) = full_refs_sw.at(l-1).at(3);
-			full_refs_sw.at(l).at(4) = full_refs_sw.at(l-1).at(4);
-			full_refs_sw.at(l).at(5) = full_refs_sw.at(l-1).at(5);
+		if (l >= length) {
+			full_refs_sw.at(l).at(0) = full_refs_sw.at(l - 1).at(0);
+			full_refs_sw.at(l).at(1) = full_refs_sw.at(l - 1).at(1);
+			full_refs_sw.at(l).at(2) = full_refs_sw.at(l - 1).at(2);
+			full_refs_sw.at(l).at(3) = full_refs_sw.at(l - 1).at(3);
+			full_refs_sw.at(l).at(4) = full_refs_sw.at(l - 1).at(4);
+			full_refs_sw.at(l).at(5) = full_refs_sw.at(l - 1).at(5);
 		}
 	}
 
@@ -83,12 +90,12 @@ void Switch::RunStateMachine(bool *place_switch) {
 	//std::cout << "CHANGE THE BOOL" << std::endl;
 	bool index_qual = GetIndex() >= length;
 
-	std::cout << "isShoot: " << !IsShoot() << " indexQual: " << index_qual << std::endl;
+	///std::cout << "isShoot: " << IsShoot() << std::endl;
 
-	if(GetIndex() >= length && !IsShoot()) { //at the end of the drive, while we have not released a cube //GetIndex() >= length &&
+	//start being true at end of drive profile, stop being true once start shooting
+	if (GetIndex() >= length && !StartedShoot()) { //at the end of the drive, while we have not released a cube //GetIndex() >= length && //should be has started shooting
 		*place_switch = true; //must run once initialized!
-	}
-	else {
+	} else {
 		*place_switch = false;
 	}
 

@@ -563,17 +563,16 @@ bool Intake::HaveCube() {
 bool Intake::ReleasedCube() {
 
 	if (intake_wheel_state == SLOW_STATE) { //out slow
-		if (talonIntake1->GetOutputCurrent() <= 30.0
-				&& talonIntake2->GetOutputCurrent() <= 30.0) {
+		if (talonIntake1->GetOutputCurrent() <= 10.0
+				&& talonIntake2->GetOutputCurrent() <= 10.0) {
 			current_counter++;
 		} else {
 			current_counter = 0;
 		}
-		if (current_counter >= 1) {
+		if (current_counter >= 8) {
 			current_counter = 0;
 			return true;
 		} else {
-			current_counter = 0;
 			return false;
 		}
 	} else {
@@ -584,10 +583,9 @@ bool Intake::ReleasedCube() {
 			current_counter = 0;
 		}
 		if (current_counter >= 10) {
-			current_counter = 0;
+			current_counter = 0; //only zero once has reached 10
 			return true;
 		} else {
-			current_counter = 0;
 			return false;
 		}
 	}
