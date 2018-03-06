@@ -54,7 +54,7 @@ const double Kv_i = 1 / MAX_THEORETICAL_VELOCITY_I;
 //const double MAX_ACCELERATION_I = 6.0; //2.5;
 //const double TIME_STEP_I = 0.01; //sec
 
-const double MAX_INTAKE_CURRENT = 30.0;
+const double MAX_INTAKE_CURRENT = 12.0;
 const double OUTTAKE_INTAKE_CURRENT = 20.0;
 
 const double PCL_WHEELS = 30.0; //peak current limit
@@ -552,7 +552,7 @@ bool Intake::HaveCube() {
 	} else {
 		current_counter = 0;
 	}
-	if (current_counter >= 3) {
+	if (current_counter >= 2) {
 		return true;
 	} else {
 		return false;
@@ -577,12 +577,12 @@ bool Intake::ReleasedCube() {
 		}
 	} else {
 		if (talonIntake1->GetOutputCurrent() <= 17.0
-				&& talonIntake2->GetOutputCurrent() <= 17.0) {
+				|| talonIntake2->GetOutputCurrent() <= 17.0) {
 			current_counter++;
 		} else {
 			current_counter = 0;
 		}
-		if (current_counter >= 10) {
+		if (current_counter >= 10) { //This usedto be 5 3/4/18
 			current_counter = 0; //only zero once has reached 10
 			return true;
 		} else {

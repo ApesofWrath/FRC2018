@@ -44,15 +44,18 @@ bool is_intake_low_enough;
 
 Elevator *elevator;
 Intake *intake;
+DriveController *driveController;
 
 Timer *teleopTimer = new Timer();
 
 std::thread StateMachineThread;
 
-TeleopStateMachine::TeleopStateMachine(Elevator *elevator_, Intake *intake_) {
+TeleopStateMachine::TeleopStateMachine(Elevator *elevator_, Intake *intake_,
+		DriveController *drive_controller) {
 
 	elevator = elevator_;
 	intake = intake_;
+	driveController = drive_controller;
 
 }
 
@@ -187,10 +190,10 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 
 		SmartDashboard::PutString("STATE", "POST INTAKE");
 
-		is_intake_low_enough = (intake->GetAngularPosition() < (intake->UP_ANGLE + 0.05)); //use same check for the entirety of the state
+		is_intake_low_enough = (intake->GetAngularPosition()
+				< (intake->UP_ANGLE + 0.05)); //use same check for the entirety of the state
 
-		if (state_elevator
-				&& is_intake_low_enough) { //last_state == PLACE_SCALE_BACKWARDS_STATE - don't need this in the check since it will only be true the first time
+		if (state_elevator && is_intake_low_enough) { //last_state == PLACE_SCALE_BACKWARDS_STATE - don't need this in the check since it will only be true the first time
 			elevator->elevator_state = elevator->DOWN_STATE_E_H;
 		}
 		if (state_intake_arm) {
@@ -206,8 +209,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		} else if (raise_to_scale_backwards) {
 			state = PLACE_SCALE_BACKWARDS_STATE;
 		} else if (last_state == PLACE_SCALE_STATE //will keep checking if arm is low enough to start lowering the elevator
-		|| last_state == PLACE_SWITCH_STATE
-				|| is_intake_low_enough) { //little bit of ahack but the check wont run if it only goes through this state once
+		|| last_state == PLACE_SWITCH_STATE || is_intake_low_enough) { //little bit of ahack but the check wont run if it only goes through this state once
 
 			state = WAIT_FOR_BUTTON_STATE;
 		}
@@ -284,7 +286,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 
 }
 
-//TODO: add backwards shoot
+//TODO: MAKE SURE THESE CHANGES WORK FOR SWITCH AND SINGLE SCALE TOO
 void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 		bool intake_spin_in, bool intake_spin_out, bool intake_spin_stop,
 		bool get_cube_ground, bool get_cube_station, bool post_intake,
@@ -311,7 +313,9 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 		SmartDashboard::PutString("STATE", "WAIT FOR BUTTON."); //was fighting between this state and place switch
 
 		if (elevator->is_elevator_init && intake->is_init_intake) {
-			if (get_cube_ground) { //can go to all states below wfb state
+			if (last_state_a == POST_INTAKE_STATE_A) {
+				state_a == GET_CUBE_GROUND_STATE_A;
+			} else if (get_cube_ground) { //can go to all states below wfb state
 				state_a = GET_CUBE_GROUND_STATE_A;
 			} else if (get_cube_station) {
 				state_a = GET_CUBE_STATION_STATE_A;
@@ -330,6 +334,10 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 		break;
 
 	case GET_CUBE_GROUND_STATE_A:
+
+		if (intake->GetAngularPosition() <= 0.3) {
+			driveController->StopProfile(false);
+		}
 
 		SmartDashboard::PutString("STATE", "GET CUBE GROUND");
 		elevator->elevator_state = elevator->DOWN_STATE_E_H;
@@ -355,15 +363,23 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 
 	case POST_INTAKE_STATE_A: //have cube, waiting to place cube
 
+		driveController->StopProfile(true);
+
 		SmartDashboard::PutString("STATE", "POST INTAKE");
 //make bool for same check
 		if (intake->GetAngularPosition() < (intake->UP_ANGLE + 0.05)) {
 			elevator->elevator_state = elevator->DOWN_STATE_E_H;
+			//if (last_state_a == PLACE_SCALE_BACKWARDS_STATE_A) { //fix this because it will break the scale-only auton, but is needed in the scale+switch THIS IS THE SAME BUG WE TALKED ABOUT,ONLY IS TRUE ONCE
+			if(last_state_a  != PLACE_SWITCH_STATE_A){
+				intake->intake_arm_state = intake->UP_STATE_H;
+			}else{
+				state_a = GET_CUBE_GROUND_STATE_A;
+			}
+			//}
 		}
 		intake->intake_arm_state = intake->UP_STATE_H;
 		intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
 		if (raise_to_switch) {
-			std::cout << "NO NO NO" << std::endl;
 			state_a = PLACE_SWITCH_STATE_A;
 		} else if (raise_to_scale) { //came from placing
 			state_a = PLACE_SCALE_STATE_A;
@@ -373,7 +389,7 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 		|| last_state == PLACE_SWITCH_STATE_A
 				|| (last_state == POST_INTAKE_STATE_A
 						&& (intake->GetAngularPosition()
-								< (intake->UP_ANGLE + 0.05)))) { //not going back to wfb
+								< (intake->UP_ANGLE + 0.05)))) { //not going back to wfb //not making this check
 			state_a = WAIT_FOR_BUTTON_STATE_A;
 		}
 		last_state_a = POST_INTAKE_STATE_A;
@@ -413,6 +429,8 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 	case PLACE_SCALE_BACKWARDS_STATE_A:
 
 		SmartDashboard::PutString("STATE", "SCALE BACKWARDS");
+
+		driveController->StopProfile(true);
 
 		if (elevator->GetElevatorPosition() >= .85) { //move to the flippy angle when safe
 			intake->intake_arm_state = intake->SWITCH_BACK_SHOT_STATE_H;
@@ -506,7 +524,8 @@ void TeleopStateMachine::StateMachineWrapper(
 
 			//std::cout << "Auton thread" << std::endl;
 
-			std::cout << "raise switch " << (bool) *raise_to_switch << std::endl;
+			std::cout << "raise switch " << (bool) *raise_to_switch
+					<< std::endl;
 
 			intake->IntakeArmStateMachine();
 			intake->IntakeWheelStateMachine();

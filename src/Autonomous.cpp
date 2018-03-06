@@ -28,7 +28,7 @@ std::thread AutonStateMachineThread;
 
 Timer *autonTimer = new Timer();
 
-Autonomous::Autonomous(DriveController *dc, Elevator *el, Intake *in) {
+Autonomous::Autonomous(DriveController *dc, Elevator *el, Intake *in) { //TODO: can now use inherited objects, take out middleperson functions
 
 	drive_controller = dc;
 	elevator_ = el;

@@ -121,7 +121,8 @@ public:
 		drive_controller = new DriveController(); //inherits from mother class
 		elevator_ = new Elevator(pdp_, elevator_profiler_);
 		intake_ = new Intake(pdp_, intake_profiler_, elevator_);
-		teleop_state_machine = new TeleopStateMachine(elevator_, intake_); //actually has both state machines
+		teleop_state_machine = new TeleopStateMachine(elevator_, intake_,
+				drive_controller); //actually has both state machines
 
 		joyThrottle = new Joystick(JOY_THROTTLE);
 		joyWheel = new Joystick(JOY_WHEEL);
@@ -170,10 +171,22 @@ public:
 		drive_controller->ZeroAll(true);
 		drive_controller->ShiftUp();
 
-		std::string gameData;
-		gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
 
-		if (gameData.length() > 0) {  //if it has been received //TODO: make this a count and if count has exceeded drive forward
+		std::string gameData = "";
+
+		for (int i = 0; i < 15; i++) {
+			gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
+			if (gameData.length() > 0){
+				break;
+			}
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		}
+
+		autoSelected = autonChooser.GetSelected();
+		positionSelected = positionChooser.GetSelected();
+
+		if (gameData.length() > 0) { //if it has been received //TODO: make this a count and if count has exceeded drive forward
 			if (gameData[0] == 'L') {
 				leftSwitch = true;
 			} else {
@@ -184,10 +197,9 @@ public:
 			} else {
 				leftScale = false;
 			}
+		} else {
+			autoSelected = driveForward;
 		}
-
-		autoSelected = autonChooser.GetSelected();
-		positionSelected = positionChooser.GetSelected();
 
 		if (autoSelected == driveForward) {
 			drive_forward = new DriveForward(drive_controller, elevator_,
@@ -205,7 +217,9 @@ public:
 				switchState = true;
 			}
 
-		} else if (autoSelected == cubeScale && ((positionSelected == left && leftScale) || (positionSelected == right && !leftScale))) { //can only scale if scale is on our side //TODO: Add logic for what to do if scale is not on our side
+		} else if (autoSelected == cubeScale
+				&& ((positionSelected == left && leftScale)
+						|| (positionSelected == right && !leftScale))) { //can only scale if scale is on our side //TODO: Add logic for what to do if scale is not on our side
 			scale_ = new Scale(drive_controller, elevator_, intake_);
 
 			if (positionSelected == left && leftScale) {
@@ -239,7 +253,9 @@ public:
 				scaleState = true;
 
 			} else if (positionSelected == center) {
-
+				drive_forward = new DriveForward(drive_controller, elevator_,
+									intake_);
+				drive_forward->GenerateForward();
 			}
 		}
 
