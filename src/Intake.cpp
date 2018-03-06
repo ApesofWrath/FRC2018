@@ -20,7 +20,7 @@ double SLOW_SPEED = 0.25;
 #else
 double ff_percent_i = 0.6;
 double offset_angle = 1.75; //1.5; with the new flippy back arm
-double SLOW_SPEED = 0.3;
+double SLOW_SPEED = 0.4;
 #endif
 
 using namespace std::chrono;
@@ -569,7 +569,7 @@ bool Intake::ReleasedCube() {
 		} else {
 			current_counter = 0;
 		}
-		if (current_counter >= 8) {
+		if (current_counter >= 15) {
 			current_counter = 0;
 			return true;
 		} else {

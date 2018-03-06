@@ -116,7 +116,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 	case INIT_STATE:
 
 		SmartDashboard::PutString("STATE", "INIT");
-		elevator->elevator_state = elevator->DOWN_STATE_E_H; //still initializes
+		elevator->elevator_state = elevator->DOWN_STATE_E_H;
 		intake->intake_arm_state = intake->UP_STATE_H;
 		//elevator->elevator_state = elevator->INIT_STATE_E_H;
 		//intake->intake_arm_state = intake->INIT_STATE_H;
