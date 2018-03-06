@@ -24,6 +24,10 @@
 class Autonomous {
 public:
 
+	DriveController *drive_controller;
+	Elevator *elevator_;
+	Intake *intake_;
+
 	Autonomous(DriveController *dc, Elevator *el, Intake *in);
 
 	void FillProfile(std::vector<std::vector<double> > pathfinder_refs);

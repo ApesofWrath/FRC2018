@@ -91,7 +91,7 @@ public:
 	const std::string driveForward = "Drive Forward";
 	const std::string cubeSwitch = "Switch";
 	const std::string cubeScale = "Scale";
-	const std::string scaleSwitch = "Scale and Switch";
+	const std::string scaleSwit = "Scale & Switch";
 
 	const std::string center = "Center";
 	const std::string left = "Left";
@@ -130,7 +130,7 @@ public:
 		autonChooser.AddDefault(driveForward, driveForward);
 		autonChooser.AddObject(cubeSwitch, cubeSwitch);
 		autonChooser.AddObject(cubeScale, cubeScale);
-		autonChooser.AddObject(scaleSwitch, scaleSwitch);
+		autonChooser.AddObject(scaleSwit, scaleSwit);
 
 		positionChooser.AddDefault(center, center);
 		positionChooser.AddObject(left, left);
@@ -161,6 +161,9 @@ public:
 
 	void AutonomousInit() override {
 
+		SmartDashboard::PutString("gen scale", "nope");
+		SmartDashboard::PutNumber("in scaleSwitch", 0);
+
 		teleop_state_machine->Initialize();
 		compressor_->Stop(); //not working
 
@@ -170,7 +173,7 @@ public:
 		std::string gameData;
 		gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
 
-		if (gameData.length() > 0) {  //if it has been received
+		if (gameData.length() > 0) {  //if it has been received //TODO: make this a count and if count has exceeded drive forward
 			if (gameData[0] == 'L') {
 				leftSwitch = true;
 			} else {
@@ -219,11 +222,15 @@ public:
 
 		}
 
-		else if (autoSelected == scaleSwitch) {
+		//SmartDashboard::PutBoolean("leftSc", leftScale);
+		//SmartDashboard::PutBoolean("leftSc", leftScale);
 
+		else if (autoSelected == scaleSwit) {
+			SmartDashboard::PutNumber("in scaleSwitch", 1);
 			scale_ = new Scale(drive_controller, elevator_, intake_);
 
 			if (positionSelected == left && leftScale && leftSwitch) {
+				SmartDashboard::PutString("gen scale", "yep");
 				scale_->GenerateScale(true, true, true);
 				scaleState = true;
 

@@ -15,6 +15,8 @@ void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch) { //l
 
 	//Auton thread started in auton constructor
 
+	SmartDashboard::PutString("made it", "no");
+
 	int POINT_LENGTH = 3;
 
 	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
@@ -25,13 +27,13 @@ void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch) { //l
 	if (left_scale) { //start left, left scale
 		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
 		p2 = {-10.5, -2.0, d2r(0.0)}; //3.0, 10.0, d2r(90)}; //-
-		p3 = {-21.6, 5.7, d2r(0.0)}; //cannot just move in Y axis because of spline math
+		p3 = {-21.3, 5.7, d2r(0.0)}; //cannot just move in Y axis because of spline math
 		//6.0 forward, 1.0 left, 20 left
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
 		p2 = {-10.5, 2.0, d2r(0.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
-		p3 = {-21.6, -5.7, d2r(0.0)}; //cannot just move in Y axis because of spline math
+		p3 = {-21.3, -5.7, d2r(0.0)}; //cannot just move in Y axis because of spline math
 	}
 
 	points[0] = p1;
@@ -77,6 +79,7 @@ void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch) { //l
 
 		if (l >= length) { //still have more in the 1500 allotted points
 			if (switch_) {
+				drive_controller->ZeroAll(true);
 				GenerateAddedSwitch(left_switch);
 			} else {
 				full_refs_sc.at(l).at(0) = full_refs_sc.at(l - 1).at(0);
@@ -89,8 +92,8 @@ void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch) { //l
 		}
 	}
 
-	//std::cout << "MADE IT PAST CREATING PROFILES" << std::endl;
-	//SmartDashboard::PutNumber("length", length);
+	SmartDashboard::PutString("made it", "yep");
+	std::cout << "MADE IT PAST CREATING PROFILES" << std::endl;
 
 	FillProfile(full_refs_sc);
 
@@ -119,8 +122,8 @@ void Scale::GenerateAddedSwitch(bool left) { //new trajectory so that old spline
 	}
 	else { //change these
 		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
-		p2 = {6.0, -3.0, d2r(-20.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
-		p3 = {9.5, -3.5, d2r(0)}; //cannot just move in Y axis because of spline math
+		p2 = {4.4, -0.87, d2r(20.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
+	//	p3 = {9.5, -3.5, d2r(0)}; //cannot just move in Y axis because of spline math
 	}
 
 	points[0] = p1;
@@ -132,7 +135,7 @@ void Scale::GenerateAddedSwitch(bool left) { //new trajectory so that old spline
 	PATHFINDER_SAMPLES_FAST, 0.05, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk
 
 	length = candidate.length;
-	added_switch_len = length;
+	added_switch_len = length; //is 0
 	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));
 
 	pathfinder_generate(&candidate, trajectory);
@@ -168,6 +171,8 @@ void Scale::GenerateAddedSwitch(bool left) { //new trajectory so that old spline
 void Scale::RunStateMachine(bool *place_scale, bool *place_switch, bool *get_cube_ground) {
 
 //no other state machine booleans needed, all other ones will stay false
+	SmartDashboard::PutNumber("scale traj length", scale_traj_len);
+	SmartDashboard::PutNumber("switch traj length", added_switch_len);
 
 //start being true at end of drive profile, stop being true once start shooting
 	if (GetIndex() >= scale_traj_len) { //at the end of the drive, while we have not released a cube //GetIndex() >= length && //should be has started shooting //IsCubeRelease is needed
@@ -181,7 +186,7 @@ void Scale::RunStateMachine(bool *place_scale, bool *place_switch, bool *get_cub
 			*get_cube_ground = true;
 		}
 
-		if(GetIndex() >= (scale_traj_len + added_switch_len)) {
+		if(GetIndex() >= (scale_traj_len + added_switch_len) && added_switch_len > 0) { //if at end of profile, and added profile exists
 			*place_switch = true;
 		}
 	}

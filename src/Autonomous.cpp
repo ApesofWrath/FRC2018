@@ -28,10 +28,6 @@ std::thread AutonStateMachineThread;
 
 Timer *autonTimer = new Timer();
 
-DriveController *drive_controller;
-Elevator *elevator_;
-Intake *intake_;
-
 Autonomous::Autonomous(DriveController *dc, Elevator *el, Intake *in) {
 
 	drive_controller = dc;
