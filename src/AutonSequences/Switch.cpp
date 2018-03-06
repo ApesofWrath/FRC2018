@@ -28,7 +28,7 @@ void Switch::GenerateSwitch(bool left) { //left center right //left is positive 
 	else {
 		p1 = { 0.0, 0.0, 0.0 }; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
 		p2 = { 6.0, -3.0, d2r(-20.0) }; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
-		p3 = { 9.5, -3.5, d2r(0) }; //cannot just move in Y axis because of spline math
+		p3 = { 9.5, -3.5, d2r(0) }; //cannot just move in Y axis because of spline math //CENTER STARTS CLOSER TO THE RIGHT
 	}
 	points[0] = p1;
 	points[1] = p2;

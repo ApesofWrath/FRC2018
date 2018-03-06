@@ -91,10 +91,15 @@ public:
 	const std::string driveForward = "Drive Forward";
 	const std::string cubeSwitch = "Switch";
 	const std::string cubeScale = "Scale";
+	const std::string scaleSwitch = "Scale and Switch";
 
 	const std::string center = "Center";
 	const std::string left = "Left";
 	const std::string right = "Right";
+
+	bool leftSwitch, leftScale;
+
+	bool switchState, scaleState;
 
 	std::string autoSelected;
 	std::string positionSelected;
@@ -116,7 +121,7 @@ public:
 		drive_controller = new DriveController(); //inherits from mother class
 		elevator_ = new Elevator(pdp_, elevator_profiler_);
 		intake_ = new Intake(pdp_, intake_profiler_, elevator_);
-		teleop_state_machine = new TeleopStateMachine(elevator_, intake_);
+		teleop_state_machine = new TeleopStateMachine(elevator_, intake_); //actually has both state machines
 
 		joyThrottle = new Joystick(JOY_THROTTLE);
 		joyWheel = new Joystick(JOY_WHEEL);
@@ -125,6 +130,7 @@ public:
 		autonChooser.AddDefault(driveForward, driveForward);
 		autonChooser.AddObject(cubeSwitch, cubeSwitch);
 		autonChooser.AddObject(cubeScale, cubeScale);
+		autonChooser.AddObject(scaleSwitch, scaleSwitch);
 
 		positionChooser.AddDefault(center, center);
 		positionChooser.AddObject(left, left);
@@ -155,60 +161,80 @@ public:
 
 	void AutonomousInit() override {
 
-		std::string GameData;
-		GameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
+		teleop_state_machine->Initialize();
+		compressor_->Stop(); //not working
+
+		drive_controller->ZeroAll(true);
+		drive_controller->ShiftUp();
+
+		std::string gameData;
+		gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
+
+		if (gameData.length() > 0) {  //if it has been received
+			if (gameData[0] == 'L') {
+				leftSwitch = true;
+			} else {
+				leftSwitch = false;
+			}
+			if (gameData[1] == 'L') {
+				leftScale = true;
+			} else {
+				leftScale = false;
+			}
+		}
 
 		autoSelected = autonChooser.GetSelected();
 		positionSelected = positionChooser.GetSelected();
-
-		teleop_state_machine->Initialize();
-		compressor_->Stop();
-
-		drive_controller->ZeroAll(true);
-		drive_controller->ShiftUp(); //for now
 
 		if (autoSelected == driveForward) {
 			drive_forward = new DriveForward(drive_controller, elevator_,
 					intake_);
 			drive_forward->GenerateForward();
+
 		} else if (autoSelected == cubeSwitch) {
-
 			switch_ = new Switch(drive_controller, elevator_, intake_);
-
 			if (positionSelected == left) {
 
 			} else if (positionSelected == right) {
 
 			} else if (positionSelected == center) {
-				switch_->GenerateSwitch(false); //add side of switch desired, right for now
-
+				switch_->GenerateSwitch(leftSwitch);
+				switchState = true;
 			}
 
-		} else if (autoSelected == cubeScale) {
+		} else if (autoSelected == cubeScale && ((positionSelected == left && leftScale) || (positionSelected == right && !leftScale))) { //can only scale if scale is on our side //TODO: Add logic for what to do if scale is not on our side
 			scale_ = new Scale(drive_controller, elevator_, intake_);
 
-			if (positionSelected == left) {
+			if (positionSelected == left && leftScale) {
+				scale_->GenerateScale(true, false, false); //add side of switch desired, right for now
+				scaleState = true;
 
-			} else if (positionSelected == right) {
+			} else if (positionSelected == right && !leftScale) {
+				scale_->GenerateScale(false, false, false); //add side of switch desired, right for now
+				scaleState = true;
 
 			} else if (positionSelected == center) {
-				scale_->GenerateScale(true, true); //add side of switch desired, right for now
 
 			}
 
 		}
 
-//		if (autoSelected == driveForward) {
-//			//drive_forward->Generate();
-//		} else if (autoSelected == cube_switch && left_switch) {
-//
-//		} else if (autoSelected == cube_switch && !left_switch) {
-//
-//		} else if (autoSelected == cube_scale && left_scale) {
-//
-//		} else if (autoSelected == cube_scale && !left_scale) {
-//
-//		}
+		else if (autoSelected == scaleSwitch) {
+
+			scale_ = new Scale(drive_controller, elevator_, intake_);
+
+			if (positionSelected == left && leftScale && leftSwitch) {
+				scale_->GenerateScale(true, true, true);
+				scaleState = true;
+
+			} else if (positionSelected == right && !leftScale && !leftSwitch) {
+				scale_->GenerateScale(false, true, false); //add side of switch desired, right for now
+				scaleState = true;
+
+			} else if (positionSelected == center) {
+
+			}
+		}
 
 	}
 
@@ -216,24 +242,21 @@ public:
 
 		//drive thread, auton state machine thread
 
-//		if (autoSelected == driveForward) {
-//
-//		} else if (autoSelected == cubeSwitch) {
-		//switch_->RunStateMachine(&raise_to_switch);
-
 		std::cout << "AUTON PERIODIC" << std::endl;
 
-		scale_->RunStateMachine(&raise_to_scale_backwards, &raise_to_switch, &get_cube_ground);
+		if (scaleState) {
+			scale_->RunStateMachine(&raise_to_scale_backwards, &raise_to_switch,
+					&get_cube_ground);
+		} else if (switchState) {
+			switch_->RunStateMachine(&raise_to_switch);
+		} //else is drive forward
 
-//		} else if (autoSelected == cubeScale) {
-//
-//		}
 	}
 
 	void TeleopInit() {
 
 		compressor_->SetClosedLoopControl(true);
-		//teleop_state_machine->Initialize();
+		//teleop_state_machine->Initialize(); //only initialize in auton state machine
 		drive_controller->ZeroAll(true);
 		drive_controller->ShiftUp();
 

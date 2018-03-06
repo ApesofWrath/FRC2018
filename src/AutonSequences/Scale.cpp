@@ -11,7 +11,7 @@ int scale_traj_len = 0;
 int added_switch_len = 0;
 std::vector<std::vector<double> > full_refs_sc(1500, std::vector<double>(6)); //initalizes each index value to 0
 
-void Scale::GenerateScale(bool left, bool switch_left) { //left center right //left is positive for x and for angle //bool switch too
+void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch) { //left center right //left is positive for x and for angle //bool switch too
 
 	//Auton thread started in auton constructor
 
@@ -22,16 +22,16 @@ void Scale::GenerateScale(bool left, bool switch_left) { //left center right //l
 	Waypoint p1, p2, p3;
 
 	//feet
-	if (left) { //start left, left scale
+	if (left_scale) { //start left, left scale
 		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
 		p2 = {-10.5, -2.0, d2r(0.0)}; //3.0, 10.0, d2r(90)}; //-
 		p3 = {-21.6, 5.7, d2r(0.0)}; //cannot just move in Y axis because of spline math
 		//6.0 forward, 1.0 left, 20 left
 	}
-	else { //change these
+	else {
 		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
-		p2 = {6.0, -3.0, d2r(-20.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
-		p3 = {9.5, -3.5, d2r(0)}; //cannot just move in Y axis because of spline math
+		p2 = {-10.5, 2.0, d2r(0.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
+		p3 = {-21.6, -5.7, d2r(0.0)}; //cannot just move in Y axis because of spline math
 	}
 
 	points[0] = p1;
@@ -76,8 +76,8 @@ void Scale::GenerateScale(bool left, bool switch_left) { //left center right //l
 //		full_refs_sc.at(l).at(5) = -((double) sr.velocity);
 
 		if (l >= length) { //still have more in the 1500 allotted points
-			if (switch_left) {
-				GenerateAddedSwitch(true);
+			if (switch_) {
+				GenerateAddedSwitch(left_switch);
 			} else {
 				full_refs_sc.at(l).at(0) = full_refs_sc.at(l - 1).at(0);
 				full_refs_sc.at(l).at(1) = full_refs_sc.at(l - 1).at(1);
@@ -164,6 +164,7 @@ void Scale::GenerateAddedSwitch(bool left) { //new trajectory so that old spline
 
 }
 
+//USED FOR BOTH SCALE AND SCALE/SWITCH
 void Scale::RunStateMachine(bool *place_scale, bool *place_switch, bool *get_cube_ground) {
 
 //no other state machine booleans needed, all other ones will stay false
