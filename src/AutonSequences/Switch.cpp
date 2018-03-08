@@ -28,7 +28,7 @@ void Switch::GenerateSwitch(bool left) { //left center right //left is positive 
 	else {
 		p1 = { 0.0, 0.0, 0.0 }; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
 		p2 = { 6.0, -3.0, d2r(-20.0) }; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
-		p3 = { 9.5, -3.5, d2r(0) }; //cannot just move in Y axis because of spline math //CENTER STARTS CLOSER TO THE RIGHT
+		p3 = { 9.5, -4.0, d2r(0) }; //cannot just move in Y axis because of spline math //CENTER STARTS CLOSER TO THE RIGHT //3.5
 	}
 	points[0] = p1;
 	points[1] = p2;
@@ -88,7 +88,7 @@ void Switch::RunStateMachine(bool *place_switch) {
 	//no other state machine booleans needed, all other ones will stay false
 
 	//std::cout << "CHANGE THE BOOL" << std::endl;
-	bool index_qual = GetIndex() >= length;
+//	bool index_qual = GetIndex() >= length;
 
 	///std::cout << "isShoot: " << IsShoot() << std::endl;
 

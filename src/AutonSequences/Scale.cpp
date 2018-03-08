@@ -25,13 +25,13 @@ void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch) { //l
 	if (left_scale) { //start left, left scale
 		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
 		p2 = {-10.5, -2.0, d2r(0.0)}; //3.0, 10.0, d2r(90)}; //-
-		p3 = {-21.3, 5.7, d2r(0.0)}; //cannot just move in Y axis because of spline math
+		p3 = {-21.3, 5.4, d2r(0.0)}; //cannot just move in Y axis because of spline math 5.7
 		//6.0 forward, 1.0 left, 20 left
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
 		p2 = {-10.5, 2.0, d2r(0.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
-		p3 = {-21.3, -5.7, d2r(0.0)}; //cannot just move in Y axis because of spline math
+		p3 = {-21.3, -5.4, d2r(0.0)}; //cannot just move in Y axis because of spline math 5.7
 	}
 
 	points[0] = p1;
@@ -70,7 +70,7 @@ void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch) { //l
 
 		if (l >= length) { //still have more in the 1500 allotted points
 			if (switch_) {
-				GenerateAddedSwitch(left_switch);
+				GenerateAddedSwitch(left_switch); //will finish off 1500 points
 				break;
 			} else {
 				full_refs_sc.at(l).at(0) = full_refs_sc.at(l - 1).at(0);//l - 1 will always be the last sensible value since it cascades through the vector
@@ -149,7 +149,7 @@ void Scale::GenerateAddedSwitch(bool left) { //new trajectory so that old spline
 		full_refs_sc.at(i).at(4) = ((double) sl.velocity);
 		full_refs_sc.at(i).at(5) = ((double) sr.velocity);
 
-		if (i >= scale_traj_len + length) { //still have more in the 1500 allotted points
+		if (i >= scale_traj_len + added_switch_len) { //still have more in the 1500 allotted points
 			full_refs_sc.at(i).at(0) = full_refs_sc.at(i - 1).at(0); //i - 1 will always be the last sensible value since it cascades
 			full_refs_sc.at(i).at(1) = full_refs_sc.at(i - 1).at(1);
 			full_refs_sc.at(i).at(2) = full_refs_sc.at(i - 1).at(2);
@@ -172,8 +172,8 @@ void Scale::RunStateMachine(bool *place_scale_backwards, bool *place_switch,
 		bool *get_cube_ground) {
 
 //no other state machine booleans needed, all other ones will stay false
-	SmartDashboard::PutNumber("scale traj length", scale_traj_len);
-	SmartDashboard::PutNumber("switch traj length", added_switch_len);
+//	SmartDashboard::PutNumber("scale traj length", scale_traj_len);
+	//SmartDashboard::PutNumber("switch traj length", added_switch_len);
 
 //start being true at end of drive profile, stop being true once start shooting
 	if (GetIndex() >= scale_traj_len) { //at the end of the drive, while we have not released a cube //GetIndex() >= length && //should be has started shooting //IsCubeRelease is needed

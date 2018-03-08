@@ -5,7 +5,6 @@
  *      Author: DriversStation
  */
 
-//arm back down in get cube ground
 #include <TeleopStateMachine.h>
 #include <WPILib.h>
 

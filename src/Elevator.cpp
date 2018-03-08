@@ -11,7 +11,7 @@
 
 #define PI 3.14159265
 
-#define CORNELIUS 0
+#define CORNELIUS 1
 
 #if CORNELIUS
 double ff_percent = 0.4;

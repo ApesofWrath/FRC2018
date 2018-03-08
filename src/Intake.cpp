@@ -11,7 +11,7 @@
 
 #define PI 3.14159265
 
-#define CORNELIUS 0
+#define CORNELIUS 1
 
 #if CORNELIUS
 double ff_percent_i = 0.6;
@@ -152,7 +152,7 @@ void Intake::SetStartingPos(double start) { //not used
 void Intake::InitializeIntake() {
 
 	if (!is_init_intake) {
-		SetVoltageIntake(2.5); //offset is changed accordingly
+		SetVoltageIntake(2.5); //offset is changed accordingly //TODO: increase zeroing voltage
 
 	}
 

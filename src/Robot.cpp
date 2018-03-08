@@ -23,6 +23,7 @@
 #include <AutonSequences/Switch.h>
 #include <AutonSequences/Scale.h>
 #include <TeleopStateMachine.h>
+#include <AutonSequences/SwitchSide.h>
 
 #define THREADS 1
 #define STATEMACHINE 1
@@ -116,6 +117,7 @@ public:
 	DriveForward *drive_forward;
 	Switch *switch_;
 	Scale *scale_;
+	SwitchSide *switch_side;
 
 	frc::SendableChooser<std::string> autonChooser;
 	frc::SendableChooser<std::string> positionChooser;
@@ -131,7 +133,7 @@ public:
 
 	bool leftSwitch, leftScale;
 
-	bool switchState, scaleState;
+	bool switchState, scaleState, switchSideState;
 
 	std::string autoSelected;
 	std::string positionSelected;
@@ -229,13 +231,25 @@ public:
 		//Switch
 		if (autoSelected == cubeSwitch) { //has no edge cases
 			switch_ = new Switch(drive_controller, elevator_, intake_);
-			if (positionSelected == left) {
+			if (positionSelected == left && leftSwitch) {
+				switch_side = new SwitchSide(drive_controller, elevator_,
+						intake_);
+				switch_side->GenerateSwitchSide(leftSwitch);
+				switchState = true;
 
-			} else if (positionSelected == right) {
+			} else if (positionSelected == right && !leftSwitch) {
+				switch_side = new SwitchSide(drive_controller, elevator_,
+						intake_);
+				switch_side->GenerateSwitchSide(leftSwitch);
+				switchState = true;
 
 			} else if (positionSelected == center) {
 				switch_->GenerateSwitch(leftSwitch);
 				switchState = true;
+			} else {
+				drive_forward = new DriveForward(drive_controller, elevator_,
+						intake_);
+				drive_forward->GenerateForward();
 			}
 
 			//Scale only
@@ -260,25 +274,41 @@ public:
 		}
 
 		//Scale and switch
-		else if (autoSelected == scaleSwit) { //if only scale is on our side, will do scale only //TODO: add the switch only edge case
+		else if (autoSelected == scaleSwit) { //if only scale is on our side, will do scale only, likewise switch
 
 			scale_ = new Scale(drive_controller, elevator_, intake_);
 
 			if (positionSelected == left) {
 				if (leftScale && leftSwitch) { //scale and switch
 					scale_->GenerateScale(true, true, true);
+					scaleState = true; //scale state machine works for both scale and scale+switch
 				} else if (leftScale && !leftSwitch) { //only scale
 					scale_->GenerateScale(true, false, false);
+					scaleState = true;
+				} else if (!leftScale && leftSwitch) {
+					switch_side->GenerateSwitchSide(true);
+					switchSideState = true;
+				} else {
+					drive_forward = new DriveForward(drive_controller,
+							elevator_, intake_);
+					drive_forward->GenerateForward();
 				}
-				scaleState = true;
 
 			} else if (positionSelected == right) {
 				if (!leftScale && !leftSwitch) {
-					scale_->GenerateScale(false, true, false); //add side of switch desired, right for now
+					scale_->GenerateScale(false, true, false);
+					scaleState = true;
 				} else if (!leftScale && leftSwitch) {
 					scale_->GenerateScale(false, false, false);
+					scaleState = true;
+				} else if (leftScale && !leftSwitch){
+					switch_side->GenerateSwitchSide(false);
+					switchSideState = true;
+				} else {
+					drive_forward = new DriveForward(drive_controller,
+							elevator_, intake_);
+					drive_forward->GenerateForward();
 				}
-				scaleState = true;
 
 			} else {
 				drive_forward = new DriveForward(drive_controller, elevator_,
@@ -293,7 +323,9 @@ public:
 			drive_forward->GenerateForward();
 
 		} else {
-
+			drive_forward = new DriveForward(drive_controller, elevator_,
+								intake_);
+			drive_forward->GenerateForward();
 		}
 
 	}
@@ -307,7 +339,9 @@ public:
 					&get_cube_ground); //works for both scale only and scale+switch
 		} else if (switchState) {
 			switch_->RunStateMachine(&raise_to_switch);
-		} //else is drive forward
+		} else if (switchSideState) {
+			switch_side->RunStateMachineSide(&raise_to_switch);
+		}
 
 	}
 
