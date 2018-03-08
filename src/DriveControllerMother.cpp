@@ -518,7 +518,7 @@ void DriveControllerMother::SetGainsLow() {
 
 }
 
-void DriveControllerMother::AutoShift() {
+void DriveControllerMother::AutoShift(bool auto_shift) {
 
 	double current_rpm_l = ((double) canTalonLeft1->GetSelectedSensorVelocity(0)
 			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
@@ -526,11 +526,8 @@ void DriveControllerMother::AutoShift() {
 	double current_rpm_r = -((double) canTalonRight1->GetSelectedSensorVelocity(
 			0) / (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
 
-//	SmartDashboard::PutNumber("left vel", current_rpm_l);
-//	SmartDashboard::PutNumber("right vel", current_rpm_r);
-
 	if (std::abs(current_rpm_l) > UP_SHIFT_VEL
-			&& std::abs(current_rpm_r) > UP_SHIFT_VEL && is_low_gear) {
+			&& std::abs(current_rpm_r) > UP_SHIFT_VEL && is_low_gear && auto_shift) {
 		ShiftUp();
 	}
 
@@ -881,8 +878,6 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 //	SmartDashboard::PutNumber("yaw target", target_yaw_rate);
 //	SmartDashboard::PutNumber("yaw error", yaw_error);
 
-	double l_dis = (((double) canTalonLeft1->GetSelectedSensorPosition(0)
-			/ TICKS_PER_ROT) * (WHEEL_DIAMETER * PI) / 12);
 
 	//std::cout << "Right: " << r_dis << " Left: " << l_dis << std::endl;
 

@@ -369,7 +369,7 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 //make bool for same check
 		if (intake->GetAngularPosition() < (intake->UP_ANGLE + 0.05)) {
 			elevator->elevator_state = elevator->DOWN_STATE_E_H;
-			//if (last_state_a == PLACE_SCALE_BACKWARDS_STATE_A) { //fix this because it will break the scale-only auton, but is needed in the scale+switch THIS IS THE SAME BUG WE TALKED ABOUT,ONLY IS TRUE ONCE
+			//if (last_state_a == PLACE_SCALE_BACKWARDS_STATE_A) { THIS IS THE SAME BUG WE TALKED ABOUT,ONLY IS TRUE ONCE
 			if(last_state_a  != PLACE_SWITCH_STATE_A){
 				intake->intake_arm_state = intake->UP_STATE_H;
 			}else{
