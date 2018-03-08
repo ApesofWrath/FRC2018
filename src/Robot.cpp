@@ -380,9 +380,9 @@ public:
 		post_intake = joyOp->GetRawButton(POST_INTAKE);
 		raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
 		raise_to_scale = joyOp->GetRawButton(RAISE_TO_SCALE);
-
-		raise_to_scale_backwards = joyThrottle->GetRawButton( //not on buttonbox
+		raise_to_scale_backwards = joyOp->GetRawButton(
 				RAISE_TO_SCALE_BACKWARDS);
+
 		intake_spin_in = joyThrottle->GetRawButton(INTAKE_SPIN_IN);
 		intake_spin_out = joyThrottle->GetRawButton(INTAKE_SPIN_OUT);
 		intake_spin_stop = joyThrottle->GetRawButton(INTAKE_SPIN_STOP);

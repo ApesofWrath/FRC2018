@@ -46,12 +46,12 @@ void DriveForward::GenerateForward() {
 		Segment sl = leftTrajectory[l];
 		Segment sr = rightTrajectory[l];
 
-		full_refs_df.at(l).at(0) = ((double)sl.heading);
-		full_refs_df.at(l).at(1) = ((double)sl.position);
-		full_refs_df.at(l).at(2) = ((double)sr.position);
+		full_refs_df.at(l).at(0) = ((double)sl.heading) - PI; //TODO: make forward actually forward if starting in center
+		full_refs_df.at(l).at(1) = -1.0 * ((double)sl.position);
+		full_refs_df.at(l).at(2) = -1.0 * ((double)sr.position);
 		full_refs_df.at(l).at(3) = (0.0);
-		full_refs_df.at(l).at(4) = ((double)sl.velocity);
-		full_refs_df.at(l).at(5) = ((double)sr.velocity);
+		full_refs_df.at(l).at(4) = -1.0 * ((double)sl.velocity);
+		full_refs_df.at(l).at(5) = -1.0 * ((double)sr.velocity);
 
 		if(l >= length) { //remaining points of the 1500 are set to the last point given by pathfinder
 			full_refs_df.at(l).at(0) = full_refs_df.at(l-1).at(0);
