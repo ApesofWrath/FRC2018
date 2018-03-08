@@ -25,10 +25,10 @@
 #include <TeleopStateMachine.h>
 #include <AutonSequences/SwitchSide.h>
 
-#define THREADS 1
 #define STATEMACHINE 1
 #define CORNELIUS 1 //in every class
 #define BUTTONBOX 1
+#define TESTING 0
 
 class Robot: public frc::IterativeRobot {
 public:
@@ -42,7 +42,7 @@ public:
 
 #if BUTTONBOX
 
-	const int WAIT_FOR_BUTTON = 13;
+	const int WAIT_FOR_BUTTON = 13; ///TODO: check thesse are right accrooding to regular joystick
 
 	const int GET_CUBE_GROUND = 14;
 	const int GET_CUBE_STATION = 4;
@@ -138,6 +138,11 @@ public:
 	std::string autoSelected;
 	std::string positionSelected;
 
+	int state_test = 0;
+	int last_state_test = 1;
+
+	Timer *timerTest = new Timer();
+
 	void RobotInit() {
 
 		elevator_profiler_ = new ElevatorMotionProfiler(1.6, 10.0, 0.01); //max vel, max accel, timestep
@@ -168,23 +173,25 @@ public:
 		frc::SmartDashboard::PutData("Auto Modes", &autonChooser);
 		frc::SmartDashboard::PutData("Position", &positionChooser);
 
-#if THREADS
+#if TESTING
 		//starting threads in robot init so that they only are created once
-		drive_controller->StartDriveThreads(joyThrottle, joyWheel, &is_heading, //both auton and teleop drive
-				&is_vision, &is_fc); //auton drive will not start until profile for auton is sent through
-
 		intake_->StartIntakeThread(); //controllers
 		elevator_->StartElevatorThread();
 
+#else
+		intake_->StartIntakeThread(); //controllers
+		elevator_->StartElevatorThread();
+
+		drive_controller->StartDriveThreads(joyThrottle, joyWheel, &is_heading,//both auton and teleop drive
+				&is_vision, &is_fc);//auton drive will not start until profile for auton is sent through
+
 		teleop_state_machine->StartStateMachineThread(
-				&wait_for_button, //both auton and teleop state machines
+				&wait_for_button,//both auton and teleop state machines
 				&intake_spin_in, &intake_spin_out, &intake_spin_stop,
 				&get_cube_ground, &get_cube_station, &post_intake,
 				&raise_to_switch, &raise_to_scale, &intake_arm_up,
 				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
 				&elevator_down, &raise_to_scale_backwards);
-
-#else
 #endif
 	}
 
@@ -301,7 +308,7 @@ public:
 				} else if (!leftScale && leftSwitch) {
 					scale_->GenerateScale(false, false, false);
 					scaleState = true;
-				} else if (leftScale && !leftSwitch){
+				} else if (leftScale && !leftSwitch) {
 					switch_side->GenerateSwitchSide(false);
 					switchSideState = true;
 				} else {
@@ -324,7 +331,7 @@ public:
 
 		} else {
 			drive_forward = new DriveForward(drive_controller, elevator_,
-								intake_);
+					intake_);
 			drive_forward->GenerateForward();
 		}
 
@@ -374,9 +381,8 @@ public:
 		raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
 		raise_to_scale = joyOp->GetRawButton(RAISE_TO_SCALE);
 
-		raise_to_scale_backwards = joyThrottle->GetRawButton(
+		raise_to_scale_backwards = joyThrottle->GetRawButton( //not on buttonbox
 				RAISE_TO_SCALE_BACKWARDS);
-
 		intake_spin_in = joyThrottle->GetRawButton(INTAKE_SPIN_IN);
 		intake_spin_out = joyThrottle->GetRawButton(INTAKE_SPIN_OUT);
 		intake_spin_stop = joyThrottle->GetRawButton(INTAKE_SPIN_STOP);
@@ -395,7 +401,7 @@ public:
 		if (low_gear) {
 			is_auto_shift = false;
 			drive_controller->ShiftDown();
-		} else if (high_gear) {
+		} else if (high_gear) {//bad because if want to shift down when in up shift velocity range, once you let go of the low_gear, it will go back to high gear
 			drive_controller->ShiftUp();
 			is_auto_shift = false;
 		} else {
@@ -420,93 +426,91 @@ public:
 
 	void TestPeriodic() {
 
-		/* Standard dev
-		 double sumL = 0;
-		 double sumR = 0;
-		 double meanR = 0;
-		 double meanL = 0;
+		SmartDashboard::PutNumber("EL POS", elevator_->GetElevatorPosition());
+		SmartDashboard::PutNumber("ARM POS", intake_->GetAngularPosition());
 
-		 double standard_dev_l = 0;
-		 double standard_dev_r = 0;
+//		drive_controller->canTalonLeft1->Set(ControlMode::PercentOutput, 1.0);
+//		drive_controller->canTalonRight1->Set(ControlMode::PercentOutput, 1.0);
+//
+//		SmartDashboard::PutNumber("Left 1",
+//				drive_controller->canTalonLeft1->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Left 2",
+//				drive_controller->canTalonLeft2->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Left 3",
+//				drive_controller->canTalonLeft3->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Left 4",
+//				drive_controller->canTalonLeft4->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Right 1",
+//				drive_controller->canTalonRight1->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Right 2",
+//				drive_controller->canTalonRight2->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Right 3",
+//				drive_controller->canTalonRight3->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Right 4",
+//				drive_controller->canTalonRight4->GetOutputCurrent());
+//
+//		SmartDashboard::PutNumber("Left 1 Vel", drive_controller->GetLeftVel());
+//		SmartDashboard::PutNumber("Right 1 Vel",
+//				drive_controller->GetRightVel());
+//
+//		if (last_state_test != 0) {
+//			timerTest->Start();
+//		}
+//
+//		if (timerTest->HasPeriodPassed(3)
+//				&& std::abs(drive_controller->GetLeftVel()) > 0.0
+//				&& std::abs(drive_controller->GetRightVel()) > 0.0) { //first one not needed //550, 1250 //JUST LOOK AT CURRENTS
+//
+//			state_test = 1;
+//			timerTest->Reset();
+//
+//		}
+//
+//		last_state_test = 0;
 
-		 drive_controller->canTalonLeft1->Set(ControlMode::PercentOutput, 1.0);
-		 drive_controller->canTalonRight1->Set(ControlMode::PercentOutput, 1.0);
+		switch (state_test) {//threads are always running
 
-		 SmartDashboard::PutNumber("Left 1",
-		 drive_controller->canTalonLeft1->GetOutputCurrent());
-		 SmartDashboard::PutNumber("Left 2",
-		 drive_controller->canTalonLeft2->GetOutputCurrent());
-		 SmartDashboard::PutNumber("Left 3",
-		 drive_controller->canTalonLeft3->GetOutputCurrent());
-		 SmartDashboard::PutNumber("Left 4",
-		 drive_controller->canTalonLeft4->GetOutputCurrent());
-		 SmartDashboard::PutNumber("Right 1",
-		 drive_controller->canTalonRight1->GetOutputCurrent());
-		 SmartDashboard::PutNumber("Right 2",
-		 drive_controller->canTalonRight2->GetOutputCurrent());
-		 SmartDashboard::PutNumber("Right 3",
-		 drive_controller->canTalonRight3->GetOutputCurrent());
-		 SmartDashboard::PutNumber("Right 4",
-		 drive_controller->canTalonRight4->GetOutputCurrent());
+		case 0:
+			intake_->IntakeArmStateMachine(); //init state
+			intake_->IntakeWheelStateMachine();
+			elevator_->ElevatorStateMachine();
 
-		 //standard dev calculation
+			if (intake_->is_init_intake && elevator_->is_elevator_init) { //once initialized, state machines are ou
+				state_test = 0;
+			}
+			last_state_test = 0;
 
-		 sumL += drive_controller->canTalonLeft1->GetOutputCurrent();
-		 sumL += drive_controller->canTalonLeft2->GetOutputCurrent();
-		 sumL += drive_controller->canTalonLeft3->GetOutputCurrent();
-		 sumL += drive_controller->canTalonLeft4->GetOutputCurrent();
-		 sumR += drive_controller->canTalonRight1->GetOutputCurrent();
-		 sumR += drive_controller->canTalonRight2->GetOutputCurrent();
-		 sumR += drive_controller->canTalonRight3->GetOutputCurrent();
-		 sumR += drive_controller->canTalonRight4->GetOutputCurrent();
+			break;
 
-		 meanL = sumL / 8.0;
-		 meanR = sumR / 8.0;
+		case 1:
+			intake_->IntakeArmStateMachine(); //up
+			intake_->IntakeWheelStateMachine();
+			if (std::abs(intake_->GetAngularPosition() - intake_->UP_ANGLE)
+					< 0.1) {
+				state_test = 2;
+			}
+			break;
 
-		 standard_dev_l += pow(
-		 drive_controller->canTalonLeft1->GetOutputCurrent() - meanL, 2);
-		 standard_dev_l += pow(
-		 drive_controller->canTalonLeft2->GetOutputCurrent() - meanL, 2);
-		 standard_dev_l += pow(
-		 drive_controller->canTalonLeft3->GetOutputCurrent() - meanL, 2);
-		 standard_dev_l += pow(
-		 drive_controller->canTalonLeft4->GetOutputCurrent() - meanL, 2);
-		 standard_dev_r += pow(
-		 drive_controller->canTalonRight1->GetOutputCurrent() - meanR,
-		 2);
-		 standard_dev_r += pow(
-		 drive_controller->canTalonRight2->GetOutputCurrent() - meanR,
-		 2);
-		 standard_dev_r += pow(
-		 drive_controller->canTalonRight3->GetOutputCurrent() - meanR,
-		 2);
-		 standard_dev_r += pow(
-		 drive_controller->canTalonRight4->GetOutputCurrent() - meanR,
-		 2);
+		case 2:
+			intake_->intake_arm_state = intake_->DOWN_STATE_H;
+			intake_->IntakeArmStateMachine(); //down states
+			intake_->IntakeWheelStateMachine();
+			if (std::abs(intake_->GetAngularPosition() - intake_->DOWN_ANGLE)
+					< 0.1) {
+				state_test = 3;
+			}
+			break;
 
-		 standard_dev_l = sqrt(standard_dev_l / 10.0);
-		 standard_dev_r = sqrt(standard_dev_r / 10.0);
+		case 3:
+			elevator_->elevator_state = elevator_->MID_STATE_E_H;
+			elevator_->ElevatorStateMachine();
+			if (std::abs(elevator_->GetElevatorPosition() - elevator_->MID_POS_E)
+					< 0.1) {
 
-		 SmartDashboard::PutNumber("Standard Dev Left", standard_dev_l);
-		 SmartDashboard::PutNumber("Standard Dev Right", standard_dev_r);
+			}
+		}
 
-		 if (standard_dev_l > 1.0) {
-		 acceptable_current_l = false;
-		 } else {
-		 acceptable_current_l = true;
-		 }
-
-		 if (standard_dev_r > 1.0) {
-		 acceptable_current_r = false;
-		 } else {
-		 acceptable_current_r = true;
-		 }
-
-		 SmartDashboard::PutBoolean("Close Currents ", acceptable_current_l);
-		 SmartDashboard::PutBoolean("Close Currents ", acceptable_current_r);
-		 */
-
-	}
+	} //arm up, elev down
 
 private:
 

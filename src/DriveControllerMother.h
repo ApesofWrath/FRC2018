@@ -72,6 +72,9 @@ public:
 	void SetMaxRpm(double rpm);
 	double GetMaxRpm();
 
+	double GetLeftVel();
+	double GetRightVel();
+
 	//Funstion to fill the profile points vector for autonomous
 	void SetRefs(std::vector<std::vector<double>> profile);
 	void SetRows(std::vector<std::vector<double>> two_rows_profile);

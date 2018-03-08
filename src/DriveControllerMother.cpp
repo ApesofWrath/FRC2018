@@ -1084,6 +1084,22 @@ void DriveControllerMother::ZeroYaw() {
 
 }
 
+double DriveControllerMother::GetLeftVel() {
+
+	double l_current = ((double) canTalonLeft1->GetSelectedSensorVelocity(0)
+				/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
+
+	return l_current;
+}
+
+double DriveControllerMother::GetRightVel() {
+
+	double r_current = ((double) canTalonRight1->GetSelectedSensorVelocity(0)
+				/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
+
+	return r_current;
+}
+
 //Zeros the accumulating I
 void DriveControllerMother::ZeroI() {
 

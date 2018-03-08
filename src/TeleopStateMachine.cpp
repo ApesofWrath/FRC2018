@@ -521,11 +521,6 @@ void TeleopStateMachine::StateMachineWrapper(
 		else if (frc::RobotState::IsEnabled()
 				&& frc::RobotState::IsAutonomous()) {
 
-			//std::cout << "Auton thread" << std::endl;
-
-			std::cout << "raise switch " << (bool) *raise_to_switch
-					<< std::endl;
-
 			intake->IntakeArmStateMachine();
 			intake->IntakeWheelStateMachine();
 			elevator->ElevatorStateMachine();
