@@ -10,13 +10,10 @@
 int scale_traj_len = 0;
 int added_switch_len = 0;
 std::vector<std::vector<double> > full_refs_sc(1500, std::vector<double>(6)); //initalizes each index value to 0
-std::vector<std::vector<double> > rows_sc(2, std::vector<double>(6));
 
-void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch) { //left center right //left is positive for x and for angle //bool switch too
+void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch) { //left center right //left is positive for x and for angle //bool switch too //TODO: make center scale and side scale subclasses
 
 	//Auton thread started in auton constructor
-
-	SmartDashboard::PutString("made it", "no");
 
 	int POINT_LENGTH = 3;
 
@@ -71,13 +68,6 @@ void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch) { //l
 		full_refs_sc.at(l).at(4) = -1.0 * ((double) sl.velocity);
 		full_refs_sc.at(l).at(5) = -1.0 * ((double) sr.velocity);
 
-//		full_refs_sc.at(l).at(0) = ((double) sl.heading) - PI; //profile tries to turn robot around and go straight, in order to go backwards
-//		full_refs_sc.at(l).at(1) = -((double) sl.position);
-//		full_refs_sc.at(l).at(2) = -((double) sr.position);
-//		full_refs_sc.at(l).at(3) = (0.0);
-//		full_refs_sc.at(l).at(4) = -((double) sl.velocity); cube gone, intake, get cube
-//		full_refs_sc.at(l).at(5) = -((double) sr.velocity);
-
 		if (l >= length) { //still have more in the 1500 allotted points
 			if (switch_) {
 				GenerateAddedSwitch(left_switch);
@@ -93,10 +83,6 @@ void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch) { //l
 		}
 	}
 
-	SmartDashboard::PutString("made it", "yep");
-	std::cout << "MADE IT PAST CREATING PROFILES" << std::endl;
-
-	//FillProfile(full_refs_sc);
 	drive_controller->SetZeroingIndex(scale_traj_len); //DONT DRIVE WHILE SHOOTING
 	drive_controller->SetRefs(full_refs_sc);
 

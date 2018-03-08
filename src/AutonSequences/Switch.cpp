@@ -9,7 +9,7 @@
 
 std::vector<std::vector<double> > full_refs_sw(1500, std::vector<double>(6)); //initalizes each index value to 0
 
-void Switch::GenerateSwitch(bool left) { //left center right //left is positive for x and for angle
+void Switch::GenerateSwitch(bool left) { //left center right //left is positive for x and for angle //TODO: make center switch, side switch subclasses
 
 	//Auton thread started in auton constructor
 

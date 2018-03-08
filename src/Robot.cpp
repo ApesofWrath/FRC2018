@@ -239,7 +239,7 @@ public:
 			}
 
 			//Scale only
-		} else if (autoSelected == cubeScale) { //can only scale if scale is on our side //TODO: Add logic for what to do if scale is not on our side
+		} else if (autoSelected == cubeScale) { //can only scale if scale is on our side
 			scale_ = new Scale(drive_controller, elevator_, intake_);
 
 			if (positionSelected == left && leftScale) {
