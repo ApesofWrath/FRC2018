@@ -160,7 +160,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		if (state_intake_arm) {
 			intake->intake_arm_state = 3;
 		}
-		if (intake->HaveCube() || post_intake) {
+		if (intake->HaveCube() || post_intake) { //there is no post intake button
 			state = POST_INTAKE_STATE;
 		}
 		last_state = GET_CUBE_GROUND_STATE;

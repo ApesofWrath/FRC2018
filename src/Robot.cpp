@@ -324,7 +324,7 @@ public:
 			}
 		}
 
-		else if (autoSelected == driveForward && positionSelected == center) {
+		else if (autoSelected == driveForward && positionSelected == center) { //depends on starting robot backwards when on side, and forwards when in middle
 			drive_forward = new DriveForward(drive_controller, elevator_,
 					intake_);
 			drive_forward->GenerateForward(true);
@@ -332,7 +332,7 @@ public:
 		} else {
 			drive_forward = new DriveForward(drive_controller, elevator_,
 					intake_);
-			drive_forward->GenerateForward(true);
+			drive_forward->GenerateForward(false);
 		}
 
 	}

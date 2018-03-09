@@ -656,13 +656,13 @@ void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle, //finds targets
 
 	double reverse_x = 1.0; //square
 
-//	if (JoyWheel->GetX() < 0.0) {
-//		reverse_x = -1.0;
-//	} else {
-//		reverse_x = 1.0;
-//	}
+	if (JoyWheel->GetX() < 0.0) {
+		reverse_x = -1.0;
+	} else {
+		reverse_x = 1.0;
+	}
 
-	double joy_wheel_val = 1.0 * JoyWheel->GetX(); //not SQUARED //*reverse_x
+	double joy_wheel_val = reverse_x * JoyWheel->GetX() * JoyWheel->GetX(); //not SQUARED //*reverse_x
 
 //	if (!is_low_gear) { //squrare wheel in high gear
 //		joy_wheel_val *= reverse_x * JoyWheel->GetX();
@@ -737,11 +737,11 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 		refYaw -= 2 * PI;
 	}
 
-	SmartDashboard::PutNumber("refLeft", refLeft);
-	SmartDashboard::PutNumber("refRight", refRight);
-	SmartDashboard::PutNumber("refLeftVel", tarVelLeft);
-	SmartDashboard::PutNumber("refRightVel", tarVelRight);
-	SmartDashboard::PutNumber("refYaw", refYaw);
+//	SmartDashboard::PutNumber("refLeft", refLeft);
+//	SmartDashboard::PutNumber("refRight", refRight);
+//	SmartDashboard::PutNumber("refLeftVel", tarVelLeft);
+//	SmartDashboard::PutNumber("refRightVel", tarVelRight);
+//	SmartDashboard::PutNumber("refYaw", refYaw);
 
 //	std::cout << "yep " << refYaw << "  " << refLeft << "  " << refRight << "  "
 //			<< targetYawRate << "  " << tarVelLeft << "   " << tarVelRight
@@ -768,10 +768,10 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	double l_dis = ((double) canTalonLeft1->GetSelectedSensorPosition(0)
 			/ 1205.0);
 
-	SmartDashboard::PutNumber("actualLeftDis", l_dis);
-	SmartDashboard::PutNumber("actualRightDis", r_dis);
-	SmartDashboard::PutNumber("actualLeftVel", l_current);
-	SmartDashboard::PutNumber("actualRightVel", r_current);
+//	SmartDashboard::PutNumber("actualLeftDis", l_dis);
+//	SmartDashboard::PutNumber("actualRightDis", r_dis);
+//	SmartDashboard::PutNumber("actualLeftVel", l_current);
+//	SmartDashboard::PutNumber("actualRightVel", r_current);
 
 	//std::cout << "Right: " << r_dis << " Left: " << l_dis << std::endl;
 
@@ -783,8 +783,8 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 
 	double y_dis = -1.0 * ahrs->GetYaw() * (double) (PI / 180); //current theta (yaw) value
 
-	SmartDashboard::PutNumber("Target Heading", refYaw);
-	SmartDashboard::PutNumber("Actual Heading", y_dis);
+//	SmartDashboard::PutNumber("Target Heading", refYaw);
+//	SmartDashboard::PutNumber("Actual Heading", y_dis);
 
 	l_error_dis_au = refLeft - l_dis;
 	r_error_dis_au = refRight - r_dis;
@@ -934,7 +934,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 
 	double curr_fps = (l_current * TICKS_PER_ROT / 1205.0) / 60.0;
 
-	SmartDashboard::PutNumber("Left fps", curr_fps);
+//SmartDashboard::PutNumber("Left fps", curr_fps);
 
 	//timerTest->Start();
 
@@ -1004,7 +1004,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	double total_kick = D_KICK_VEL + P_KICK_VEL + feed_forward_k
 			+ (Kv_KICK * target_vel_kick);
 
-	SmartDashboard::PutNumber("FF", ff_dr);
+//	SmartDashboard::PutNumber("FF", ff_dr);
 	//std::cout << "FF: " << ff_dr << " total: " << total_right << std::endl;
 
 	//std::cout << "total right: " << total_right << "  total left: " << total_left << std::endl;
