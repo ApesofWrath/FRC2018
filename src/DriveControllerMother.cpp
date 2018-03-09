@@ -854,8 +854,6 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 
 }
 
-//TODO: add check for encoders working
-
 void DriveControllerMother::Controller(double ref_kick, double ref_right,
 		double ref_left, double ref_yaw, double k_p_right, double k_p_left,
 		double k_p_kick, double k_p_yaw, double k_d_yaw, double k_d_right,
@@ -864,6 +862,8 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 
 	double yaw_rate_current = -1.0 * (double) ahrs->GetRate()
 			* (double) ((PI) / 180.0); //left should be positive
+
+	//SmartDashboard::PutNumber("yaw rate", yaw_rate_current);
 
 	double target_yaw_rate = ref_yaw;
 
@@ -874,9 +874,11 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 
 	//std::cout << "left: " << ref_left << std::endl;
 
-//	SmartDashboard::PutNumber("yaw current", yaw_rate_current);
-//	SmartDashboard::PutNumber("yaw target", target_yaw_rate);
-//	SmartDashboard::PutNumber("yaw error", yaw_error);
+	std::cout << "raw yaw: " << ahrs->GetRate() << std::endl;
+
+	SmartDashboard::PutNumber("yaw current", yaw_rate_current);
+	SmartDashboard::PutNumber("yaw target", target_yaw_rate);
+	SmartDashboard::PutNumber("yaw error", yaw_error);
 
 
 	//std::cout << "Right: " << r_dis << " Left: " << l_dis << std::endl;
@@ -922,7 +924,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	double kick_current = ((double) canTalonKicker->GetSelectedSensorVelocity(0)
 			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION; //going right is positive
 
-//	SmartDashboard::PutNumber("Velocity", l_current);
+	SmartDashboard::PutNumber("Velocity", l_current);
 
 	double curr_fps = (l_current * TICKS_PER_ROT / 1205.0) / 60.0;
 
@@ -1244,7 +1246,7 @@ void DriveControllerMother::DriveWrapper(Joystick *JoyThrottle,
 
 		std::this_thread::sleep_for(std::chrono::milliseconds((int) time_a));
 
-		//SmartDashboard::PutNumber("time", timerTeleop->Get());
+		SmartDashboard::PutNumber("time", timerTeleop->Get());
 
 	}
 }

@@ -14,7 +14,7 @@
 #define CORNELIUS 1
 
 #if CORNELIUS
-double ff_percent = 0.2;
+double ff_percent = 0.4;
 #else
 double ff_percent = 0.4;
 #endif

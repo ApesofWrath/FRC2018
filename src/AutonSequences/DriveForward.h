@@ -17,7 +17,7 @@ public:
 
 	}
 
-	void GenerateForward();
+	void GenerateForward(bool forward);
 
 };
 

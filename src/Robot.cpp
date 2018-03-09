@@ -256,7 +256,7 @@ public:
 			} else {
 				drive_forward = new DriveForward(drive_controller, elevator_,
 						intake_);
-				drive_forward->GenerateForward();
+				drive_forward->GenerateForward(true);
 			}
 
 			//Scale only
@@ -276,7 +276,7 @@ public:
 					|| (positionSelected == left && !leftScale)) {
 				drive_forward = new DriveForward(drive_controller, elevator_, //can't just set autoSelected to driveForward because code only goes through if-ifelse once
 						intake_);
-				drive_forward->GenerateForward();
+				drive_forward->GenerateForward(false);
 			}
 		}
 
@@ -298,7 +298,7 @@ public:
 				} else {
 					drive_forward = new DriveForward(drive_controller,
 							elevator_, intake_);
-					drive_forward->GenerateForward();
+					drive_forward->GenerateForward(false);
 				}
 
 			} else if (positionSelected == right) {
@@ -314,25 +314,25 @@ public:
 				} else {
 					drive_forward = new DriveForward(drive_controller,
 							elevator_, intake_);
-					drive_forward->GenerateForward();
+					drive_forward->GenerateForward(false);
 				}
 
 			} else {
 				drive_forward = new DriveForward(drive_controller, elevator_,
 						intake_);
-				drive_forward->GenerateForward();
+				drive_forward->GenerateForward(false);
 			}
 		}
 
-		else if (autoSelected == driveForward) {
+		else if (autoSelected == driveForward && positionSelected == center) {
 			drive_forward = new DriveForward(drive_controller, elevator_,
 					intake_);
-			drive_forward->GenerateForward();
+			drive_forward->GenerateForward(true);
 
 		} else {
 			drive_forward = new DriveForward(drive_controller, elevator_,
 					intake_);
-			drive_forward->GenerateForward();
+			drive_forward->GenerateForward(true);
 		}
 
 	}

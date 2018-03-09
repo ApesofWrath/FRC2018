@@ -7,9 +7,9 @@
 
 #include <AutonSequences/DriveForward.h>
 
-std::vector<std::vector<double> > full_refs_df (1500, std::vector<double>(6)); //initalizes each index value to 0
+std::vector<std::vector<double> > full_refs_df(1500, std::vector<double>(6)); //initalizes each index value to 0
 
-void DriveForward::GenerateForward() {
+void DriveForward::GenerateForward(bool forward) {
 
 	//Auton state machine thread started in Auton constructor
 
@@ -17,9 +17,17 @@ void DriveForward::GenerateForward() {
 
 	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
 
+	Waypoint p1, p2;
+
 	//feet
-	Waypoint p1 = { 0.0, 0.0, 0.0 };
-	Waypoint p2 = { 10.0, 0.2, 0.0 }; //10
+
+	if (forward) {
+		p1 = {0.0, 0.0, 0.0};
+		p2 = {10.0, 0.2, 0.0}; //10
+	} else {
+		p1 = {0.0, 0.0, 0.0};
+		p2 = {-10.0, -0.2, 0.0}; //10
+	}
 
 	points[0] = p1;
 	points[1] = p2;
@@ -46,20 +54,29 @@ void DriveForward::GenerateForward() {
 		Segment sl = leftTrajectory[l];
 		Segment sr = rightTrajectory[l];
 
-		full_refs_df.at(l).at(0) = ((double)sl.heading) - PI; //TODO: make forward actually forward if starting in center
-		full_refs_df.at(l).at(1) = -1.0 * ((double)sl.position);
-		full_refs_df.at(l).at(2) = -1.0 * ((double)sr.position);
-		full_refs_df.at(l).at(3) = (0.0);
-		full_refs_df.at(l).at(4) = -1.0 * ((double)sl.velocity);
-		full_refs_df.at(l).at(5) = -1.0 * ((double)sr.velocity);
+		if (forward) {
+			full_refs_df.at(l).at(0) = ((double) sl.heading); //TODO: make forward actually forward if starting in center
+			full_refs_df.at(l).at(1) = ((double) sl.position);
+			full_refs_df.at(l).at(2) = ((double) sr.position);
+			full_refs_df.at(l).at(3) = (0.0);
+			full_refs_df.at(l).at(4) = ((double) sl.velocity);
+			full_refs_df.at(l).at(5) = ((double) sr.velocity);
+		} else {
+			full_refs_df.at(l).at(0) = ((double) sl.heading) - PI; //TODO: make forward actually forward if starting in center
+			full_refs_df.at(l).at(1) = -1.0 * ((double) sl.position);
+			full_refs_df.at(l).at(2) = -1.0 * ((double) sr.position);
+			full_refs_df.at(l).at(3) = (0.0);
+			full_refs_df.at(l).at(4) = -1.0 * ((double) sl.velocity);
+			full_refs_df.at(l).at(5) = -1.0 * ((double) sr.velocity);
+		}
 
-		if(l >= length) { //remaining points of the 1500 are set to the last point given by pathfinder
-			full_refs_df.at(l).at(0) = full_refs_df.at(l-1).at(0);
-			full_refs_df.at(l).at(1) = full_refs_df.at(l-1).at(1);
-			full_refs_df.at(l).at(2) = full_refs_df.at(l-1).at(2);
-			full_refs_df.at(l).at(3) = full_refs_df.at(l-1).at(3);
-			full_refs_df.at(l).at(4) = full_refs_df.at(l-1).at(4);
-			full_refs_df.at(l).at(5) = full_refs_df.at(l-1).at(5);
+		if (l >= length) { //remaining points of the 1500 are set to the last point given by pathfinder
+			full_refs_df.at(l).at(0) = full_refs_df.at(l - 1).at(0);
+			full_refs_df.at(l).at(1) = full_refs_df.at(l - 1).at(1);
+			full_refs_df.at(l).at(2) = full_refs_df.at(l - 1).at(2);
+			full_refs_df.at(l).at(3) = full_refs_df.at(l - 1).at(3);
+			full_refs_df.at(l).at(4) = full_refs_df.at(l - 1).at(4);
+			full_refs_df.at(l).at(5) = full_refs_df.at(l - 1).at(5);
 		}
 	}
 
