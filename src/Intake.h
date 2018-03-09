@@ -53,7 +53,7 @@ public:
 	const double DOWN_ANGLE = 0.02; //instead of changing the offset
 	const double MID_ANGLE = 0.55;
 	const double SWITCH_ANGLE = 0.8; //not used
-	const double UP_ANGLE = 1.3; //starting pos -> also the shooting position
+	const double UP_ANGLE = 1.35; //starting pos -> also the shooting position
 	const double BACK_SHOT_ANGLE = 2.0; // 120 ish degrees for the flippy back arm shot
 
 	Intake(PowerDistributionPanel *pdp, IntakeMotionProfiler *intake_profiler, Elevator *el_);

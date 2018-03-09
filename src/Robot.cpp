@@ -37,8 +37,8 @@ public:
 	const int JOY_WHEEL = 1;
 	const int JOY_OP = 2;
 
-	const int LOW_GEAR_BUTTON = 6;
-	const int HIGH_GEAR_BUTTON = 9;
+	const int LOW_GEAR_BUTTON = 5;
+	const int HIGH_GEAR_BUTTON = 6;
 
 #if BUTTONBOX
 
@@ -52,7 +52,7 @@ public:
 	const int RAISE_TO_SCALE_BACKWARDS = 12;
 
 	const int INTAKE_SPIN_IN = 99; //not enough buttons for these three
-	const int INTAKE_SPIN_OUT = 99;
+	const int INTAKE_SPIN_OUT = 1; //throttle
 	const int INTAKE_SPIN_STOP = 99;
 	//no slow
 
@@ -425,7 +425,7 @@ public:
 			is_auto_shift = true;
 		}
 
-		drive_controller->AutoShift(is_auto_shift);
+	//	drive_controller->AutoShift(is_auto_shift);
 
 #endif
 	}

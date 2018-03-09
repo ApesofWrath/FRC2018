@@ -442,7 +442,7 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 	ahrs = new AHRS(SerialPort::kUSB);
 	//ahrs = new AHRS(SerialPort::Port::kMXP);
 
-	solenoid = new DoubleSolenoid(1, 0, 1);
+	solenoid = new DoubleSolenoid(3, 1, 0);//101
 
 	canTalonKicker = new TalonSRX(-1);
 
@@ -451,6 +451,7 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 void DriveControllerMother::ShiftUp() { //high gear, inside
 
 //	SmartDashboard::PutString("GEAR", "HIGH");
+	std::cout << "shift up" << std::endl;
 
 	solenoid->Set(DoubleSolenoid::Value::kForward);
 	SetGainsHigh();
@@ -863,7 +864,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	double yaw_rate_current = -1.0 * (double) ahrs->GetRate()
 			* (double) ((PI) / 180.0); //left should be positive
 
-	//SmartDashboard::PutNumber("yaw rate", yaw_rate_current);
+	SmartDashboard::PutNumber("yrc", yaw_rate_current);
 
 	double target_yaw_rate = ref_yaw;
 
@@ -871,14 +872,19 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	ref_right = ref_right + (target_yaw_rate * (max_y_rpm / max_yaw_rate)); //0
 
 	double yaw_error = target_yaw_rate - yaw_rate_current;
+//
+//	if(yaw_rate_current == 0.0) {
+//		k_p_yaw = 0.0;
+//		k_d_yaw = 0.0;
+//	}
 
 	//std::cout << "left: " << ref_left << std::endl;
 
-	std::cout << "raw yaw: " << ahrs->GetRate() << std::endl;
-
-	SmartDashboard::PutNumber("yaw current", yaw_rate_current);
-	SmartDashboard::PutNumber("yaw target", target_yaw_rate);
-	SmartDashboard::PutNumber("yaw error", yaw_error);
+//	std::cout << "raw yaw: " << ahrs->GetRate() << std::endl;
+//
+//	SmartDashboard::PutNumber("yaw current", yaw_rate_current);
+//	SmartDashboard::PutNumber("yaw target", target_yaw_rate);
+//	SmartDashboard::PutNumber("yaw error", yaw_error);
 
 
 	//std::cout << "Right: " << r_dis << " Left: " << l_dis << std::endl;
@@ -947,6 +953,8 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 		k_d_left = 0.0;
 		k_d_right = 0.0;
 	}
+
+
 
 //	SmartDashboard::PutNumber("Left vel", l_current);
 //	SmartDashboard::PutNumber("Right vel.", r_current);

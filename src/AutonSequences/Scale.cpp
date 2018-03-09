@@ -11,6 +11,8 @@ int scale_traj_len = 0;
 int added_switch_len = 0;
 std::vector<std::vector<double> > full_refs_sc(1500, std::vector<double>(6)); //initalizes each index value to 0
 
+Timer *timerPauseScale = new Timer();
+
 void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch) { //left center right //left is positive for x and for angle //bool switch too //TODO: make center scale and side scale subclasses
 
 	//Auton thread started in auton constructor
@@ -73,7 +75,7 @@ void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch) { //l
 				GenerateAddedSwitch(left_switch); //will finish off 1500 points
 				break;
 			} else {
-				full_refs_sc.at(l).at(0) = full_refs_sc.at(l - 1).at(0);//l - 1 will always be the last sensible value since it cascades through the vector
+				full_refs_sc.at(l).at(0) = full_refs_sc.at(l - 1).at(0); //l - 1 will always be the last sensible value since it cascades through the vector
 				full_refs_sc.at(l).at(1) = full_refs_sc.at(l - 1).at(1);
 				full_refs_sc.at(l).at(2) = full_refs_sc.at(l - 1).at(2);
 				full_refs_sc.at(l).at(3) = full_refs_sc.at(l - 1).at(3);
@@ -84,7 +86,14 @@ void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch) { //l
 	}
 
 	drive_controller->SetZeroingIndex(scale_traj_len); //DONT DRIVE WHILE SHOOTING
-	drive_controller->SetRefs(full_refs_sc);
+
+//	timerPauseScale->Start();
+
+//	if (timerPauseScale->HasPeriodPassed(3)) {
+		drive_controller->SetRefs(full_refs_sc);
+//	}
+
+//	timerPauseScale->Stop();
 
 	free(trajectory);
 	free(leftTrajectory);
