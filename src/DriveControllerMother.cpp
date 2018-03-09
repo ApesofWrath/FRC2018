@@ -367,14 +367,14 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 	canTalonRight4 = new TalonSRX(RR);
 	canTalonRight4->Set(ControlMode::Follower, RF);
 
-//	canTalonLeft1->EnableCurrentLimit(true);
-//	canTalonLeft2->EnableCurrentLimit(true);
-//	canTalonLeft3->EnableCurrentLimit(true);
-//	canTalonLeft4->EnableCurrentLimit(true);
-//	canTalonRight1->EnableCurrentLimit(true);
-//	canTalonRight2->EnableCurrentLimit(true);
-//	canTalonRight3->EnableCurrentLimit(true);
-//	canTalonRight4->EnableCurrentLimit(true);
+	canTalonLeft1->EnableCurrentLimit(true);
+	canTalonLeft2->EnableCurrentLimit(true);
+	canTalonLeft3->EnableCurrentLimit(true);
+	canTalonLeft4->EnableCurrentLimit(true);
+	canTalonRight1->EnableCurrentLimit(true);
+	canTalonRight2->EnableCurrentLimit(true);
+	canTalonRight3->EnableCurrentLimit(true);
+	canTalonRight4->EnableCurrentLimit(true);
 
 	canTalonLeft1->ConfigPeakCurrentLimit(100, 0);
 	canTalonLeft2->ConfigPeakCurrentLimit(100, 0);

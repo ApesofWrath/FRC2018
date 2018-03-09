@@ -175,18 +175,18 @@ public:
 
 #if TESTING
 		//starting threads in robot init so that they only are created once
-		intake_->StartIntakeThread(); //controllers
+		intake_->StartIntakeThread();//controllers
 		elevator_->StartElevatorThread();
 
 #else
 		intake_->StartIntakeThread(); //controllers
 		elevator_->StartElevatorThread();
 
-		drive_controller->StartDriveThreads(joyThrottle, joyWheel, &is_heading,//both auton and teleop drive
-				&is_vision, &is_fc);//auton drive will not start until profile for auton is sent through
+		drive_controller->StartDriveThreads(joyThrottle, joyWheel, &is_heading, //both auton and teleop drive
+				&is_vision, &is_fc); //auton drive will not start until profile for auton is sent through
 
 		teleop_state_machine->StartStateMachineThread(
-				&wait_for_button,//both auton and teleop state machines
+				&wait_for_button, //both auton and teleop state machines
 				&intake_spin_in, &intake_spin_out, &intake_spin_stop,
 				&get_cube_ground, &get_cube_station, &post_intake,
 				&raise_to_switch, &raise_to_scale, &intake_arm_up,
@@ -363,6 +363,23 @@ public:
 
 	void TeleopPeriodic() {
 
+		SmartDashboard::PutNumber("Left 1",
+				drive_controller->canTalonLeft1->GetOutputCurrent());
+		SmartDashboard::PutNumber("Left 2",
+				drive_controller->canTalonLeft2->GetOutputCurrent());
+		SmartDashboard::PutNumber("Left 3",
+				drive_controller->canTalonLeft3->GetOutputCurrent());
+		SmartDashboard::PutNumber("Left 4",
+				drive_controller->canTalonLeft4->GetOutputCurrent());
+		SmartDashboard::PutNumber("Right 1",
+				drive_controller->canTalonRight1->GetOutputCurrent());
+		SmartDashboard::PutNumber("Right 2",
+				drive_controller->canTalonRight2->GetOutputCurrent());
+		SmartDashboard::PutNumber("Right 3",
+				drive_controller->canTalonRight3->GetOutputCurrent());
+		SmartDashboard::PutNumber("Right 4",
+				drive_controller->canTalonRight4->GetOutputCurrent());
+
 #if !STATEMACHINE
 		intake_->ManualArm(joyOp);
 		//	intake_->ManualWheels(joyOp);
@@ -401,7 +418,7 @@ public:
 		if (low_gear) {
 			is_auto_shift = false;
 			drive_controller->ShiftDown();
-		} else if (high_gear) {//bad because if want to shift down when in up shift velocity range, once you let go of the low_gear, it will go back to high gear
+		} else if (high_gear) { //bad because if want to shift down when in up shift velocity range, once you let go of the low_gear, it will go back to high gear
 			drive_controller->ShiftUp();
 			is_auto_shift = false;
 		} else {
@@ -468,7 +485,7 @@ public:
 //
 //		last_state_test = 0;
 
-		switch (state_test) {//threads are always running
+		switch (state_test) { //threads are always running
 
 		case 0:
 			intake_->IntakeArmStateMachine(); //init state
@@ -504,7 +521,8 @@ public:
 		case 3:
 			elevator_->elevator_state = elevator_->MID_STATE_E_H;
 			elevator_->ElevatorStateMachine();
-			if (std::abs(elevator_->GetElevatorPosition() - elevator_->MID_POS_E)
+			if (std::abs(
+					elevator_->GetElevatorPosition() - elevator_->MID_POS_E)
 					< 0.1) {
 
 			}

@@ -54,7 +54,7 @@ const double Kv_i = 1 / MAX_THEORETICAL_VELOCITY_I;
 //const double MAX_ACCELERATION_I = 6.0; //2.5;
 //const double TIME_STEP_I = 0.01; //sec
 
-const double MAX_INTAKE_CURRENT = 12.0;
+const double MAX_INTAKE_CURRENT = 14.0;
 const double OUTTAKE_INTAKE_CURRENT = 20.0;
 
 const double PCL_WHEELS = 30.0; //peak current limit
@@ -437,6 +437,8 @@ void Intake::IntakeArmStateMachine() {
 
 	switch (intake_arm_state) {
 
+	SmartDashboard::PutNumber("IC", talonIntakeArm->GetOutputCurrent());
+
 	case INIT_STATE:
 		SmartDashboard::PutString("INTAKE ARM", "INIT");
 		if (is_init_intake) { // && GetAngularPosition() == 0.35) {
@@ -475,6 +477,7 @@ void Intake::IntakeArmStateMachine() {
 		}
 		last_intake_state = DOWN_STATE;
 		break;
+
 
 	case STOP_ARM_STATE: //for emergencies
 		SmartDashboard::PutString("INTAKE ARM", "STOP");
@@ -552,7 +555,7 @@ bool Intake::HaveCube() {
 	} else {
 		current_counter = 0;
 	}
-	if (current_counter >= 2) {
+	if (current_counter >= 3) {
 		return true;
 	} else {
 		return false;

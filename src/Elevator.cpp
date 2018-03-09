@@ -412,7 +412,7 @@ void Elevator::ElevatorStateMachine() {
 
 //	SmartDashboard::PutString("sm el", "yes");
 
-//	SmartDashboard::PutNumber("ELEVATOR VEL", GetElevatorVelocity());
+	SmartDashboard::PutNumber("EC", talonElevator1->GetOutputCurrent());
 
 	switch (elevator_state) {
 
