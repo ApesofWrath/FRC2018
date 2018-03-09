@@ -376,32 +376,32 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 	canTalonRight3->EnableCurrentLimit(true);
 	canTalonRight4->EnableCurrentLimit(true);
 
-	canTalonLeft1->ConfigPeakCurrentLimit(100, 0);
-	canTalonLeft2->ConfigPeakCurrentLimit(100, 0);
-	canTalonLeft3->ConfigPeakCurrentLimit(100, 0);
-	canTalonLeft4->ConfigPeakCurrentLimit(100, 0);
-	canTalonRight1->ConfigPeakCurrentLimit(100, 0);
-	canTalonRight2->ConfigPeakCurrentLimit(100, 0);
-	canTalonRight3->ConfigPeakCurrentLimit(100, 0);
-	canTalonRight4->ConfigPeakCurrentLimit(100, 0);
+	canTalonLeft1->ConfigPeakCurrentLimit(50, 0);
+	canTalonLeft2->ConfigPeakCurrentLimit(50, 0);
+	canTalonLeft3->ConfigPeakCurrentLimit(50, 0);
+	canTalonLeft4->ConfigPeakCurrentLimit(50, 0);
+	canTalonRight1->ConfigPeakCurrentLimit(50, 0);
+	canTalonRight2->ConfigPeakCurrentLimit(50, 0);
+	canTalonRight3->ConfigPeakCurrentLimit(50, 0);
+	canTalonRight4->ConfigPeakCurrentLimit(50, 0);
 
-	canTalonLeft1->ConfigContinuousCurrentLimit(55, 0);
-	canTalonLeft2->ConfigContinuousCurrentLimit(55, 0);
-	canTalonLeft3->ConfigContinuousCurrentLimit(55, 0);
-	canTalonLeft4->ConfigContinuousCurrentLimit(55, 0);
-	canTalonRight1->ConfigContinuousCurrentLimit(55, 0);
-	canTalonRight2->ConfigContinuousCurrentLimit(55, 0);
-	canTalonRight3->ConfigContinuousCurrentLimit(55, 0);
-	canTalonRight4->ConfigContinuousCurrentLimit(55, 0);
+	canTalonLeft1->ConfigContinuousCurrentLimit(35, 0);
+	canTalonLeft2->ConfigContinuousCurrentLimit(35, 0);
+	canTalonLeft3->ConfigContinuousCurrentLimit(35, 0);
+	canTalonLeft4->ConfigContinuousCurrentLimit(35, 0);
+	canTalonRight1->ConfigContinuousCurrentLimit(35, 0);
+	canTalonRight2->ConfigContinuousCurrentLimit(35, 0);
+	canTalonRight3->ConfigContinuousCurrentLimit(35, 0);
+	canTalonRight4->ConfigContinuousCurrentLimit(35, 0);
 
-	canTalonLeft1->ConfigPeakCurrentDuration(400, 0);
-	canTalonLeft2->ConfigPeakCurrentDuration(400, 0);
-	canTalonLeft3->ConfigPeakCurrentDuration(400, 0);
-	canTalonLeft4->ConfigPeakCurrentDuration(400, 0);
-	canTalonRight1->ConfigPeakCurrentDuration(400, 0);
-	canTalonRight2->ConfigPeakCurrentDuration(400, 0);
-	canTalonRight3->ConfigPeakCurrentDuration(400, 0);
-	canTalonRight4->ConfigPeakCurrentDuration(400, 0);
+	canTalonLeft1->ConfigPeakCurrentDuration(200, 0);
+	canTalonLeft2->ConfigPeakCurrentDuration(200, 0);
+	canTalonLeft3->ConfigPeakCurrentDuration(200, 0);
+	canTalonLeft4->ConfigPeakCurrentDuration(200, 0);
+	canTalonRight1->ConfigPeakCurrentDuration(200, 0);
+	canTalonRight2->ConfigPeakCurrentDuration(200, 0);
+	canTalonRight3->ConfigPeakCurrentDuration(200, 0);
+	canTalonRight4->ConfigPeakCurrentDuration(200, 0);
 
 	canTalonLeft1->ConfigOpenloopRamp(0.15, 0); //TODO: adjust this as needed
 	canTalonLeft2->ConfigOpenloopRamp(0.15, 0);

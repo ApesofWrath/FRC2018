@@ -194,6 +194,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 
 		if (state_elevator && is_intake_low_enough) { //last_state == PLACE_SCALE_BACKWARDS_STATE - don't need this in the check since it will only be true the first time
 			elevator->elevator_state = elevator->DOWN_STATE_E_H;
+			//intake->intake_arm_state = intake->UP_STATE_H;
 		}
 		if (state_intake_arm) {
 			intake->intake_arm_state = intake->UP_STATE_H;
@@ -369,15 +370,18 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 		if (intake->GetAngularPosition() < (intake->UP_ANGLE + 0.05)) {
 			elevator->elevator_state = elevator->DOWN_STATE_E_H;
 			//if (last_state_a == PLACE_SCALE_BACKWARDS_STATE_A) { THIS IS THE SAME BUG WE TALKED ABOUT,ONLY IS TRUE ONCE
-			if(last_state_a  != PLACE_SWITCH_STATE_A){
-				intake->intake_arm_state = intake->UP_STATE_H;
-			}else{
-				state_a = GET_CUBE_GROUND_STATE_A;
-			}
 			//}
 		}
+
+//		if (last_state_a != PLACE_SWITCH_STATE_A) { //TODO: breaks 2-cube auto
+//			intake->intake_arm_state = intake->UP_STATE_H;
+//		} else {
+//			state_a = GET_CUBE_GROUND_STATE_A;
+//		}
+
 		intake->intake_arm_state = intake->UP_STATE_H;
 		intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
+
 		if (raise_to_switch) {
 			state_a = PLACE_SWITCH_STATE_A;
 		} else if (raise_to_scale) { //came from placing
