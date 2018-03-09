@@ -59,11 +59,11 @@ TeleopStateMachine::TeleopStateMachine(Elevator *elevator_, Intake *intake_,
 }
 
 void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
-		bool intake_spin_out, bool intake_spin_stop, bool get_cube_ground,
-		bool get_cube_station, bool post_intake, bool raise_to_switch,
-		bool raise_to_scale, bool intake_arm_up, bool intake_arm_mid,
-		bool intake_arm_down, bool elevator_up, bool elevator_mid,
-		bool elevator_down, bool raise_to_scale_backwards) {
+		bool intake_spin_out, bool intake_spin_slow, bool intake_spin_stop,
+		bool get_cube_ground, bool get_cube_station, bool post_intake,
+		bool raise_to_switch, bool raise_to_scale, bool intake_arm_up,
+		bool intake_arm_mid, bool intake_arm_down, bool elevator_up,
+		bool elevator_mid, bool elevator_down, bool raise_to_scale_backwards) {
 
 	if (wait_for_button) { //can always return to wait for button state
 		state = WAIT_FOR_BUTTON_STATE;
@@ -228,7 +228,11 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 			elevator->elevator_state = elevator->UP_STATE_E_H;
 		}
 		if (elevator->GetElevatorPosition() >= 0.55 && state_intake_wheel) { //start shooting at 0.6
-			intake->intake_wheel_state = intake->OUT_STATE_H;
+			if (!intake_spin_slow) {
+				intake->intake_wheel_state = intake->OUT_STATE_H;
+			} else {
+				intake->intake_wheel_state = intake->SLOW_SCALE_STATE_H;
+			}
 			if (intake->ReleasedCube()) {
 				state = POST_INTAKE_STATE;
 			}
@@ -288,11 +292,12 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 
 //TODO: MAKE SURE THESE CHANGES WORK FOR SWITCH AND SINGLE SCALE TOO
 void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
-		bool intake_spin_in, bool intake_spin_out, bool intake_spin_stop,
-		bool get_cube_ground, bool get_cube_station, bool post_intake,
-		bool raise_to_switch, bool raise_to_scale, bool intake_arm_up,
-		bool intake_arm_mid, bool intake_arm_down, bool elevator_up,
-		bool elevator_mid, bool elevator_down, bool raise_to_scale_backwards) {
+		bool intake_spin_in, bool intake_spin_out, bool intake_spin_slow,
+		bool intake_spin_stop, bool get_cube_ground, bool get_cube_station,
+		bool post_intake, bool raise_to_switch, bool raise_to_scale,
+		bool intake_arm_up, bool intake_arm_mid, bool intake_arm_down,
+		bool elevator_up, bool elevator_mid, bool elevator_down,
+		bool raise_to_scale_backwards) {
 
 	switch (state_a) {
 
@@ -470,16 +475,16 @@ void TeleopStateMachine::Initialize() {
 }
 
 void TeleopStateMachine::StartStateMachineThread(bool *wait_for_button,
-		bool *intake_spin_in, bool *intake_spin_out, bool *intake_spin_stop,
-		bool *get_cube_ground, bool *get_cube_station, bool *post_intake,
-		bool *raise_to_switch, bool *raise_to_scale, bool *intake_arm_up,
-		bool *intake_arm_mid, bool *intake_arm_down, bool *elevator_up,
-		bool *elevator_mid, bool *elevator_down,
+		bool *intake_spin_in, bool *intake_spin_out, bool *intake_spin_slow,
+		bool *intake_spin_stop, bool *get_cube_ground, bool *get_cube_station,
+		bool *post_intake, bool *raise_to_switch, bool *raise_to_scale,
+		bool *intake_arm_up, bool *intake_arm_mid, bool *intake_arm_down,
+		bool *elevator_up, bool *elevator_mid, bool *elevator_down,
 		bool *raise_to_scale_backwards) {
 
 	TeleopStateMachine *tsm = this;
 	StateMachineThread = std::thread(&TeleopStateMachine::StateMachineWrapper,
-			tsm, wait_for_button, intake_spin_in, intake_spin_out,
+			tsm, wait_for_button, intake_spin_in, intake_spin_out, intake_spin_slow,
 			intake_spin_stop, get_cube_ground, get_cube_station, post_intake,
 			raise_to_switch, raise_to_scale, intake_arm_up, intake_arm_mid,
 			intake_arm_down, elevator_up, elevator_mid, elevator_down,
@@ -490,11 +495,11 @@ void TeleopStateMachine::StartStateMachineThread(bool *wait_for_button,
 
 void TeleopStateMachine::StateMachineWrapper(
 		TeleopStateMachine *teleop_state_machine, bool *wait_for_button,
-		bool *intake_spin_in, bool *intake_spin_out, bool *intake_spin_stop,
-		bool *get_cube_ground, bool *get_cube_station, bool *post_intake,
-		bool *raise_to_switch, bool *raise_to_scale, bool *intake_arm_up,
-		bool *intake_arm_mid, bool *intake_arm_down, bool *elevator_up,
-		bool *elevator_mid, bool *elevator_down,
+		bool *intake_spin_in, bool *intake_spin_out, bool *intake_spin_slow,
+		bool *intake_spin_stop, bool *get_cube_ground, bool *get_cube_station,
+		bool *post_intake, bool *raise_to_switch, bool *raise_to_scale,
+		bool *intake_arm_up, bool *intake_arm_mid, bool *intake_arm_down,
+		bool *elevator_up, bool *elevator_mid, bool *elevator_down,
 		bool *raise_to_scale_backwards) {
 
 	teleopTimer->Start();
@@ -512,13 +517,13 @@ void TeleopStateMachine::StateMachineWrapper(
 
 			teleop_state_machine->StateMachine((bool) *wait_for_button,
 					(bool) *intake_spin_in, (bool) *intake_spin_out,
-					(bool) *intake_spin_stop, (bool) *get_cube_ground,
-					(bool) *get_cube_station, (bool) *post_intake,
-					(bool) *raise_to_switch, (bool) *raise_to_scale,
-					(bool) *intake_arm_up, (bool) *intake_arm_mid,
-					(bool) *intake_arm_down, (bool) *elevator_up,
-					(bool) *elevator_mid, (bool) *elevator_down,
-					(bool) *raise_to_scale_backwards);
+					(bool) *intake_spin_slow, (bool) *intake_spin_stop,
+					(bool) *get_cube_ground, (bool) *get_cube_station,
+					(bool) *post_intake, (bool) *raise_to_switch,
+					(bool) *raise_to_scale, (bool) *intake_arm_up,
+					(bool) *intake_arm_mid, (bool) *intake_arm_down,
+					(bool) *elevator_up, (bool) *elevator_mid,
+					(bool) *elevator_down, (bool) *raise_to_scale_backwards);
 
 		}
 
@@ -531,13 +536,13 @@ void TeleopStateMachine::StateMachineWrapper(
 
 			teleop_state_machine->AutonStateMachine((bool) *wait_for_button,
 					(bool) *intake_spin_in, (bool) *intake_spin_out,
-					(bool) *intake_spin_stop, (bool) *get_cube_ground,
-					(bool) *get_cube_station, (bool) *post_intake,
-					(bool) *raise_to_switch, (bool) *raise_to_scale,
-					(bool) *intake_arm_up, (bool) *intake_arm_mid,
-					(bool) *intake_arm_down, (bool) *elevator_up,
-					(bool) *elevator_mid, (bool) *elevator_down,
-					(bool) *raise_to_scale_backwards);
+					(bool) *intake_spin_slow, (bool) *intake_spin_stop,
+					(bool) *get_cube_ground, (bool) *get_cube_station,
+					(bool) *post_intake, (bool) *raise_to_switch,
+					(bool) *raise_to_scale, (bool) *intake_arm_up,
+					(bool) *intake_arm_mid, (bool) *intake_arm_down,
+					(bool) *elevator_up, (bool) *elevator_mid,
+					(bool) *elevator_down, (bool) *raise_to_scale_backwards);
 
 		}
 

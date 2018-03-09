@@ -394,14 +394,14 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 	canTalonRight3->ConfigContinuousCurrentLimit(35, 0);
 	canTalonRight4->ConfigContinuousCurrentLimit(35, 0);
 
-	canTalonLeft1->ConfigPeakCurrentDuration(200, 0);
-	canTalonLeft2->ConfigPeakCurrentDuration(200, 0);
-	canTalonLeft3->ConfigPeakCurrentDuration(200, 0);
-	canTalonLeft4->ConfigPeakCurrentDuration(200, 0);
-	canTalonRight1->ConfigPeakCurrentDuration(200, 0);
-	canTalonRight2->ConfigPeakCurrentDuration(200, 0);
-	canTalonRight3->ConfigPeakCurrentDuration(200, 0);
-	canTalonRight4->ConfigPeakCurrentDuration(200, 0);
+	canTalonLeft1->ConfigPeakCurrentDuration(50, 0);
+	canTalonLeft2->ConfigPeakCurrentDuration(50, 0); //200
+	canTalonLeft3->ConfigPeakCurrentDuration(50, 0);
+	canTalonLeft4->ConfigPeakCurrentDuration(50, 0);
+	canTalonRight1->ConfigPeakCurrentDuration(50, 0);
+	canTalonRight2->ConfigPeakCurrentDuration(50, 0);
+	canTalonRight3->ConfigPeakCurrentDuration(50, 0);
+	canTalonRight4->ConfigPeakCurrentDuration(50, 0);
 
 	canTalonLeft1->ConfigOpenloopRamp(0.15, 0); //TODO: adjust this as needed
 	canTalonLeft2->ConfigOpenloopRamp(0.15, 0);

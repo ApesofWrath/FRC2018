@@ -37,6 +37,7 @@ const int STOP_WHEEL_STATE = 0; //wheel state machine
 const int IN_STATE = 1;
 const int OUT_STATE = 2;
 const int SLOW_STATE = 3;
+const int SLOW_SCALE_STATE = 4;
 //TODO: add an agitate state
 
 const double TICKS_PER_ROT_I = 4096.0;
@@ -210,6 +211,16 @@ void Intake::Slow() {
 
 	talonIntake1->Set(ControlMode::PercentOutput, SLOW_SPEED); // 1.0
 	talonIntake2->Set(ControlMode::PercentOutput, -SLOW_SPEED); // -1.0
+
+}
+
+void Intake::SlowScale() {
+
+	talonIntake1->EnableCurrentLimit(false); //20
+	talonIntake2->EnableCurrentLimit(false);
+
+	talonIntake1->Set(ControlMode::PercentOutput, 0.6); // 1.0
+	talonIntake2->Set(ControlMode::PercentOutput, -0.6); // -1.0
 
 }
 
@@ -533,6 +544,10 @@ void Intake::IntakeWheelStateMachine() {
 	case SLOW_STATE:
 		SmartDashboard::PutString("INTAKE WHEEL", "SLOW");
 		Slow();
+		break;
+
+	case SLOW_SCALE_STATE:
+		SlowScale();
 		break;
 
 	}

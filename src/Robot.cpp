@@ -54,7 +54,7 @@ public:
 	const int INTAKE_SPIN_IN = 99; //not enough buttons for these three
 	const int INTAKE_SPIN_OUT = 1; //throttle
 	const int INTAKE_SPIN_STOP = 99;
-	//no slow
+	const int INTAKE_SPIN_SLOW = 8;
 
 	const int INTAKE_ARM_UP = 8;
 	const int INTAKE_ARM_MID = 2;
@@ -94,7 +94,7 @@ public:
 
 #endif
 
-	bool wait_for_button, intake_spin_in, intake_spin_out, intake_spin_stop,
+	bool wait_for_button, intake_spin_in, intake_spin_out, intake_spin_slow, intake_spin_stop,
 			get_cube_ground, get_cube_station, post_intake, raise_to_switch,
 			raise_to_scale, intake_arm_up, intake_arm_mid, intake_arm_down,
 			elevator_up, elevator_mid, elevator_down, raise_to_scale_backwards; //BOTH state machines
@@ -187,7 +187,7 @@ public:
 
 		teleop_state_machine->StartStateMachineThread(
 				&wait_for_button, //both auton and teleop state machines
-				&intake_spin_in, &intake_spin_out, &intake_spin_stop,
+				&intake_spin_in, &intake_spin_out, &intake_spin_slow, &intake_spin_stop,
 				&get_cube_ground, &get_cube_station, &post_intake,
 				&raise_to_switch, &raise_to_scale, &intake_arm_up,
 				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
@@ -402,6 +402,7 @@ public:
 
 		intake_spin_in = joyThrottle->GetRawButton(INTAKE_SPIN_IN);
 		intake_spin_out = joyThrottle->GetRawButton(INTAKE_SPIN_OUT);
+		intake_spin_slow = joyThrottle->GetRawButton(INTAKE_SPIN_SLOW);
 		intake_spin_stop = joyThrottle->GetRawButton(INTAKE_SPIN_STOP);
 
 		intake_arm_up = joyOp->GetRawButton(INTAKE_ARM_UP);

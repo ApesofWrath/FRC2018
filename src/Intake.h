@@ -48,6 +48,7 @@ public:
 	const int IN_STATE_H = 1;
 	const int OUT_STATE_H = 2;
 	const int SLOW_STATE_H = 3;
+	const int SLOW_SCALE_STATE_H = 4;
 	int intake_wheel_state = STOP_WHEEL_STATE_H;
 
 	const double DOWN_ANGLE = 0.02; //instead of changing the offset
@@ -64,6 +65,7 @@ public:
 	void In();
 	void Out();
 	void Slow();
+	void SlowScale();
 	void StopWheels();
 	void StopArm();
 
