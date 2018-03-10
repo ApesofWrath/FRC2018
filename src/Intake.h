@@ -86,6 +86,8 @@ public:
 	void ManualArm(Joystick *joyOpArm);
 	void ManualWheels(Joystick *joyOpWheels);
 
+	bool IsAtAngle(double target_ang);
+
 	void IntakeWheelStateMachine();
 	void IntakeArmStateMachine();
 

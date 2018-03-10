@@ -393,6 +393,15 @@ bool Intake::IsAtBottomIntake() {
 	}
 }
 
+bool Intake::IsAtAngle(double target_ang) {
+
+	if(std::abs(GetAngularPosition() - target_ang) < 0.1) {
+		return true;
+	}
+	return false;
+
+}
+
 void Intake::ManualWheels(Joystick *joyOpWheels) {
 
 //	SmartDashboard::PutNumber("WHEELS CUR", talonIntake1->GetOutputCurrent());
