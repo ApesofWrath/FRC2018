@@ -21,7 +21,7 @@ public:
 	void GenerateScale(bool left_scale, bool switch_, bool left_switch);
 	void GenerateAddedSwitch(bool left); //will return a vector that will be added to the GenerateScale
 
-	void RunStateMachine(bool *place_scale_backwards, bool *place_switch, bool *get_cube_ground);
+	void RunStateMachine(bool *place_scale_backwards, bool *place_switch, bool *get_cube_ground); //place_switch
 
 	int length;
 

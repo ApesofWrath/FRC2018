@@ -74,6 +74,7 @@ void SwitchSide::GenerateSwitchSide(bool left) { //left center right //left is p
 
 		//SmartDashboard::PutNumber("length", length);
 
+		//always zero for single switch side
 		drive_controller->SetZeroingIndex(back_switch_len); //DONT DRIVE WHILE SHOOTING
 
 	//	timerPause->Start();

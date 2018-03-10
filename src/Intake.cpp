@@ -395,7 +395,7 @@ bool Intake::IsAtBottomIntake() {
 
 bool Intake::IsAtAngle(double target_ang) {
 
-	if(std::abs(GetAngularPosition() - target_ang) < 0.1) {
+	if (std::abs(GetAngularPosition() - target_ang) < 0.1) {
 		return true;
 	}
 	return false;
@@ -542,16 +542,30 @@ bool Intake::EncodersRunning() { //will stop the controller from run //or stalle
 
 bool Intake::HaveCube() {
 
-	if (talonIntake1->GetOutputCurrent() >= MAX_INTAKE_CURRENT
-			&& talonIntake2->GetOutputCurrent() >= MAX_INTAKE_CURRENT) {
-		current_counter++;
+	if (frc::RobotState::IsOperatorControl()) {
+		if (talonIntake1->GetOutputCurrent() >= MAX_INTAKE_CURRENT
+				&& talonIntake2->GetOutputCurrent() >= MAX_INTAKE_CURRENT) {
+			current_counter++;
+		} else {
+			current_counter = 0;
+		}
+		if (current_counter >= 3) {
+			return true;
+		} else {
+			return false;
+		}
 	} else {
-		current_counter = 0;
-	}
-	if (current_counter >= 3) {
-		return true;
-	} else {
-		return false;
+		if (talonIntake1->GetOutputCurrent() >= 10.0
+				&& talonIntake2->GetOutputCurrent() >= 10.0) {
+			current_counter++;
+		} else {
+			current_counter = 0;
+		}
+		if (current_counter >= 3) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 }

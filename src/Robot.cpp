@@ -342,7 +342,7 @@ public:
 		//drive thread, auton state machine thread
 
 		if (scaleState) {
-			scale_->RunStateMachine(&raise_to_scale_backwards, &raise_to_switch,
+			scale_->RunStateMachine(&raise_to_scale_backwards, &raise_to_switch, //raise to switch
 					&get_cube_ground); //works for both scale only and scale+switch
 		} else if (switchState) {
 			switch_->RunStateMachine(&raise_to_switch);
@@ -357,28 +357,28 @@ public:
 		compressor_->SetClosedLoopControl(true);
 		//teleop_state_machine->Initialize(); //only initialize in auton state machine
 		drive_controller->ZeroAll(true);
-		drive_controller->ShiftUp();
+		drive_controller->ShiftDown();
 
 	}
 
 	void TeleopPeriodic() {
 
-		SmartDashboard::PutNumber("Left 1",
-				drive_controller->canTalonLeft1->GetOutputCurrent());
-		SmartDashboard::PutNumber("Left 2",
-				drive_controller->canTalonLeft2->GetOutputCurrent());
-		SmartDashboard::PutNumber("Left 3",
-				drive_controller->canTalonLeft3->GetOutputCurrent());
-		SmartDashboard::PutNumber("Left 4",
-				drive_controller->canTalonLeft4->GetOutputCurrent());
-		SmartDashboard::PutNumber("Right 1",
-				drive_controller->canTalonRight1->GetOutputCurrent());
-		SmartDashboard::PutNumber("Right 2",
-				drive_controller->canTalonRight2->GetOutputCurrent());
-		SmartDashboard::PutNumber("Right 3",
-				drive_controller->canTalonRight3->GetOutputCurrent());
-		SmartDashboard::PutNumber("Right 4",
-				drive_controller->canTalonRight4->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Left 1",
+//				drive_controller->canTalonLeft1->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Left 2",
+//				drive_controller->canTalonLeft2->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Left 3",
+//				drive_controller->canTalonLeft3->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Left 4",
+//				drive_controller->canTalonLeft4->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Right 1",
+//				drive_controller->canTalonRight1->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Right 2",
+//				drive_controller->canTalonRight2->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Right 3",
+//				drive_controller->canTalonRight3->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Right 4",
+//				drive_controller->canTalonRight4->GetOutputCurrent());
 
 #if !STATEMACHINE
 		intake_->ManualArm(joyOp);

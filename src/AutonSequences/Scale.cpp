@@ -23,17 +23,18 @@ void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch) { //l
 
 	Waypoint p1, p2, p3;
 
+
 	//feet
 	if (left_scale) { //start left, left scale
 		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
-		p2 = {-10.5, -2.0, d2r(0.0)}; //3.0, 10.0, d2r(90)}; //-
-		p3 = {-21.3, 5.4, d2r(0.0)}; //cannot just move in Y axis because of spline math 5.7
+		p2 = {-10.5, -3.0, d2r(0.0)}; //3.0, 10.0, d2r(90)}; //-2.0
+		p3 = {-19.8, 6.2, d2r(0.0)}; //cannot just move in Y axis because of spline math 5.7 //LESS  FORWARD
 		//6.0 forward, 1.0 left, 20 left
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
-		p2 = {-10.5, 2.0, d2r(0.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
-		p3 = {-21.3, -5.4, d2r(0.0)}; //cannot just move in Y axis because of spline math 5.7
+		p2 = {-10.5, 3.0, d2r(0.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
+		p3 = {-19.8, -6.2, d2r(0.0)}; //cannot just move in Y axis because of spline math 5.7
 	}
 
 	points[0] = p1;
@@ -42,7 +43,7 @@ void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch) { //l
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.05, 16.0, 8.0, 100000.0, &candidate); //max vel, acc, jerk
+	PATHFINDER_SAMPLES_FAST, 0.05, 12.0, 6.0, 100000.0, &candidate); //had to be slowed down
 
 	length = candidate.length;
 	scale_traj_len = length;
@@ -62,6 +63,8 @@ void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch) { //l
 	for (l = 0; l < 1500; l++) { ////yaw pos, left pos, right pos, yaw vel, left vel, right vel
 		Segment sl = leftTrajectory[l];
 		Segment sr = rightTrajectory[l];
+
+		std::cout << "scale traj" << std::endl;
 
 		full_refs_sc.at(l).at(0) = ((double) sl.heading) - PI; //profile tries to turn robot around and go straight, in order to go backwards
 		full_refs_sc.at(l).at(1) = -1.0 * ((double) sl.position);
@@ -85,12 +88,14 @@ void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch) { //l
 		}
 	}
 
-	drive_controller->SetZeroingIndex(scale_traj_len); //DONT DRIVE WHILE SHOOTING
+	if (switch_) {
+		drive_controller->SetZeroingIndex(scale_traj_len); //DONT DRIVE WHILE SHOOTING
+	}
 
 //	timerPauseScale->Start();
 
 //	if (timerPauseScale->HasPeriodPassed(3)) {
-		drive_controller->SetRefs(full_refs_sc);
+	drive_controller->SetRefs(full_refs_sc);
 //	}
 
 //	timerPauseScale->Stop();
@@ -117,11 +122,12 @@ void Scale::GenerateAddedSwitch(bool left) { //new trajectory so that old spline
 	if (left) {
 		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
 		p2 = {5.7, 1.25, d2r(20.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
+		//p3 = {0.0, 0.0, 0.0};
 	}
 	else { //change these
 		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
 		p2 = {5.7, -1.25, d2r(20.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
-		//	p3 = {9.5, -3.5, d2r(0)}; //cannot just move in Y axis because of spline math
+		//p3 = {0.0, 0.0, 0.0}; //cannot just move in Y axis because of spline math
 	}
 
 	points[0] = p1;
@@ -198,6 +204,7 @@ void Scale::RunStateMachine(bool *place_scale_backwards, bool *place_switch,
 		if (GetIndex() >= (scale_traj_len + added_switch_len)
 				&& added_switch_len > 0) { //if at end of profile, and added profile exists
 			*place_switch = true;
+			//place_scale_backwards = true;
 		}
 	}
 

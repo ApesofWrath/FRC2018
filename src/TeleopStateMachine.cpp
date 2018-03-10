@@ -46,6 +46,8 @@ int state_a = INIT_STATE_A;
 bool is_intake_low_enough;
 bool came_from_switch = false;
 
+int store_last_state = 0;
+
 //bool store_last_state = last_state_a;
 
 Elevator *elevator;
@@ -412,15 +414,16 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 		last_state_a = GET_CUBE_STATION_STATE_A;
 		break;
 
-	case POST_INTAKE_SWITCH_STATE_A: //have cube, waiting to place cube
+	case POST_INTAKE_SWITCH_STATE_A: //have cube, waiting to place cube //for switch and forward scale
+
+		SmartDashboard::PutString("STATE", "POST INTAKE SWITCH");
 
 		driveController->StopProfile(true);
 
-		//if(last_state_a != POST_INTAKE_SWITCH_STATE_A) {
-		//store_last_state = last_state_a;
-	//}
+		if (last_state_a != POST_INTAKE_SWITCH_STATE_A) {
+			store_last_state = last_state_a;
+		}
 
-		SmartDashboard::PutString("STATE", "POST INTAKE SWITCH");
 //make bool for same check
 		if (intake->GetAngularPosition() < (intake->UP_ANGLE + 0.05)) {
 			elevator->elevator_state = elevator->DOWN_STATE_E_H;
@@ -438,11 +441,10 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 		} else if (raise_to_scale_backwards) {
 			state = PLACE_SCALE_BACKWARDS_STATE;
 		}
-//		else if (store_last_state != PLACE_SWITCH_STATE_A) { //TODO: does still break 2cube auto
-//			state_a = GET_CUBE_GROUND_STATE_A;
-//		}
+		else if (store_last_state != PLACE_SWITCH_STATE_A) { //TODO: does still break 2cube auto //only needed for single switch
+			state_a = GET_CUBE_GROUND_STATE_A;
+		}
 		else if (last_state == PLACE_SCALE_STATE_A //will keep checking if arm is low enough to start lowering the elevator
-
 		|| last_state == PLACE_SWITCH_STATE_A
 				|| (last_state == POST_INTAKE_SWITCH_STATE_A
 						&& (intake->GetAngularPosition()
@@ -453,7 +455,7 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 		//can always go back to wait for button state
 		break;
 
-	case POST_INTAKE_SCALE_STATE_A: //have cube, waiting to place cube
+	case POST_INTAKE_SCALE_STATE_A: //have cube, waiting to place cube //backwards scale
 
 		driveController->StopProfile(true);
 
