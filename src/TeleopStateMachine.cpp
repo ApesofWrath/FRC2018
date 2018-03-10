@@ -36,10 +36,11 @@ const int INIT_STATE_A = 0;
 const int WAIT_FOR_BUTTON_STATE_A = 1;
 const int GET_CUBE_GROUND_STATE_A = 2;
 const int GET_CUBE_STATION_STATE_A = 3;
-const int POST_INTAKE_STATE_A = 4;
-const int PLACE_SCALE_STATE_A = 5;
-const int PLACE_SWITCH_STATE_A = 6;
-const int PLACE_SCALE_BACKWARDS_STATE_A = 7;
+const int POST_INTAKE_SWITCH_STATE_A = 4;
+const int POST_INTAKE_SCALE_STATE_A = 5;
+const int PLACE_SCALE_STATE_A = 6;
+const int PLACE_SWITCH_STATE_A = 7;
+const int PLACE_SCALE_BACKWARDS_STATE_A = 8;
 int state_a = INIT_STATE_A;
 
 bool is_intake_low_enough;
@@ -359,18 +360,19 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 		SmartDashboard::PutString("STATE", "WAIT FOR BUTTON."); //was fighting between this state and place switch
 
 		if (elevator->is_elevator_init && intake->is_init_intake) {
-			if (last_state_a == POST_INTAKE_STATE_A) {
-				state_a == GET_CUBE_GROUND_STATE_A;
+			if (last_state_a == POST_INTAKE_SWITCH_STATE_A
+					|| last_state_a == POST_INTAKE_SCALE_STATE_A) {
+				state_a = GET_CUBE_GROUND_STATE_A; //was ==
 			} else if (get_cube_ground) { //can go to all states below wfb state
 				state_a = GET_CUBE_GROUND_STATE_A;
 			} else if (get_cube_station) {
 				state_a = GET_CUBE_STATION_STATE_A;
 			} else if (post_intake) {
-				state_a = POST_INTAKE_STATE_A;
+				state_a = POST_INTAKE_SWITCH_STATE_A;
 			} else if (raise_to_scale) { //should not need to go from wfb state to a raise state, but in case
 				state_a = PLACE_SCALE_STATE_A;
 			} else if (raise_to_switch) {
-				std::cout << "ALTERNATE NO NO" << std::endl;
+				//std::cout << "ALTERNATE NO NO" << std::endl;
 				state_a = PLACE_SWITCH_STATE_A;
 			} else if (raise_to_scale_backwards) {
 				state_a = PLACE_SCALE_BACKWARDS_STATE_A;
@@ -390,7 +392,7 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 		intake->intake_wheel_state = intake->IN_STATE_H;
 		intake->intake_arm_state = 3;
 		if (intake->HaveCube()) {
-			state_a = POST_INTAKE_STATE_A;
+			state_a = POST_INTAKE_SWITCH_STATE_A;
 		}
 		last_state_a = GET_CUBE_GROUND_STATE_A;
 		break;
@@ -402,16 +404,16 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 		intake->intake_wheel_state = intake->IN_STATE_H;
 		intake->intake_arm_state = intake->DOWN_STATE_H;
 		if (intake->HaveCube()) {
-			state_a = POST_INTAKE_STATE_A;
+			state_a = POST_INTAKE_SWITCH_STATE_A;
 		}
 		last_state_a = GET_CUBE_STATION_STATE_A;
 		break;
 
-	case POST_INTAKE_STATE_A: //have cube, waiting to place cube
+	case POST_INTAKE_SWITCH_STATE_A: //have cube, waiting to place cube
 
 		driveController->StopProfile(true);
 
-		SmartDashboard::PutString("STATE", "POST INTAKE");
+		SmartDashboard::PutString("STATE", "POST INTAKE SWITCH");
 //make bool for same check
 		if (intake->GetAngularPosition() < (intake->UP_ANGLE + 0.05)) {
 			elevator->elevator_state = elevator->DOWN_STATE_E_H;
@@ -419,14 +421,14 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 			//}
 		}
 
-//		if (last_state_a != PLACE_SWITCH_STATE_A) { //TODO: breaks 2-cube auto
-//			intake->intake_arm_state = intake->UP_STATE_H;
-//		} else {
-//			state_a = GET_CUBE_GROUND_STATE_A;
-//		}
-
 		intake->intake_arm_state = intake->UP_STATE_H;
 		intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
+
+		//if (last_state_a != PLACE_SWITCH_STATE_A) { //TODO: breaks 2-cube auto
+		//			intake->intake_arm_state = intake->UP_STATE_H;
+		//		} else {
+		//			state_a = GET_CUBE_GROUND_STATE_A;
+		//		}
 
 		if (raise_to_switch) {
 			state_a = PLACE_SWITCH_STATE_A;
@@ -434,14 +436,41 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 			state_a = PLACE_SCALE_STATE_A;
 		} else if (raise_to_scale_backwards) {
 			state = PLACE_SCALE_BACKWARDS_STATE;
+		} else if (last_state_a != PLACE_SWITCH_STATE_A) {
+			state_a = GET_CUBE_GROUND_STATE_A;
 		} else if (last_state == PLACE_SCALE_STATE_A //will keep checking if arm is low enough to start lowering the elevator
+
 		|| last_state == PLACE_SWITCH_STATE_A
-				|| (last_state == POST_INTAKE_STATE_A
+				|| (last_state == POST_INTAKE_SWITCH_STATE_A
 						&& (intake->GetAngularPosition()
 								< (intake->UP_ANGLE + 0.05)))) { //not going back to wfb //not making this check
 			state_a = WAIT_FOR_BUTTON_STATE_A;
 		}
-		last_state_a = POST_INTAKE_STATE_A;
+		last_state_a = POST_INTAKE_SWITCH_STATE_A;
+		//can always go back to wait for button state
+		break;
+
+	case POST_INTAKE_SCALE_STATE_A: //have cube, waiting to place cube
+
+		driveController->StopProfile(true);
+
+		SmartDashboard::PutString("STATE", "POST INTAKE SCALE");
+
+		is_intake_low_enough = (intake->GetAngularPosition()
+				< (intake->SWITCH_ANGLE + 0.05)); //use same check for the entirety of the state
+
+		if (is_intake_low_enough) { //start moving elevator down once intake has reached mid angle
+			elevator->elevator_state = elevator->DOWN_STATE_E_H;
+			if (elevator->GetElevatorPosition() < 0.7) {
+				intake->intake_arm_state = intake->UP_STATE_H;
+				state = WAIT_FOR_BUTTON_STATE;
+			}
+		} else {
+			intake->intake_arm_state = intake->SWITCH_STATE_H;
+		}
+
+		intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
+		last_state_a = POST_INTAKE_SCALE_STATE_A;
 		//can always go back to wait for button state
 		break;
 
@@ -453,7 +482,7 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 		if (elevator->GetElevatorPosition() >= 0.55) { //start shooting at 0.6
 			intake->intake_wheel_state = intake->OUT_STATE_H;
 			if (intake->ReleasedCube()) {
-				state_a = POST_INTAKE_STATE_A;
+				state_a = POST_INTAKE_SWITCH_STATE_A;
 			}
 		}
 		last_state_a = PLACE_SCALE_STATE_A;
@@ -468,7 +497,7 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 		if (std::abs(intake->GetAngularPosition() - intake->MID_ANGLE) <= 0.2) { //start shooting when high enough
 			intake->intake_wheel_state = intake->SLOW_STATE_H;
 			if (intake->ReleasedCube()) {
-				state_a = POST_INTAKE_STATE_A;
+				state_a = POST_INTAKE_SWITCH_STATE_A;
 			}
 		}
 		last_state_a = PLACE_SWITCH_STATE_A;
@@ -491,7 +520,7 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 				&& intake->GetAngularPosition() > 1.98) { //shoot if the height of the elevator and the angle of the arm is good enough
 			intake->intake_wheel_state = intake->OUT_STATE_H;
 			if (intake->ReleasedCube()) {
-				state_a = POST_INTAKE_STATE_A;
+				state_a = POST_INTAKE_SCALE_STATE_A;
 			}
 		}
 
