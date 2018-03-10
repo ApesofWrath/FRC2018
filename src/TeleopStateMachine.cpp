@@ -44,6 +44,9 @@ const int PLACE_SCALE_BACKWARDS_STATE_A = 8;
 int state_a = INIT_STATE_A;
 
 bool is_intake_low_enough;
+bool came_from_switch = false;
+
+//bool store_last_state = last_state_a;
 
 Elevator *elevator;
 Intake *intake;
@@ -413,6 +416,10 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 
 		driveController->StopProfile(true);
 
+		//if(last_state_a != POST_INTAKE_SWITCH_STATE_A) {
+		//store_last_state = last_state_a;
+	//}
+
 		SmartDashboard::PutString("STATE", "POST INTAKE SWITCH");
 //make bool for same check
 		if (intake->GetAngularPosition() < (intake->UP_ANGLE + 0.05)) {
@@ -424,21 +431,17 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 		intake->intake_arm_state = intake->UP_STATE_H;
 		intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
 
-		//if (last_state_a != PLACE_SWITCH_STATE_A) { //TODO: breaks 2-cube auto
-		//			intake->intake_arm_state = intake->UP_STATE_H;
-		//		} else {
-		//			state_a = GET_CUBE_GROUND_STATE_A;
-		//		}
-
 		if (raise_to_switch) {
 			state_a = PLACE_SWITCH_STATE_A;
 		} else if (raise_to_scale) { //came from placing
 			state_a = PLACE_SCALE_STATE_A;
 		} else if (raise_to_scale_backwards) {
 			state = PLACE_SCALE_BACKWARDS_STATE;
-		} else if (last_state_a != PLACE_SWITCH_STATE_A) {
-			state_a = GET_CUBE_GROUND_STATE_A;
-		} else if (last_state == PLACE_SCALE_STATE_A //will keep checking if arm is low enough to start lowering the elevator
+		}
+//		else if (store_last_state != PLACE_SWITCH_STATE_A) { //TODO: does still break 2cube auto
+//			state_a = GET_CUBE_GROUND_STATE_A;
+//		}
+		else if (last_state == PLACE_SCALE_STATE_A //will keep checking if arm is low enough to start lowering the elevator
 
 		|| last_state == PLACE_SWITCH_STATE_A
 				|| (last_state == POST_INTAKE_SWITCH_STATE_A
@@ -463,7 +466,7 @@ void TeleopStateMachine::AutonStateMachine(bool wait_for_button,
 			elevator->elevator_state = elevator->DOWN_STATE_E_H;
 			if (elevator->GetElevatorPosition() < 0.7) {
 				intake->intake_arm_state = intake->UP_STATE_H;
-				state = WAIT_FOR_BUTTON_STATE;
+				state_a = WAIT_FOR_BUTTON_STATE_A;
 			}
 		} else {
 			intake->intake_arm_state = intake->SWITCH_STATE_H;

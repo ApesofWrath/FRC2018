@@ -55,7 +55,7 @@ const double Kv_i = 1 / MAX_THEORETICAL_VELOCITY_I;
 //const double MAX_ACCELERATION_I = 6.0; //2.5;
 //const double TIME_STEP_I = 0.01; //sec
 
-const double MAX_INTAKE_CURRENT = 16.0;
+const double MAX_INTAKE_CURRENT = 14.0;
 const double OUTTAKE_INTAKE_CURRENT = 20.0;
 
 const double PCL_WHEELS = 30.0; //peak current limit
