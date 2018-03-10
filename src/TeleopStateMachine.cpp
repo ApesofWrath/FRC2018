@@ -192,12 +192,12 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		is_intake_low_enough = (intake->GetAngularPosition()
 				< (intake->UP_ANGLE + 0.05)); //use same check for the entirety of the state
 
-		if (state_elevator && is_intake_low_enough) { //last_state == PLACE_SCALE_BACKWARDS_STATE - don't need this in the check since it will only be true the first time
+		if (state_elevator && is_intake_low_enough) { //last_state == PLACE_SCALE_BACKWARDS_STATE - don't need this in the check since it will only be true the first time //for higher elevator heights, there must be lower safe arm heights
 			elevator->elevator_state = elevator->DOWN_STATE_E_H;
 			//intake->intake_arm_state = intake->UP_STATE_H;
 		}
 		if (state_intake_arm) {
-			intake->intake_arm_state = intake->UP_STATE_H;
+			intake->intake_arm_state = intake->UP_STATE_H; //have to change up angle because we don't GO to safe angle
 		}
 		if (state_intake_wheel) {
 			intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;

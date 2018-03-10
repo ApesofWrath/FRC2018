@@ -954,8 +954,6 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 		k_d_right = 0.0;
 	}
 
-
-
 //	SmartDashboard::PutNumber("Left vel", l_current);
 //	SmartDashboard::PutNumber("Right vel.", r_current);
 

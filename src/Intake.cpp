@@ -55,7 +55,7 @@ const double Kv_i = 1 / MAX_THEORETICAL_VELOCITY_I;
 //const double MAX_ACCELERATION_I = 6.0; //2.5;
 //const double TIME_STEP_I = 0.01; //sec
 
-const double MAX_INTAKE_CURRENT = 14.0;
+const double MAX_INTAKE_CURRENT = 16.0;
 const double OUTTAKE_INTAKE_CURRENT = 20.0;
 
 const double PCL_WHEELS = 30.0; //peak current limit
@@ -159,10 +159,7 @@ void Intake::InitializeIntake() {
 
 }
 
-void Intake::In() { //add quick out and back in
-
-	//std::cout << "INTAKE IN" << std::endl;
-	//SmartDashboard::PutNumber("BAT VOLT", pdp_i->GetVoltage());
+void Intake::In() {
 
 	talonIntake1->EnableCurrentLimit(true);
 	talonIntake2->EnableCurrentLimit(true);
@@ -173,24 +170,8 @@ void Intake::In() { //add quick out and back in
 	talonIntake1->ConfigPeakCurrentDuration(PCD_WHEELS, 0);
 	talonIntake2->ConfigPeakCurrentDuration(PCD_WHEELS, 0);
 
-//	if (talonIntake1->GetOutputCurrent() >= 5.0
-//			|| talonIntake2->GetOutputCurrent() >= 5.0) {
-//		current_counter_first++;
-//	} else {
-//		current_counter_first = 0;
-//		cube_in = false;
-//	}
-//	if (current_counter_first >= 3) {
-//		cube_in = true;
-//	}
-
-	//if (cube_in) {
-		talonIntake1->Set(ControlMode::PercentOutput, -0.95); // +2.0/12.0 maybe -0.7
-		talonIntake2->Set(ControlMode::PercentOutput, 0.95); // +2.0/12.0 maybe 0.7
-	//} else {
-	//	talonIntake1->Set(ControlMode::PercentOutput, -0.60); // +2.0/12.0 maybe -0.7
-	//	talonIntake2->Set(ControlMode::PercentOutput, 0.60); // +2.0/12.0 maybe 0.7
-	//}
+	talonIntake1->Set(ControlMode::PercentOutput, -0.95); // +2.0/12.0 maybe -0.7
+	talonIntake2->Set(ControlMode::PercentOutput, 0.95); // +2.0/12.0 maybe 0.7
 
 }
 
@@ -242,19 +223,9 @@ void Intake::StopWheels() {
 
 void Intake::ManualArm(Joystick *joyOpArm) {
 
-//	SmartDashboard::PutNumber("ARM CUR", talonIntakeArm->GetOutputCurrent());
-
-	//double enc_arm = GetAngularPosition();
-	SmartDashboard::PutNumber("ARM ENC",
-			talonIntakeArm->GetSensorCollection().GetQuadraturePosition());
-
-	//SmartDashboard::PutNumber("ARM POS", GetAngularPosition()); //left is negative, right is positive
-
 	double output = joyOpArm->GetY() * 0.5 * 1.0;
 
 	output *= 12.0;
-
-	//SmartDashboard::PutNumber("ARM OUTPUT", output);
 
 	SetVoltageIntake(output);
 
@@ -450,69 +421,67 @@ void Intake::IntakeArmStateMachine() {
 
 	SmartDashboard::PutNumber("IC", talonIntakeArm->GetOutputCurrent());
 
-	case INIT_STATE:
-		SmartDashboard::PutString("INTAKE ARM", "INIT");
-		if (is_init_intake) { // && GetAngularPosition() == 0.35) {
-			intake_arm_state = UP_STATE; //PUT BACK IN
-		}
-		else {
-			InitializeIntake();
-		}
-		last_intake_state = INIT_STATE;
-		break;
+case INIT_STATE:
+	SmartDashboard::PutString("INTAKE ARM", "INIT");
+	if (is_init_intake) { // && GetAngularPosition() == 0.35) {
+		intake_arm_state = UP_STATE; //PUT BACK IN
+	} else {
+		InitializeIntake();
+	}
+	last_intake_state = INIT_STATE;
+	break;
 
-	case UP_STATE:
-		SmartDashboard::PutString("INTAKE ARM", "UP");
-		//	SmartDashboard::PutString("actually in up state", "yep");
-		if (last_intake_state != UP_STATE) { //first time in state
-			intake_profiler->SetFinalGoalIntake(UP_ANGLE); //is 0.0 for testing
-			intake_profiler->SetInitPosIntake(GetAngularPosition()); //is 0
-		}
-		last_intake_state = UP_STATE;
-		break;
+case UP_STATE:
+	SmartDashboard::PutString("INTAKE ARM", "UP");
+	//	SmartDashboard::PutString("actually in up state", "yep");
+	if (last_intake_state != UP_STATE) { //first time in state
+		intake_profiler->SetFinalGoalIntake(UP_ANGLE); //is 0.0 for testing
+		intake_profiler->SetInitPosIntake(GetAngularPosition()); //is 0
+	}
+	last_intake_state = UP_STATE;
+	break;
 
-	case MID_STATE:
-		SmartDashboard::PutString("INTAKE ARM", "MID");
-		if (last_intake_state != MID_STATE) {
-			intake_profiler->SetFinalGoalIntake(MID_ANGLE);
-			intake_profiler->SetInitPosIntake(GetAngularPosition());
-		}
-		last_intake_state = MID_STATE;
-		break;
+case MID_STATE:
+	SmartDashboard::PutString("INTAKE ARM", "MID");
+	if (last_intake_state != MID_STATE) {
+		intake_profiler->SetFinalGoalIntake(MID_ANGLE);
+		intake_profiler->SetInitPosIntake(GetAngularPosition());
+	}
+	last_intake_state = MID_STATE;
+	break;
 
-	case DOWN_STATE:
-		SmartDashboard::PutString("INTAKE ARM", "DOWN");
-		if (last_intake_state != DOWN_STATE) {
-			intake_profiler->SetFinalGoalIntake(DOWN_ANGLE);
-			intake_profiler->SetInitPosIntake(GetAngularPosition());
-		}
-		last_intake_state = DOWN_STATE;
-		break;
+case DOWN_STATE:
+	SmartDashboard::PutString("INTAKE ARM", "DOWN");
+	if (last_intake_state != DOWN_STATE) {
+		intake_profiler->SetFinalGoalIntake(DOWN_ANGLE);
+		intake_profiler->SetInitPosIntake(GetAngularPosition());
+	}
+	last_intake_state = DOWN_STATE;
+	break;
 
+case STOP_ARM_STATE: //for emergencies
+	SmartDashboard::PutString("INTAKE ARM", "STOP");
+	StopArm();
+	last_intake_state = STOP_ARM_STATE;
+	break;
 
-	case STOP_ARM_STATE: //for emergencies
-		SmartDashboard::PutString("INTAKE ARM", "STOP");
-		StopArm();
-		last_intake_state = STOP_ARM_STATE;
-		break;
+case SWITCH_BACK_SHOT_STATE:
+	SmartDashboard::PutString("INTAKE ARM", "DOWN");
+	if (last_intake_state != SWITCH_BACK_SHOT_STATE) {
+		intake_profiler->SetFinalGoalIntake(BACK_SHOT_ANGLE);
+		intake_profiler->SetInitPosIntake(GetAngularPosition());
+	}
+	last_intake_state = SWITCH_BACK_SHOT_STATE;
+	break;
 
-	case SWITCH_BACK_SHOT_STATE:
-		SmartDashboard::PutString("INTAKE ARM", "DOWN");
-		if (last_intake_state != SWITCH_BACK_SHOT_STATE) {
-			intake_profiler->SetFinalGoalIntake(BACK_SHOT_ANGLE);
-			intake_profiler->SetInitPosIntake(GetAngularPosition());
-		}
-		last_intake_state = SWITCH_BACK_SHOT_STATE;
-		break;
-
-	case SWITCH_STATE:
-		SmartDashboard::PutString("INTAKE ARM", "SWITCH");
-		if (last_intake_state != SWITCH_STATE) {
-			intake_profiler->SetFinalGoalIntake(SWITCH_ANGLE);
-			intake_profiler->SetInitPosIntake(GetAngularPosition());
-		}
-		last_intake_state = SWITCH_STATE;
-		break;
+case SWITCH_STATE:
+	SmartDashboard::PutString("INTAKE ARM", "SWITCH");
+	if (last_intake_state != SWITCH_STATE) {
+		intake_profiler->SetFinalGoalIntake(SWITCH_ANGLE);
+		intake_profiler->SetInitPosIntake(GetAngularPosition());
+	}
+	last_intake_state = SWITCH_STATE;
+	break;
 	}
 
 	//last_intake_state = intake_arm_state; //move this into individual states if profile not switching
