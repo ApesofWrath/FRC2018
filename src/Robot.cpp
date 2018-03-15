@@ -186,7 +186,7 @@ public:
 				&intake_spin_stop, &get_cube_ground, &get_cube_station,
 				&post_intake, &raise_to_switch, &raise_to_scale, &intake_arm_up,
 				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
-				&elevator_down, &raise_to_scale_backwards);
+				&elevator_down, &raise_to_scale_backwards, joyThrottle, joyWheel);
 
 #else
 		intake_->StartIntakeThread(); //controllers

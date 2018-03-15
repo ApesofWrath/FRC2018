@@ -65,6 +65,8 @@ public:
 	double GetElevatorPosition();
 	double GetElevatorVelocity();
 
+	std::vector<std::vector<double> > ElevatorGetNextRef();
+
 	bool IsAtBottomElevator();
 	bool IsAtTopElevator();
 	bool ElevatorEncodersRunning();

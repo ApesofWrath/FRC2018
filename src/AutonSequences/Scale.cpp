@@ -182,18 +182,17 @@ void Scale::GenerateAddedSwitch(bool left) { //new trajectory so that old spline
 
 }
 
-//USED FOR BOTH SCALE AND SCALE/SWITCH
+//USED FOR BOTH SCALE AND SCALE+SWITCH
+//init, wfb to place_scale_backwards, post_intake_scale // wfb to get_cube_ground, post intake switch, wfb, place_switch
 void Scale::RunStateMachine(bool *place_scale_backwards, bool *place_switch,
 		bool *get_cube_ground) {
 
 //no other state machine booleans needed, all other ones will stay false
-//	SmartDashboard::PutNumber("scale traj length", scale_traj_len);
-	//SmartDashboard::PutNumber("switch traj length", added_switch_len);
 
 //start being true at end of drive profile, stop being true once start shooting
-	if (drive_controller->GetDriveIndex() >= scale_traj_len) { //at the end of the drive, while we have not released a cube //GetIndex() >= length && //should be has started shooting //IsCubeRelease is needed
-		if (!StartedShoot()) { //still need to change this to be reusable
-			*place_scale_backwards = true; //must run once initialized!
+	if (drive_controller->GetDriveIndex() >= scale_traj_len) { //at the end of the drive, while we have not released a cube
+		if (!StartedShoot()) { //still need to change this startedShoot to be reusable
+			*place_scale_backwards = true;
 		} else {
 			*place_scale_backwards = false;
 		}
@@ -210,3 +209,21 @@ void Scale::RunStateMachine(bool *place_scale_backwards, bool *place_switch,
 
 }
 
+void Scale::RunStateMachineTwoScale(bool *place_scale_backwards, bool *get_cube_ground) {
+
+	if (drive_controller->GetDriveIndex() >= scale_traj_len) { //at the end of the drive, while we have not released a cube
+			if (!StartedShoot()) { //still need to change this startedShoot to be reusable
+				*place_scale_backwards = true;
+			} else {
+				*place_scale_backwards = false;
+			}
+			if (intake_->ReleasedCube()) {
+				*get_cube_ground = true;
+			}
+
+			if (drive_controller->GetDriveIndex() >= (scale_traj_len + added_switch_len)
+					&& added_switch_len > 0) { //if at end of profile, and added profile exists
+				*place_scale_backwards = true;
+			}
+		}
+}

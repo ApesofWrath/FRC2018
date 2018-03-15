@@ -624,9 +624,7 @@ bool Intake::ZeroEnc() { //called in Initialize() and in SetVoltage()
 
 std::vector<std::vector<double> > Intake::GetNextRef() {
 
-	std::vector<std::vector<double>> profile_intake =
-			intake_profiler->GetNextRefIntake();
-	return profile_intake;
+	return intake_profiler->GetNextRefIntake();
 
 }
 

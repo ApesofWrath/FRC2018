@@ -733,8 +733,8 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 
 	//may need to reverse here rather than in Generate, may be too slow
 
-	if (refYaw > PI) {
-		refYaw -= 2 * PI;
+	if (refYaw > PI) { //get negative half and positive half on circle
+		refYaw -= (2 * PI);
 	}
 
 //	SmartDashboard::PutNumber("refLeft", refLeft);
@@ -924,12 +924,6 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	SmartDashboard::PutNumber("Velocity", l_current);
 
 	double curr_fps = (l_current * TICKS_PER_ROT / 1205.0) / 60.0;
-
-//SmartDashboard::PutNumber("Left fps", curr_fps);
-
-	//timerTest->Start();
-
-	//std::cout << "VEL: " << l_current << " VEL: " << r_current << std::endl;
 
 	if ((std::abs(l_current) <= 0.5 && canTalonLeft1->GetOutputCurrent() > 4.0) //encoders not working
 			|| (std::abs(r_current) <= 0.5

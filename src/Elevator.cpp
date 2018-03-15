@@ -492,6 +492,12 @@ void Elevator::StartElevatorThread() {
 
 }
 
+std::vector<std::vector<double> > Elevator::ElevatorGetNextRef() {
+
+	return elevator_profiler->GetNextRefElevator();
+
+}
+
 void Elevator::ElevatorWrapper(Elevator *el) {
 
 	elevatorTimer->Start();
@@ -502,12 +508,9 @@ void Elevator::ElevatorWrapper(Elevator *el) {
 
 		if (frc::RobotState::IsEnabled()) {
 
-			std::vector<std::vector<double>> profile_elevator =
-					elevator_profiler->GetNextRefElevator();
-
 			if (el->elevator_state != STOP_STATE_E
 					&& el->elevator_state != INIT_STATE_E) {
-				el->Move(profile_elevator);
+				el->Move(el->ElevatorGetNextRef());
 			}
 
 		}
