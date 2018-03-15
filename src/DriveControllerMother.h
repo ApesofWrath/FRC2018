@@ -84,6 +84,7 @@ public:
 
 	//Wrapper Functions
 	static void DriveWrapper(Joystick *JoyThrottle, Joystick *JoyWheel, bool *is_heading, bool *is_vision, bool *is_fc, DriveControllerMother *driveController);
+	//static void DriveWrapper(Joystick *JoyThrottle, Joystick *JoyWheel, bool *is_heading, bool *is_vision, bool *is_fc, DriveControllerMother *driveController);
 	//static void AutonWrapper(DriveControllerMother *driveController);
 
 	//Auton functions for threads are in derived class

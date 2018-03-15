@@ -6,7 +6,6 @@
  */
 
 //CHANGE: hold button until ready to shoot, elevator and intake will be in position
-
 #include <TeleopStateMachine.h>
 #include <WPILib.h>
 
@@ -260,7 +259,8 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		if (state_elevator) {
 			elevator->elevator_state = elevator->UP_STATE_E_H;
 		}
-		if (elevator->GetElevatorPosition() >= 0.55 && state_intake_wheel && !raise_to_scale) { //hold button until ready to shoot, elevator and intake will be in position
+		if (elevator->GetElevatorPosition() >= 0.55 && state_intake_wheel
+				&& !raise_to_scale) { //hold button until ready to shoot, elevator and intake will be in position
 			if (!intake_spin_slow) {
 				intake->intake_wheel_state = intake->OUT_STATE_H;
 			} else {
@@ -285,7 +285,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 			intake->intake_arm_state = intake->MID_STATE_H;
 		}
 		if (std::abs(intake->GetAngularPosition() - intake->MID_ANGLE) <= 0.2
-				&& state_intake_wheel  && !raise_to_switch) { //hold button until ready to shoot, elevator and intake will be in position
+				&& state_intake_wheel && !raise_to_switch) { //hold button until ready to shoot, elevator and intake will be in position
 			intake->intake_wheel_state = intake->SLOW_STATE_H;
 			if (intake->ReleasedCube()) {
 				state = POST_INTAKE_SWITCH_STATE;
@@ -309,7 +309,8 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 			elevator->elevator_state = elevator->UP_STATE_E_H;
 		}
 		if (elevator->GetElevatorPosition() >= 0.85
-				&& intake->GetAngularPosition() > 1.98 && state_intake_wheel && !raise_to_scale_backwards) { //shoot if the height of the elevator and the angle of the arm is good enough //hold button until ready to shoot, elevator and intake will be in position
+				&& intake->GetAngularPosition() > 1.98 && state_intake_wheel
+				&& !raise_to_scale_backwards) { //shoot if the height of the elevator and the angle of the arm is good enough //hold button until ready to shoot, elevator and intake will be in position
 			intake->intake_wheel_state = intake->OUT_STATE_H;
 			if (intake->ReleasedCube()) {
 				state = POST_INTAKE_SCALE_STATE;
@@ -373,6 +374,14 @@ void TeleopStateMachine::StateMachineWrapper(
 					(bool) *intake_arm_mid, (bool) *intake_arm_down,
 					(bool) *elevator_up, (bool) *elevator_mid,
 					(bool) *elevator_down, (bool) *raise_to_scale_backwards);
+
+			std::vector<std::vector<double>> profile_intake =
+					intake->intake_profiler->GetNextRefIntake();
+
+			if (intake->intake_arm_state != intake->STOP_ARM_STATE_H
+					&& intake->intake_arm_state != intake->INIT_STATE_H) {
+				intake->Rotate(profile_intake);
+			}
 
 		}
 

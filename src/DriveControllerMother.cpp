@@ -843,7 +843,7 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	}
 
 //	std::cout << "yep " << target_rpm_right << "  " << target_rpm_left << "  " << targetYawRate  << "  " << tarVelLeft <<  "   " << tarVelRight << std::endl;
-//target rpm right, leftt
+//target rpm right, left
 	Controller(0.0, 0.0, 0.0, targetYawRate, k_p_right_vel_au, k_p_left_vel_au,
 			k_p_kick_vel_au, k_p_yaw_au, k_d_yaw_au, k_d_left_vel_au,
 			k_d_right_vel_au, k_d_kick_vel_au, target_rpm_left,
@@ -878,16 +878,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 //		k_d_yaw = 0.0;
 //	}
 
-	//std::cout << "left: " << ref_left << std::endl;
-
-//	std::cout << "raw yaw: " << ahrs->GetRate() << std::endl;
-//
 //	SmartDashboard::PutNumber("yaw current", yaw_rate_current);
-//	SmartDashboard::PutNumber("yaw target", target_yaw_rate);
-//	SmartDashboard::PutNumber("yaw error", yaw_error);
-
-
-	//std::cout << "Right: " << r_dis << " Left: " << l_dis << std::endl;
 
 	//SmartDashboard::PutNumber("POS", l_dis);
 
@@ -1222,8 +1213,6 @@ void DriveControllerMother::DriveWrapper(Joystick *JoyThrottle,
 
 		else if (frc::RobotState::IsEnabled() && frc::RobotState::IsAutonomous()
 				&& set_profile) {
-
-			//std::cout << "Auton drive" << std::endl;
 
 			//put in profile //was finishing the for loop before we got a profile
 			for (int i = 0; i < auton_profile[0].size(); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs

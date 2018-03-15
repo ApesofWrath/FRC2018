@@ -29,7 +29,7 @@
 #define STATEMACHINE 1
 #define CORNELIUS 1 //in every class
 #define BUTTONBOX 1
-#define TESTING 0
+#define TESTING 1
 
 class Robot: public frc::IterativeRobot {
 public:
@@ -95,10 +95,11 @@ public:
 
 #endif
 
-	bool wait_for_button, intake_spin_in, intake_spin_out, intake_spin_slow, intake_spin_stop,
-			get_cube_ground, get_cube_station, post_intake, raise_to_switch,
-			raise_to_scale, intake_arm_up, intake_arm_mid, intake_arm_down,
-			elevator_up, elevator_mid, elevator_down, raise_to_scale_backwards; //BOTH state machines
+	bool wait_for_button, intake_spin_in, intake_spin_out, intake_spin_slow,
+			intake_spin_stop, get_cube_ground, get_cube_station, post_intake,
+			raise_to_switch, raise_to_scale, intake_arm_up, intake_arm_mid,
+			intake_arm_down, elevator_up, elevator_mid, elevator_down,
+			raise_to_scale_backwards; //BOTH state machines
 
 	bool is_heading, is_vision, is_fc; //drive
 	bool is_auto_shift;
@@ -158,7 +159,8 @@ public:
 		intake_ = new Intake(pdp_, intake_profiler_, elevator_);
 		teleop_state_machine = new TeleopStateMachine(elevator_, intake_,
 				drive_controller); //actually has both state machines
-		auton_state_machine = new AutonStateMachine(elevator_, intake_, drive_controller);
+		auton_state_machine = new AutonStateMachine(elevator_, intake_,
+				drive_controller);
 
 		joyThrottle = new Joystick(JOY_THROTTLE);
 		joyWheel = new Joystick(JOY_WHEEL);
@@ -178,18 +180,23 @@ public:
 
 #if TESTING
 		//starting threads in robot init so that they only are created once
-		intake_->StartIntakeThread();//controllers
-		elevator_->StartElevatorThread();
+		teleop_state_machine->StartStateMachineThread(
+				&wait_for_button, //both auton and teleop state machines
+				&intake_spin_in, &intake_spin_out, &intake_spin_slow,
+				&intake_spin_stop, &get_cube_ground, &get_cube_station,
+				&post_intake, &raise_to_switch, &raise_to_scale, &intake_arm_up,
+				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
+				&elevator_down, &raise_to_scale_backwards);
 
 #else
 		intake_->StartIntakeThread(); //controllers
 		elevator_->StartElevatorThread();
 
-		drive_controller->StartDriveThreads(joyThrottle, joyWheel, &is_heading, //both auton and teleop drive
-				&is_vision, &is_fc); //auton drive will not start until profile for auton is sent through
+		drive_controller->StartDriveThreads(joyThrottle, joyWheel, &is_heading,//both auton and teleop drive
+				&is_vision, &is_fc);//auton drive will not start until profile for auton is sent through
 
 		auton_state_machine->StartAutonStateMachineThread(
-				&wait_for_button, //both auton and teleop state machines
+				&wait_for_button,//both auton and teleop state machines
 				&intake_spin_in, &intake_spin_out, &intake_spin_slow, &intake_spin_stop,
 				&get_cube_ground, &get_cube_station, &post_intake,
 				&raise_to_switch, &raise_to_scale, &intake_arm_up,
@@ -197,7 +204,7 @@ public:
 				&elevator_down, &raise_to_scale_backwards);
 
 		teleop_state_machine->StartStateMachineThread(
-				&wait_for_button, //both auton and teleop state machines
+				&wait_for_button,//both auton and teleop state machines
 				&intake_spin_in, &intake_spin_out, &intake_spin_slow, &intake_spin_stop,
 				&get_cube_ground, &get_cube_station, &post_intake,
 				&raise_to_switch, &raise_to_scale, &intake_arm_up,
@@ -437,7 +444,7 @@ public:
 			is_auto_shift = true;
 		}
 
-	//	drive_controller->AutoShift(is_auto_shift);
+		//	drive_controller->AutoShift(is_auto_shift);
 
 #endif
 	}

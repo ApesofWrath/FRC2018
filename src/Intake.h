@@ -88,6 +88,8 @@ public:
 
 	bool IsAtAngle(double target_ang);
 
+	std::vector<std::vector<double> > GetNextRef();
+
 	void IntakeWheelStateMachine();
 	void IntakeArmStateMachine();
 

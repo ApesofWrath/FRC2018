@@ -85,7 +85,6 @@ Timer *intakeTimer = new Timer();
 
 PowerDistributionPanel *pdp_i;
 Elevator *elevator_i;
-IntakeMotionProfiler *intake_profiler;
 
 double starting_pos = 0.0;
 
@@ -105,6 +104,8 @@ int counter_i = 0;
 int encoder_counter = 0;
 
 int position_offset = 0;
+
+IntakeMotionProfiler *intake_profiler;
 
 int current_counter_first = 0;
 bool cube_in = false;
@@ -610,17 +611,6 @@ void Intake::SetZeroOffset() {
 
 bool Intake::ZeroEnc() { //called in Initialize() and in SetVoltage()
 
-//	if (zeroing_counter_i < 2) {
-//		if (talonIntakeArm->GetSensorCollection().SetQuadraturePosition(0,
-//				1000) == 0) {
-//			zeroing_counter_i++; //still initiializing even if the zero fails
-//			return true;
-//		} else {
-//			std::cout << "here" << std::endl;
-//			return false;
-//		}
-//	}
-
 	if (zeroing_counter_i < 1) {
 		SetZeroOffset();
 		zeroing_counter_i++;
@@ -629,6 +619,14 @@ bool Intake::ZeroEnc() { //called in Initialize() and in SetVoltage()
 		//std::cout << "here" << std::endl;
 		return false;
 	}
+
+}
+
+std::vector<std::vector<double> > Intake::GetNextRef() {
+
+	std::vector<std::vector<double>> profile_intake =
+			intake_profiler->GetNextRefIntake();
+	return profile_intake;
 
 }
 
@@ -642,12 +640,9 @@ void Intake::IntakeWrapper(Intake *in) {
 
 		if (frc::RobotState::IsEnabled()) {
 
-			std::vector<std::vector<double>> profile_intake =
-					intake_profiler->GetNextRefIntake();
-
 			if (in->intake_arm_state != STOP_ARM_STATE
 					&& in->intake_arm_state != INIT_STATE) {
-				in->Rotate(profile_intake);
+				in->Rotate(in->GetNextRef());
 			}
 
 		}
