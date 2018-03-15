@@ -30,15 +30,15 @@ public:
 
 	Autonomous(DriveController *dc, Elevator *el, Intake *in);
 
-	void FillProfile(std::vector<std::vector<double> > pathfinder_refs);
-
-	double GetLeftPos();
-	double GetRightPos();
-
-	bool IsLastDriveIndex();
-	int GetIndex();
-
-	bool IsCubeReleased();
+//	void FillProfile(std::vector<std::vector<double> > pathfinder_refs);
+//
+//	double GetLeftPos();
+//	double GetRightPos();
+//
+//	bool IsLastDriveIndex();
+//	int GetIndex();
+//
+//	bool IsCubeReleased();
 
 	bool StartedShoot();
 

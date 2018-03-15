@@ -23,6 +23,7 @@
 #include <AutonSequences/Switch.h>
 #include <AutonSequences/Scale.h>
 #include <TeleopStateMachine.h>
+#include <AutonStateMachine.h>
 #include <AutonSequences/SwitchSide.h>
 
 #define STATEMACHINE 1
@@ -109,6 +110,7 @@ public:
 	Elevator *elevator_;
 	Intake *intake_;
 	TeleopStateMachine *teleop_state_machine;
+	AutonStateMachine *auton_state_machine;
 	ElevatorMotionProfiler *elevator_profiler_;
 	IntakeMotionProfiler *intake_profiler_;
 	Compressor *compressor_;
@@ -156,6 +158,7 @@ public:
 		intake_ = new Intake(pdp_, intake_profiler_, elevator_);
 		teleop_state_machine = new TeleopStateMachine(elevator_, intake_,
 				drive_controller); //actually has both state machines
+		auton_state_machine = new AutonStateMachine(elevator_, intake_, drive_controller);
 
 		joyThrottle = new Joystick(JOY_THROTTLE);
 		joyWheel = new Joystick(JOY_WHEEL);
@@ -185,6 +188,14 @@ public:
 		drive_controller->StartDriveThreads(joyThrottle, joyWheel, &is_heading, //both auton and teleop drive
 				&is_vision, &is_fc); //auton drive will not start until profile for auton is sent through
 
+		auton_state_machine->StartAutonStateMachineThread(
+				&wait_for_button, //both auton and teleop state machines
+				&intake_spin_in, &intake_spin_out, &intake_spin_slow, &intake_spin_stop,
+				&get_cube_ground, &get_cube_station, &post_intake,
+				&raise_to_switch, &raise_to_scale, &intake_arm_up,
+				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
+				&elevator_down, &raise_to_scale_backwards);
+
 		teleop_state_machine->StartStateMachineThread(
 				&wait_for_button, //both auton and teleop state machines
 				&intake_spin_in, &intake_spin_out, &intake_spin_slow, &intake_spin_stop,
@@ -197,7 +208,7 @@ public:
 
 	void AutonomousInit() override {
 
-		teleop_state_machine->Initialize();
+		auton_state_machine->Initialize();
 		compressor_->Stop(); //not working
 
 		drive_controller->ZeroAll(true);

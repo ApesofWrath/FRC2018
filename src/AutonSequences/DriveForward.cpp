@@ -80,7 +80,7 @@ void DriveForward::GenerateForward(bool forward) {
 		}
 	}
 
-	FillProfile(full_refs_df);
+	drive_controller->SetRefs(full_refs_df);
 
 	free(trajectory);
 	free(leftTrajectory);

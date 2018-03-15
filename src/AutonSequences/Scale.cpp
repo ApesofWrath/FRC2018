@@ -191,17 +191,17 @@ void Scale::RunStateMachine(bool *place_scale_backwards, bool *place_switch,
 	//SmartDashboard::PutNumber("switch traj length", added_switch_len);
 
 //start being true at end of drive profile, stop being true once start shooting
-	if (GetIndex() >= scale_traj_len) { //at the end of the drive, while we have not released a cube //GetIndex() >= length && //should be has started shooting //IsCubeRelease is needed
+	if (drive_controller->GetDriveIndex() >= scale_traj_len) { //at the end of the drive, while we have not released a cube //GetIndex() >= length && //should be has started shooting //IsCubeRelease is needed
 		if (!StartedShoot()) { //still need to change this to be reusable
 			*place_scale_backwards = true; //must run once initialized!
 		} else {
 			*place_scale_backwards = false;
 		}
-		if (IsCubeReleased()) {
+		if (intake_->ReleasedCube()) {
 			*get_cube_ground = true;
 		}
 
-		if (GetIndex() >= (scale_traj_len + added_switch_len)
+		if (drive_controller->GetDriveIndex() >= (scale_traj_len + added_switch_len)
 				&& added_switch_len > 0) { //if at end of profile, and added profile exists
 			*place_switch = true;
 			//place_scale_backwards = true;

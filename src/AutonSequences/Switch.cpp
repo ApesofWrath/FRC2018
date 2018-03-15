@@ -80,7 +80,7 @@ void Switch::GenerateSwitch(bool left) { //left center right //left is positive 
 
 	//timerPauseSwitch->Start();
 	///if (timerPauseSwitch->HasPeriodPassed(3)) {
-		FillProfile(full_refs_sw);
+		drive_controller->SetRefs(full_refs_sw);
 	//}
 
 		//timerPauseSwitch->Stop()
@@ -100,7 +100,7 @@ void Switch::RunStateMachine(bool *place_switch) {
 	///std::cout << "isShoot: " << IsShoot() << std::endl;
 
 	//start being true at end of drive profile, stop being true once start shooting
-	if (GetIndex() >= length && !StartedShoot()) { //at the end of the drive, while we have not released a cube //GetIndex() >= length && //should be has started shooting
+	if (drive_controller->GetDriveIndex() >= length && !StartedShoot()) { //at the end of the drive, while we have not released a cube //GetIndex() >= length && //should be has started shooting
 		*place_switch = true; //must run once initialized!
 	} else {
 		*place_switch = false;
