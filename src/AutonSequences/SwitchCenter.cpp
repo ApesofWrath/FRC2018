@@ -6,13 +6,13 @@
  */
 
 //Center Switch
-#include <AutonSequences/Switch.h>
+#include <AutonSequences/SwitchCenter.h>
 
 Timer *timerPauseSwitch = new Timer();
 
 std::vector<std::vector<double> > full_refs_sw(1500, std::vector<double>(6)); //initalizes each index value to 0
 
-void Switch::GenerateSwitch(bool left) { //left center right //left is positive for x and for angle //TODO: make center switch, side switch subclasses
+void SwitchCenter::GenerateSwitch(bool left) { //left center right //left is positive for x and for angle //TODO: make center switch, side switch subclasses
 
 	//Auton thread started in auton constructor
 
@@ -90,7 +90,7 @@ void Switch::GenerateSwitch(bool left) { //left center right //left is positive 
 
 }
 
-void Switch::RunStateMachine(bool *place_switch) {
+void SwitchCenter::RunStateMachine(bool *place_switch) {
 
 	//no other state machine booleans needed, all other ones will stay false
 
