@@ -13,7 +13,8 @@ std::vector<std::vector<double> > full_refs_sc(1500, std::vector<double>(6)); //
 
 Timer *timerPauseScale = new Timer();
 
-void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch) { //left center right //left is positive for x and for angle //bool switch too //TODO: make center scale and side scale subclasses
+void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch,
+		bool scale_added, bool left_scale_added) { //left center right //left is positive for x and for angle //bool switch too //TODO: make center scale and side scale subclasses
 
 	//Auton thread started in auton constructor
 
@@ -22,7 +23,6 @@ void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch) { //l
 	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
 
 	Waypoint p1, p2, p3;
-
 
 	//feet
 	if (left_scale) { //start left, left scale
@@ -64,8 +64,6 @@ void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch) { //l
 		Segment sl = leftTrajectory[l];
 		Segment sr = rightTrajectory[l];
 
-		std::cout << "scale traj" << std::endl;
-
 		full_refs_sc.at(l).at(0) = ((double) sl.heading) - PI; //profile tries to turn robot around and go straight, in order to go backwards
 		full_refs_sc.at(l).at(1) = -1.0 * ((double) sl.position);
 		full_refs_sc.at(l).at(2) = -1.0 * ((double) sr.position); //couldn't just reverse these
@@ -76,6 +74,9 @@ void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch) { //l
 		if (l >= length) { //still have more in the 1500 allotted points
 			if (switch_) {
 				GenerateAddedSwitch(left_switch); //will finish off 1500 points
+				break;
+			} else if (scale_added) {
+				GenerateAddedScale(left_scale_added);
 				break;
 			} else {
 				full_refs_sc.at(l).at(0) = full_refs_sc.at(l - 1).at(0); //l - 1 will always be the last sensible value since it cascades through the vector
@@ -139,7 +140,7 @@ void Scale::GenerateAddedSwitch(bool left) { //new trajectory so that old spline
 	PATHFINDER_SAMPLES_FAST, 0.05, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk
 
 	length = candidate.length;
-	added_switch_len = length; //is 0
+	added_switch_len = length;
 	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));
 
 	pathfinder_generate(&candidate, trajectory);
@@ -182,6 +183,141 @@ void Scale::GenerateAddedSwitch(bool left) { //new trajectory so that old spline
 
 }
 
+//First part is exactly the same as GenerateAddedSwitch(), but needs to not fill the rest of the refs with the last ref
+void Scale::GenerateAddedScale(bool left) { //new trajectory so that old spline interpolation does not carry over and new waypoints do not change old trajectory, also need to pause before next set of waypoints
+
+//Auton thread started in auton constructor
+
+	//GETTING CUBE
+
+	int POINT_LENGTH = 2;
+
+	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
+
+	Waypoint p1, p2, p3;
+
+//feet
+	if (left) {
+		p1 = {0.0, 0.0, 0.0};
+		p2 = {5.7, 1.25, d2r(20.0)};
+	}
+	else {
+		p1 = {0.0, 0.0, 0.0};
+		p2 = {5.7, -1.25, d2r(20.0)};
+	}
+
+	points[0] = p1;
+	points[1] = p2;
+
+	TrajectoryCandidate candidate;
+	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
+	PATHFINDER_SAMPLES_FAST, 0.05, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk
+
+	length = candidate.length;
+	added_switch_len = length;
+	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));
+
+	pathfinder_generate(&candidate, trajectory);
+
+	Segment *leftTrajectory = (Segment*) malloc(sizeof(Segment) * length);
+	Segment *rightTrajectory = (Segment*) malloc(sizeof(Segment) * length);
+
+	double wheelbase_width = 2.1;
+
+	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
+			wheelbase_width);
+
+	for (int i = (scale_traj_len); i < 1500; i++) { //starting from the next point, right after the pathfinder trajectory ends
+
+		Segment sl = leftTrajectory[i - (scale_traj_len)];
+		Segment sr = rightTrajectory[i - (scale_traj_len)];
+
+		full_refs_sc.at(i).at(0) = ((double) sl.heading); //profile tries to turn robot around and go straight, in order to go backwards
+		full_refs_sc.at(i).at(1) = ((double) sl.position);
+		full_refs_sc.at(i).at(2) = ((double) sr.position);
+		full_refs_sc.at(i).at(3) = (0.0);
+		full_refs_sc.at(i).at(4) = ((double) sl.velocity);
+		full_refs_sc.at(i).at(5) = ((double) sr.velocity);
+
+		if (i >= scale_traj_len + added_switch_len) { //still have more in the 1500 allotted points
+			break;
+		}
+
+	}
+
+	free(trajectory);
+	free(leftTrajectory);
+	free(rightTrajectory);
+
+	//GO BACK TO PLACE SCALE POSITION
+
+	POINT_LENGTH = 2;
+
+	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
+
+	Waypoint p1, p2;
+
+//feet
+	if (left) {
+		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
+		p2 = {-5.7, -1.25, d2r(-20.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
+	}
+	else { //change these
+		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
+		p2 = {-5.7, 1.25, d2r(-20.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
+	}
+
+	points[0] = p1;
+	points[1] = p2;
+
+	TrajectoryCandidate candidate;
+	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
+	PATHFINDER_SAMPLES_FAST, 0.05, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk
+
+	length = candidate.length;
+	added_switch_len = length;
+	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));
+
+	pathfinder_generate(&candidate, trajectory);
+
+	Segment *leftTrajectory = (Segment*) malloc(sizeof(Segment) * length);
+	Segment *rightTrajectory = (Segment*) malloc(sizeof(Segment) * length);
+
+	double wheelbase_width = 2.1;
+
+	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
+			wheelbase_width);
+
+	for (int i = (scale_traj_len); i < 1500; i++) { //starting from the next point, right after the pathfinder trajectory ends
+
+		Segment sl = leftTrajectory[i - (scale_traj_len)];
+		Segment sr = rightTrajectory[i - (scale_traj_len)];
+
+		full_refs_sc.at(i).at(0) = ((double) sl.heading) - PI; //profile tries to turn robot around and go straight, in order to go backwards
+		full_refs_sc.at(i).at(1) = -1.0 * ((double) sl.position);
+		full_refs_sc.at(i).at(2) = -1.0 * ((double) sr.position);
+		full_refs_sc.at(i).at(3) = (0.0);
+		full_refs_sc.at(i).at(4) = -1.0 * ((double) sl.velocity);
+		full_refs_sc.at(i).at(5) = -1.0 * ((double) sr.velocity);
+
+		if (i >= scale_traj_len + added_switch_len) { //still have more in the 1500 allotted points
+			full_refs_sc.at(i).at(0) = full_refs_sc.at(i - 1).at(0); //i - 1 will always be the last sensible value since it cascades
+			full_refs_sc.at(i).at(1) = full_refs_sc.at(i - 1).at(1);
+			full_refs_sc.at(i).at(2) = full_refs_sc.at(i - 1).at(2);
+			full_refs_sc.at(i).at(3) = full_refs_sc.at(i - 1).at(3);
+			full_refs_sc.at(i).at(4) = full_refs_sc.at(i - 1).at(4);
+			full_refs_sc.at(i).at(5) = full_refs_sc.at(i - 1).at(5);
+
+		}
+
+	}
+
+	free(trajectory);
+	free(leftTrajectory);
+	free(rightTrajectory);
+
+}
+
 //USED FOR BOTH SCALE AND SCALE+SWITCH
 //init, wfb to place_scale_backwards, post_intake_scale // wfb to get_cube_ground, post intake switch, wfb, place_switch
 void Scale::RunStateMachine(bool *place_scale_backwards, bool *place_switch,
@@ -200,7 +336,8 @@ void Scale::RunStateMachine(bool *place_scale_backwards, bool *place_switch,
 			*get_cube_ground = true;
 		}
 
-		if (drive_controller->GetDriveIndex() >= (scale_traj_len + added_switch_len)
+		if (drive_controller->GetDriveIndex()
+				>= (scale_traj_len + added_switch_len)
 				&& added_switch_len > 0) { //if at end of profile, and added profile exists
 			*place_switch = true;
 			//place_scale_backwards = true;
@@ -209,21 +346,24 @@ void Scale::RunStateMachine(bool *place_scale_backwards, bool *place_switch,
 
 }
 
-void Scale::RunStateMachineTwoScale(bool *place_scale_backwards, bool *get_cube_ground) {
+//exactly the same as scale+switch except for the reuse of place_scale_backwards
+void Scale::RunStateMachineTwoScale(bool *place_scale_backwards,
+		bool *get_cube_ground) {
 
 	if (drive_controller->GetDriveIndex() >= scale_traj_len) { //at the end of the drive, while we have not released a cube
-			if (!StartedShoot()) { //still need to change this startedShoot to be reusable
-				*place_scale_backwards = true;
-			} else {
-				*place_scale_backwards = false;
-			}
-			if (intake_->ReleasedCube()) {
-				*get_cube_ground = true;
-			}
-
-			if (drive_controller->GetDriveIndex() >= (scale_traj_len + added_switch_len)
-					&& added_switch_len > 0) { //if at end of profile, and added profile exists
-				*place_scale_backwards = true;
-			}
+		if (!StartedShoot()) { //still need to change this startedShoot to be reusable
+			*place_scale_backwards = true;
+		} else {
+			*place_scale_backwards = false;
 		}
+		if (intake_->ReleasedCube()) {
+			*get_cube_ground = true;
+		}
+
+		if (drive_controller->GetDriveIndex()
+				>= (scale_traj_len + added_switch_len)
+				&& added_switch_len > 0) { //if at end of profile, and added profile exists
+			*place_scale_backwards = true;
+		}
+	}
 }

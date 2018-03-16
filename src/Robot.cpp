@@ -362,6 +362,8 @@ public:
 		if (scaleState) {
 			scale_->RunStateMachine(&raise_to_scale_backwards, &raise_to_switch, //raise to switch
 					&get_cube_ground); //works for both scale only and scale+switch
+//			scale_->RunStateMachineTwoScale(&raise_to_scale_backwards, //raise to switch
+//					&get_cube_ground); //works for both scale only and scale+switch
 		} else if (switchState) {
 			switch_->RunStateMachine(&raise_to_switch);
 		} else if (switchSideState) {

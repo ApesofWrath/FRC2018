@@ -212,6 +212,8 @@ Timer *timerTeleop = new Timer();
 //
 //Timer *timerTest = new Timer();
 
+double feed_forward_r, feed_forward_l, feed_forward_k;
+
 double init_heading = 0;
 double total_heading = 0;
 
@@ -727,7 +729,7 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	double refYaw = drive_ref.at(0); //reversed in Generate
 	double refLeft = drive_ref.at(1);
 	double refRight = drive_ref.at(2);
-	double targetYawRate = drive_ref.at(3); //0 for now
+	double targetYawRate = 0.0;//drive_ref.at(3); //0 for now
 	double tarVelLeft = drive_ref.at(4);
 	double tarVelRight = drive_ref.at(5);
 
@@ -909,9 +911,9 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 		ref_right = -max_y_rpm;
 	}
 
-	double feed_forward_r = k_f_right_vel * ref_right; //teleop only, controlled
-	double feed_forward_l = k_f_left_vel * ref_left;
-	double feed_forward_k = K_F_KICK_VEL * ref_kick;
+	feed_forward_r = k_f_right_vel * ref_right; //teleop only, controlled
+	feed_forward_l = k_f_left_vel * ref_left;
+	feed_forward_k = K_F_KICK_VEL * ref_kick;
 
 	//conversion to RPM from native unit
 	double l_current = ((double) canTalonLeft1->GetSelectedSensorVelocity(0)

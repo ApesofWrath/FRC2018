@@ -72,8 +72,6 @@ void SwitchSide::GenerateSwitchSide(bool left) { //left center right //left is p
 			break;
 		}
 
-		//SmartDashboard::PutNumber("length", length);
-
 		//always zero for single switch side
 		drive_controller->SetZeroingIndex(back_switch_len); //DONT DRIVE WHILE SHOOTING
 
@@ -91,7 +89,7 @@ void SwitchSide::GenerateSwitchSide(bool left) { //left center right //left is p
 
 }
 
-void SwitchSide::ForwardSwitch(bool left) { //must zero profile
+void SwitchSide::ForwardSwitch(bool left) { //must zero profile, need to not carry over old orientation and pause before continuing
 
 	int POINT_LENGTH = 2;
 
