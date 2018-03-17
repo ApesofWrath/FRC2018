@@ -89,10 +89,6 @@ const double K_D_YAW_AU_HD = 0.0; //0.085;
 const double K_P_YAW_AU_WC = 0.0; //5.0;
 const double K_D_YAW_AU_WC = 0.0; //0.085;
 
-//const double k_p_right_vel_au = 0;
-//const double k_p_left_vel_au = 0; k_p_kick_vel_au,
-////			k_d_left_vel_au, k_d_right_vel_au, k_d_kick_vel_au
-
 const double K_P_RIGHT_DIS = 0.1; //0.085; //0.1;
 const double K_P_LEFT_DIS = 0.1; //0.085; // 0.1;
 const double K_P_YAW_DIS = 0.5; //1.5;
@@ -186,6 +182,7 @@ double k_p_right_vel, k_p_left_vel, k_p_yaw_vel, k_d_right_vel,
 		k_d_left_vel, //gains vary depending on gear
 		k_p_yaw_t, k_d_yaw_t, k_p_kick_vel, k_d_kick_vel, k_p_yaw_h_vel,
 		k_p_yaw_au, k_d_yaw_au;
+
 double k_p_right_vel_au = 0.0;
 double k_p_left_vel_au = 0.0;
 double k_p_kick_vel_au = 0.0;
@@ -202,15 +199,10 @@ int row_index = 0;
 int zeroing_index = 0;
 
 bool is_last_index = false;
-//int drive_index = 0;
 
-double Kv; //scale from -1 to 1
+double Kv;
 
 Timer *timerTeleop = new Timer();
-//Timer *timerAuton = new Timer();
-//Timer *timerShift = new Timer();
-//
-//Timer *timerTest = new Timer();
 
 double feed_forward_r, feed_forward_l, feed_forward_k;
 
@@ -405,7 +397,7 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 	canTalonRight3->ConfigPeakCurrentDuration(200, 0);
 	canTalonRight4->ConfigPeakCurrentDuration(200, 0);
 
-	canTalonLeft1->ConfigOpenloopRamp(0.15, 0); //TODO: adjust this as needed !!!!!
+	canTalonLeft1->ConfigOpenloopRamp(0.15, 0); //TODO: adjust this as needed
 	canTalonLeft2->ConfigOpenloopRamp(0.15, 0);
 	canTalonLeft3->ConfigOpenloopRamp(0.15, 0);
 	canTalonLeft4->ConfigOpenloopRamp(0.15, 0);
@@ -440,9 +432,7 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 			VelocityMeasPeriod::Period_10Ms, 0);
 	canTalonRight4->ConfigVelocityMeasurementWindow(5, 0);
 
-	//ahrs = new AHRS(SerialPort::Port::kUSB, AHRS::SerialDataType::kProcessedData, 200);
 	ahrs = new AHRS(SerialPort::kUSB);
-	//ahrs = new AHRS(SerialPort::Port::kMXP);
 
 	solenoid = new DoubleSolenoid(3, 1, 0);//101
 
@@ -521,7 +511,7 @@ void DriveControllerMother::SetGainsLow() {
 
 }
 
-void DriveControllerMother::AutoShift(bool auto_shift) {
+void DriveControllerMother::AutoShift(bool auto_shift) { //not used
 
 	double current_rpm_l = ((double) canTalonLeft1->GetSelectedSensorVelocity(0)
 			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
