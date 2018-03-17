@@ -232,33 +232,24 @@ void Intake::ManualArm(Joystick *joyOpArm) {
 
 }
 
-void Intake::Rotate(std::vector<std::vector<double> > ref_intake) { //a vector of a pos vector and a vel vector
+void Intake::Rotate() { //a vector of a pos vector and a vel vector
 
 	//top is position, bottom is velocity
+
+	std::vector<std::vector<double> > ref_intake = intake_profiler->GetNextRefIntake();
 
 	double current_pos = GetAngularPosition();
 	double current_vel = GetAngularVelocity();
 	double goal_pos = ref_intake[0][0];
 	double goal_vel = ref_intake[1][0];
 
-	SmartDashboard::PutNumber("INTAKE POS", GetAngularPosition());
-
-//	SmartDashboard::PutNumber("INTAKE REF POS", goal_pos);
-//	SmartDashboard::PutNumber("INTAKE REF VEL", goal_vel);
-
-//	std::cout << "goal pos: " << goal_pos << "        goal vel: " << goal_vel
-//			<< std::endl;
-
 	error_i[0][0] = goal_pos - current_pos;
 	error_i[1][0] = goal_vel - current_vel;
-
-//	SmartDashboard::PutNumber("INTAKE ERR POS", error_i[0][0]);
-//	SmartDashboard::PutNumber("INTAKE ERR VEL", error_i[1][0]);
 
 	v_bat_i = 12.0;
 
 	if (intake_profiler->GetFinalGoalIntake()
-			< intake_profiler->GetInitPosIntake()) { //changed
+			< intake_profiler->GetInitPosIntake()) {
 		K_i = K_down_i;
 	} else {
 		K_i = K_up_i;
@@ -270,10 +261,8 @@ void Intake::Rotate(std::vector<std::vector<double> > ref_intake) { //a vector o
 
 	double offset = 1.3 * cos(current_pos); //counter gravity
 
-	u_i = (K_i[0][0] * error_i[0][0]) + (K_i[0][1] * error_i[1][0]) //+ offset ; //u_i is in voltage, * by v_bat_i
+	u_i = (K_i[0][0] * error_i[0][0]) + (K_i[0][1] * error_i[1][0])
 			+ (Kv_i * goal_vel * v_bat_i) * ff_percent_i + offset; // for this system the second row of the K matrix is a copy and does not matter.
-
-	//SmartDashboard::PutNumber("INTAKE FF", u_i);
 
 	SetVoltageIntake(u_i);
 
@@ -622,11 +611,11 @@ bool Intake::ZeroEnc() { //called in Initialize() and in SetVoltage()
 
 }
 
-std::vector<std::vector<double> > Intake::GetNextRef() {
-
-	return intake_profiler->GetNextRefIntake();
-
-}
+//std::vector<std::vector<double> > Intake::GetNextRef() {
+//
+//	return intake_profiler->GetNextRefIntake();
+//
+//}
 
 void Intake::IntakeWrapper(Intake *in) {
 
@@ -640,7 +629,7 @@ void Intake::IntakeWrapper(Intake *in) {
 
 			if (in->intake_arm_state != STOP_ARM_STATE
 					&& in->intake_arm_state != INIT_STATE) {
-				in->Rotate(in->GetNextRef());
+			//	in->Rotate(in->GetNextRef());
 			}
 
 		}

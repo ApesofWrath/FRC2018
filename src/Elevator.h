@@ -52,7 +52,7 @@ public:
 	void InitializeElevator();
 
 	void ElevatorStateMachine();
-	void Move(std::vector<std::vector<double> > ref_elevator);
+	void Move();
 	void StopElevator();
 
 	double GetVoltageElevator();
@@ -65,7 +65,7 @@ public:
 	double GetElevatorPosition();
 	double GetElevatorVelocity();
 
-	std::vector<std::vector<double> > ElevatorGetNextRef();
+	//std::vector<std::vector<double> > ElevatorGetNextRef();
 
 	bool IsAtBottomElevator();
 	bool IsAtTopElevator();

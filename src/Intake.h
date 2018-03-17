@@ -69,7 +69,7 @@ public:
 	void StopWheels();
 	void StopArm();
 
-	void Rotate(std::vector<std::vector<double> > ref_intake);
+	void Rotate();
 	double GetAngularVelocity();
 	double GetAngularPosition();
 
@@ -88,7 +88,7 @@ public:
 
 	bool IsAtAngle(double target_ang);
 
-	std::vector<std::vector<double> > GetNextRef();
+	//std::vector<std::vector<double> > GetNextRef();
 
 	void IntakeWheelStateMachine();
 	void IntakeArmStateMachine();

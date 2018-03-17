@@ -365,12 +365,12 @@ void TeleopStateMachine::StateMachineWrapper(
 
 //			if (intake->intake_arm_state != intake->STOP_ARM_STATE_H
 //					&& intake->intake_arm_state != intake->INIT_STATE_H) {
-//				intake->Rotate(intake->GetNextRef());
+//				intake->Rotate();
 //			}
 //
 //			if (elevator->elevator_state != elevator->STOP_STATE_E_H
 //					&& elevator->elevator_state != elevator->INIT_STATE_E_H) {
-//				elevator->Move(elevator->ElevatorGetNextRef());
+//				elevator->Move();
 //			}
 //
 			driveController->TeleopWCDrive(JoyThrottle, JoyWheel);
