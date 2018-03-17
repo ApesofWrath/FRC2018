@@ -43,7 +43,7 @@ void Scale::GenerateScale(bool left_scale, bool switch_, bool left_switch,
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.05, 12.0, 6.0, 100000.0, &candidate); //had to be slowed down
+	PATHFINDER_SAMPLES_FAST, time_step, 12.0, 6.0, 100000.0, &candidate); //had to be slowed down
 
 	length = candidate.length;
 	scale_traj_len = length;
@@ -137,7 +137,7 @@ void Scale::GenerateAddedSwitch(bool left) { //new trajectory so that old spline
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.05, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk
+	PATHFINDER_SAMPLES_FAST, time_step, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk
 
 	length = candidate.length;
 	added_switch_len = length;
@@ -211,7 +211,7 @@ void Scale::GenerateAddedScale(bool left) { //new trajectory so that old spline 
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.05, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk
+	PATHFINDER_SAMPLES_FAST, time_step, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk
 
 	length = candidate.length;
 	added_switch_len = length;

@@ -125,7 +125,8 @@ void Elevator::StopElevator() {
 
 void Elevator::Move() {
 
-	std::vector<std::vector<double> > ref_elevator = elevator_profiler->GetNextRefElevator();
+	std::vector<std::vector<double> > ref_elevator =
+			elevator_profiler->GetNextRefElevator();
 
 	double current_pos_e = GetElevatorPosition();
 	double current_vel_e = GetElevatorVelocity();
@@ -226,12 +227,10 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 
 	elevator_voltage *= -1.0; //reverse at END
 
-
 	//2 is slaved to 1
 	talonElevator1->Set(ControlMode::PercentOutput, elevator_voltage);
 
 }
-
 
 double Elevator::GetElevatorPosition() {
 
@@ -242,7 +241,7 @@ double Elevator::GetElevatorPosition() {
 			talonElevator1->GetSensorCollection().GetQuadraturePosition();
 
 	double elevator_pos = ((elev_pos - position_offset_e) / TICKS_PER_ROT_E) //position offset to zero
-			* (PI * PULLEY_DIAMETER) * -1.0;
+	* (PI * PULLEY_DIAMETER) * -1.0;
 
 	return elevator_pos;
 
@@ -373,7 +372,6 @@ void Elevator::StartElevatorThread() {
 
 }
 
-
 void Elevator::ElevatorWrapper(Elevator *el) {
 
 	elevatorTimer->Start();
@@ -386,7 +384,7 @@ void Elevator::ElevatorWrapper(Elevator *el) {
 
 			if (el->elevator_state != STOP_STATE_E
 					&& el->elevator_state != INIT_STATE_E) {
-			//	el->Move(el->ElevatorGetNextRef());
+				//	el->Move(el->ElevatorGetNextRef());
 			}
 
 		}

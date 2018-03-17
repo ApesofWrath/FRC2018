@@ -34,7 +34,7 @@ void DriveForward::GenerateForward(bool forward) {
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.05, 19.0, 10.0, 100000.0, &candidate); //max vel, acc, jerk //profile speed must equal drive thread time step
+	PATHFINDER_SAMPLES_FAST, time_step, 19.0, 10.0, 100000.0, &candidate); //max vel, acc, jerk //profile speed must equal drive thread time step
 
 	int length = candidate.length;
 	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));

@@ -28,6 +28,8 @@ public:
 	Elevator *elevator_;
 	Intake *intake_;
 
+	double time_step = 0.02;
+
 	Autonomous(DriveController *dc, Elevator *el, Intake *in);
 
 //	void FillProfile(std::vector<std::vector<double> > pathfinder_refs);

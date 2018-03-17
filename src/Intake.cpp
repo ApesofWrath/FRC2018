@@ -66,6 +66,7 @@ const int INTAKE_SLEEP_TIME = 0;
 const double INTAKE_WAIT_TIME = 0.01; //sec
 
 int last_intake_state = 0; //cannot equal the first state or profile will not set the first time
+int last_intake_wheel_state = 3; //current limits first time
 
 double u_i = 0; //this is the input in volts to the motor
 double v_bat_i = 0.0; //will be set to pdp's voltage
@@ -147,6 +148,26 @@ Intake::Intake(PowerDistributionPanel *pdp,
 
 }
 
+void Intake::EnableCurrentLimits() {
+
+	talonIntake1->EnableCurrentLimit(true);
+	talonIntake2->EnableCurrentLimit(true);
+	talonIntake1->ConfigPeakCurrentLimit(PCL_WHEELS, 0);
+	talonIntake2->ConfigPeakCurrentLimit(PCL_WHEELS, 0);
+	talonIntake1->ConfigContinuousCurrentLimit(CCL_WHEELS, 0);
+	talonIntake2->ConfigContinuousCurrentLimit(CCL_WHEELS, 0);
+	talonIntake1->ConfigPeakCurrentDuration(PCD_WHEELS, 0);
+	talonIntake2->ConfigPeakCurrentDuration(PCD_WHEELS, 0);
+
+}
+
+void Intake::DisableCurrentLimits() {
+
+	talonIntake1->EnableCurrentLimit(false); //20
+	talonIntake2->EnableCurrentLimit(false);
+
+}
+
 void Intake::SetStartingPos(double start) { //not used
 	starting_pos = start;
 }
@@ -162,24 +183,12 @@ void Intake::InitializeIntake() {
 
 void Intake::In() {
 
-	talonIntake1->EnableCurrentLimit(true);
-	talonIntake2->EnableCurrentLimit(true);
-	talonIntake1->ConfigPeakCurrentLimit(PCL_WHEELS, 0);
-	talonIntake2->ConfigPeakCurrentLimit(PCL_WHEELS, 0);
-	talonIntake1->ConfigContinuousCurrentLimit(CCL_WHEELS, 0);
-	talonIntake2->ConfigContinuousCurrentLimit(CCL_WHEELS, 0);
-	talonIntake1->ConfigPeakCurrentDuration(PCD_WHEELS, 0);
-	talonIntake2->ConfigPeakCurrentDuration(PCD_WHEELS, 0);
-
 	talonIntake1->Set(ControlMode::PercentOutput, -0.95); // +2.0/12.0 maybe -0.7
 	talonIntake2->Set(ControlMode::PercentOutput, 0.95); // +2.0/12.0 maybe 0.7
 
 }
 
 void Intake::Out() {
-
-	talonIntake1->EnableCurrentLimit(false); //20
-	talonIntake2->EnableCurrentLimit(false);
 
 	talonIntake1->Set(ControlMode::PercentOutput, 1.0); // 1.0
 	talonIntake2->Set(ControlMode::PercentOutput, -1.0); // -1.0
@@ -188,9 +197,6 @@ void Intake::Out() {
 
 void Intake::Slow() {
 
-	talonIntake1->EnableCurrentLimit(false); //20
-	talonIntake2->EnableCurrentLimit(false);
-
 	talonIntake1->Set(ControlMode::PercentOutput, SLOW_SPEED); // 1.0
 	talonIntake2->Set(ControlMode::PercentOutput, -SLOW_SPEED); // -1.0
 
@@ -198,24 +204,12 @@ void Intake::Slow() {
 
 void Intake::SlowScale() {
 
-	talonIntake1->EnableCurrentLimit(false); //20
-	talonIntake2->EnableCurrentLimit(false);
-
 	talonIntake1->Set(ControlMode::PercentOutput, 0.6); // 1.0
 	talonIntake2->Set(ControlMode::PercentOutput, -0.6); // -1.0
 
 }
 
 void Intake::StopWheels() {
-
-	talonIntake1->EnableCurrentLimit(true);
-	talonIntake2->EnableCurrentLimit(true);
-	talonIntake1->ConfigPeakCurrentLimit(PCL_WHEELS, 0);
-	talonIntake2->ConfigPeakCurrentLimit(PCL_WHEELS, 0);
-	talonIntake1->ConfigContinuousCurrentLimit(CCL_WHEELS, 0);
-	talonIntake2->ConfigContinuousCurrentLimit(CCL_WHEELS, 0);
-	talonIntake1->ConfigPeakCurrentDuration(PCD_WHEELS, 0);
-	talonIntake2->ConfigPeakCurrentDuration(PCD_WHEELS, 0);
 
 	talonIntake1->Set(ControlMode::PercentOutput, 0.0 - 0.2); //1.8 v
 	talonIntake2->Set(ControlMode::PercentOutput, 0.0 + 0.2); //0.15
@@ -236,7 +230,8 @@ void Intake::Rotate() { //a vector of a pos vector and a vel vector
 
 	//top is position, bottom is velocity
 
-	std::vector<std::vector<double> > ref_intake = intake_profiler->GetNextRefIntake();
+	std::vector<std::vector<double> > ref_intake =
+			intake_profiler->GetNextRefIntake();
 
 	double current_pos = GetAngularPosition();
 	double current_vel = GetAngularVelocity();
@@ -272,30 +267,29 @@ void Intake::SetVoltageIntake(double voltage_i) {
 
 	SmartDashboard::PutString("INTAKE SAFETY", "none");
 
-	//is_at_bottom = IsAtBottomIntake(); //hall effect returns 0 when at bottom. we reverse it here
+	double ang_pos = GetAngularPosition();
 
-	//soft limit
+	//top soft limits
 	if (elevator_i->GetElevatorPosition() < elevator_safety_position) {
-		if (GetAngularPosition() >= (1.6) && voltage_i > 0.0
-				&& is_init_intake) { //at max height and still trying to move up //no upper soft limit when initializing
-			voltage_i = 0.0; //shouldn't crash
+		if (ang_pos >= (1.6) && voltage_i > 0.0
+				&& is_init_intake) { //at max height and still trying to move up //there is no upper soft limit when initializing
+			voltage_i = 0.0;
 			SmartDashboard::PutString("INTAKE SAFETY", "top soft limit");
 		}
 	} else {
-		if (GetAngularPosition() >= (INTAKE_BACKWARDS_SOFT_LIMIT)
+		if (ang_pos >= (INTAKE_BACKWARDS_SOFT_LIMIT)
 				&& voltage_i > 0.0 && is_init_intake) { //at max height and still trying to move up //no upper soft limit when initializing
-			voltage_i = 0.0; //shouldn't crash
+			voltage_i = 0.0;
 			SmartDashboard::PutString("INTAKE SAFETY", "top soft limit");
 		}
 	}
 
 	//safety to make sure that the elevator doesn't go down when the arm is up
-	if (GetAngularPosition() > 1.7 && elevator_i->GetVoltageElevator() < 0.0) { //checking and changing u_e
+	if (ang_pos > 1.7 && elevator_i->GetVoltageElevator() < 0.0) { //checking and changing u_e
 		elevator_i->SetVoltageElevator(0.0);
 	}
 
-//	if (is_at_bottom) {
-	if (talonIntakeArm->GetOutputCurrent() > 3.0) {
+	if (talonIntakeArm->GetOutputCurrent() > 3.0) { //probably don't need this current check
 		counter_i++;
 		if (counter_i > 1) {
 			if (ZeroEnc()) { //successfully zeroed enc one time
@@ -305,7 +299,7 @@ void Intake::SetVoltageIntake(double voltage_i) {
 	} else {
 		counter_i = 0;
 	}
-	if (voltage_i < 0.0 && GetAngularPosition() < -0.1) {
+	if (voltage_i < 0.0 && ang_pos < -0.1) {
 		voltage_i = 0.0;
 		SmartDashboard::PutString("INTAKE SAFETY", "bottom soft limit");
 	}
@@ -317,14 +311,13 @@ void Intake::SetVoltageIntake(double voltage_i) {
 		voltage_i = MIN_VOLTAGE_I;
 	}
 
-	if (std::abs(GetAngularVelocity()) <= 0.05 && std::abs(voltage_i) > 3.0) { //outputting current, not moving, should be moving
+	if (std::abs(GetAngularVelocity()) <= 0.05 && std::abs(voltage_i) > 3.0) { //outputting current, not moving, should be movingGetAngularVelocity()
 		encoder_counter++;
-		//std::cout << "VEL: " << GetAngularVelocity() << "  VOLT: " << voltage_i << std::endl;
 	} else {
 		encoder_counter = 0;
 	}
 
-	if (encoder_counter > 10) { //10
+	if (encoder_counter > 10) {
 		voltage_safety = true;
 	} else {
 		voltage_safety = false;
@@ -334,8 +327,6 @@ void Intake::SetVoltageIntake(double voltage_i) {
 		SmartDashboard::PutString("INTAKE SAFETY", "stall");
 		voltage_i = 0.0;
 	}
-
-	//SmartDashboard::PutNumber("INTAKE VOLT", voltage_i);
 
 	voltage_i /= 12.0; //scale from -1 to 1 for the talon
 
@@ -413,16 +404,11 @@ void Intake::StopArm() {
 
 void Intake::IntakeArmStateMachine() {
 
-//	SmartDashboard::PutNumber("WHEEL CUR 1", talonIntake1->GetOutputCurrent());
-//	SmartDashboard::PutNumber("WHEEL CUR 2", talonIntake2->GetOutputCurrent());
-
 	switch (intake_arm_state) {
 
-	SmartDashboard::PutNumber("IC", talonIntakeArm->GetOutputCurrent());
-
 case INIT_STATE:
-	SmartDashboard::PutString("INTAKE ARM", "INIT");
-	if (is_init_intake) { // && GetAngularPosition() == 0.35) {
+	SmartDashboard::PutString("IA", "INIT");
+	if (is_init_intake) {
 		intake_arm_state = UP_STATE; //PUT BACK IN
 	} else {
 		InitializeIntake();
@@ -431,7 +417,7 @@ case INIT_STATE:
 	break;
 
 case UP_STATE:
-	SmartDashboard::PutString("INTAKE ARM", "UP");
+	SmartDashboard::PutString("IA", "UP");
 	//	SmartDashboard::PutString("actually in up state", "yep");
 	if (last_intake_state != UP_STATE) { //first time in state
 		intake_profiler->SetFinalGoalIntake(UP_ANGLE); //is 0.0 for testing
@@ -441,7 +427,7 @@ case UP_STATE:
 	break;
 
 case MID_STATE:
-	SmartDashboard::PutString("INTAKE ARM", "MID");
+	SmartDashboard::PutString("IA", "MID");
 	if (last_intake_state != MID_STATE) {
 		intake_profiler->SetFinalGoalIntake(MID_ANGLE);
 		intake_profiler->SetInitPosIntake(GetAngularPosition());
@@ -450,7 +436,7 @@ case MID_STATE:
 	break;
 
 case DOWN_STATE:
-	SmartDashboard::PutString("INTAKE ARM", "DOWN");
+	SmartDashboard::PutString("IA", "DOWN");
 	if (last_intake_state != DOWN_STATE) {
 		intake_profiler->SetFinalGoalIntake(DOWN_ANGLE);
 		intake_profiler->SetInitPosIntake(GetAngularPosition());
@@ -459,27 +445,27 @@ case DOWN_STATE:
 	break;
 
 case STOP_ARM_STATE: //for emergencies
-	SmartDashboard::PutString("INTAKE ARM", "STOP");
+	SmartDashboard::PutString("IA", "STOP");
 	StopArm();
 	last_intake_state = STOP_ARM_STATE;
 	break;
 
-case SWITCH_BACK_SHOT_STATE:
-	SmartDashboard::PutString("INTAKE ARM", "DOWN");
-	if (last_intake_state != SWITCH_BACK_SHOT_STATE) {
-		intake_profiler->SetFinalGoalIntake(BACK_SHOT_ANGLE);
-		intake_profiler->SetInitPosIntake(GetAngularPosition());
-	}
-	last_intake_state = SWITCH_BACK_SHOT_STATE;
-	break;
-
-case SWITCH_STATE:
-	SmartDashboard::PutString("INTAKE ARM", "SWITCH");
+case SWITCH_STATE: //these last two were in wrong order
+	SmartDashboard::PutString("IA", "SWITCH");
 	if (last_intake_state != SWITCH_STATE) {
 		intake_profiler->SetFinalGoalIntake(SWITCH_ANGLE);
 		intake_profiler->SetInitPosIntake(GetAngularPosition());
 	}
 	last_intake_state = SWITCH_STATE;
+	break;
+
+case SWITCH_BACK_SHOT_STATE:
+	SmartDashboard::PutString("IA", "DOWN");
+	if (last_intake_state != SWITCH_BACK_SHOT_STATE) {
+		intake_profiler->SetFinalGoalIntake(BACK_SHOT_ANGLE);
+		intake_profiler->SetInitPosIntake(GetAngularPosition());
+	}
+	last_intake_state = SWITCH_BACK_SHOT_STATE;
 	break;
 	}
 
@@ -489,33 +475,51 @@ case SWITCH_STATE:
 
 void Intake::IntakeWheelStateMachine() {
 
-	///std::cout << "INTAKE STATE " << intake_wheel_state << std::endl;
-
 	switch (intake_wheel_state) {
 
 	case STOP_WHEEL_STATE: //has offset, not actually stopped
-		SmartDashboard::PutString("INTAKE WHEEL", "STOP");
+		SmartDashboard::PutString("IW", "STOP");
+		if (last_intake_wheel_state != STOP_WHEEL_STATE) {
+			EnableCurrentLimits();
+		}
 		StopWheels();
+		last_intake_wheel_state = STOP_WHEEL_STATE;
 		break;
 
 	case IN_STATE:
-		SmartDashboard::PutString("INTAKE WHEEL", "IN");
+		SmartDashboard::PutString("IW", "IN");
+		if (last_intake_wheel_state != IN_STATE) {
+			EnableCurrentLimits();
+		}
 		In();
+		last_intake_wheel_state = IN_STATE;
 		break;
 
 	case OUT_STATE:
-		SmartDashboard::PutString("INTAKE WHEEL", "OUT");
-		//std::cout << "out state" << std::endl;
+		SmartDashboard::PutString("IW", "OUT");
+		if (last_intake_wheel_state != OUT_STATE) {
+			DisableCurrentLimits();
+		}
 		Out();
+		last_intake_wheel_state = OUT_STATE;
 		break;
 
 	case SLOW_STATE:
-		SmartDashboard::PutString("INTAKE WHEEL", "SLOW");
+		SmartDashboard::PutString("IW", "SLOW");
+		if (last_intake_wheel_state != SLOW_STATE) {
+			DisableCurrentLimits();
+		}
 		Slow();
+		last_intake_wheel_state = SLOW_STATE;
 		break;
 
 	case SLOW_SCALE_STATE:
+		SmartDashboard::PutString("IW", "SLOW");
+		if (last_intake_wheel_state != SLOW_SCALE_STATE) {
+			DisableCurrentLimits();
+		}
 		SlowScale();
+		last_intake_wheel_state = SLOW_SCALE_STATE;
 		break;
 
 	}
@@ -629,7 +633,7 @@ void Intake::IntakeWrapper(Intake *in) {
 
 			if (in->intake_arm_state != STOP_ARM_STATE
 					&& in->intake_arm_state != INIT_STATE) {
-			//	in->Rotate(in->GetNextRef());
+				//	in->Rotate(in->GetNextRef());
 			}
 
 		}

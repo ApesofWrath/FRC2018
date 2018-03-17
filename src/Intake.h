@@ -62,6 +62,9 @@ public:
 	void InitializeIntake();
 	void SetStartingPos(double start);
 
+	void EnableCurrentLimits();
+	void DisableCurrentLimits();
+
 	void In();
 	void Out();
 	void Slow();

@@ -148,8 +148,8 @@ public:
 
 	void RobotInit() {
 
-		elevator_profiler_ = new ElevatorMotionProfiler(1.6, 10.0, 0.01); //max vel, max accel, timestep
-		intake_profiler_ = new IntakeMotionProfiler(2.0, 8.0, 0.01);
+		elevator_profiler_ = new ElevatorMotionProfiler(1.6, 10.0, 0.02); //max vel, max accel, timestep
+		intake_profiler_ = new IntakeMotionProfiler(2.0, 8.0, 0.02);
 
 		compressor_ = new Compressor(3);
 		pdp_ = new PowerDistributionPanel(3);
