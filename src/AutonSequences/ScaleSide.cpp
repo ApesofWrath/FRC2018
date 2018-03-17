@@ -15,7 +15,7 @@ std::vector<std::vector<double> > full_refs_sc(1500, std::vector<double>(6)); //
 
 Timer *timerPauseScale = new Timer(); //may need later
 
-void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch) {
+void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch, bool added_scale, bool left_added_scale) {
 
 	//FC FORWARD TO PLACE ON SCALE BACKWARDS, robot starts backwards
 
@@ -74,7 +74,8 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch) {
 
 		if (i >= length) { //still have more in the 1500 allotted points, finished putting in the points to get to the place backwards position
 			if (switch_) {
-				GenerateAddedSwitch(left_switch); //this function will finish off 1500 points
+				//GenerateAddedSwitch(left_switch, added_scale, left_added_scale); //this function will finish off 1500 points
+				drive_controller->SetZeroingIndex(scale_traj_len);
 				break;
 			} else { //fill the rest with the last point to just stay there
 				full_refs_sc.at(i).at(0) = full_refs_sc.at(i - 1).at(0); //l - 1 will always be the last sensible value since it cascades through the vector
@@ -87,10 +88,6 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch) {
 		}
 	}
 
-	if (switch_) {
-		drive_controller->SetZeroingIndex(scale_traj_len); //must zero the drive encoders and gyro IN ADDITION to 'zeroing' (making a fresh) profile, but MUST NOT do this zeroing if not making a fresh profile
-	}
-
 	drive_controller->SetRefs(full_refs_sc);
 
 	free(trajectory);
@@ -98,7 +95,7 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch) {
 	free(rightTrajectory);
 }
 
-void ScaleSide::GenerateAddedSwitch(bool left) { //new trajectory so that old spline interpolation does not carry over and new waypoints do not change old trajectory
+void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale, bool left_added_scale) { //new trajectory so that old spline interpolation does not carry over and new waypoints do not change old trajectory
 
 	//PLACE SWITCH POSITION
 
@@ -109,7 +106,7 @@ void ScaleSide::GenerateAddedSwitch(bool left) { //new trajectory so that old sp
 	Waypoint p1, p2;
 
 //feet
-	if (left) {
+	if (left_switch) {
 		p1 = {0.0, 0.0, 0.0}; //Y, X, yaw
 		p2 = {5.7, 1.25, d2r(20.0)};
 	}
@@ -152,12 +149,17 @@ void ScaleSide::GenerateAddedSwitch(bool left) { //new trajectory so that old sp
 		full_refs_sc.at(i).at(5) = ((double) sr.velocity);
 
 		if (i >= (scale_traj_len + added_switch_len)) { //still have more points left after placing on scale backwards and placing switch
-			full_refs_sc.at(i).at(0) = full_refs_sc.at(i - 1).at(0); //i - 1 will always be the last sensible value since it cascades
-			full_refs_sc.at(i).at(1) = full_refs_sc.at(i - 1).at(1);
-			full_refs_sc.at(i).at(2) = full_refs_sc.at(i - 1).at(2);
-			full_refs_sc.at(i).at(3) = full_refs_sc.at(i - 1).at(3);
-			full_refs_sc.at(i).at(4) = full_refs_sc.at(i - 1).at(4);
-			full_refs_sc.at(i).at(5) = full_refs_sc.at(i - 1).at(5);
+			if (added_scale) {
+				GenerateAddedScale(left_added_scale);
+				break; //generateAddedScale will finish off the 1500 points itself
+			} else {
+				full_refs_sc.at(i).at(0) = full_refs_sc.at(i - 1).at(0); //i - 1 will always be the last sensible value since it cascades
+				full_refs_sc.at(i).at(1) = full_refs_sc.at(i - 1).at(1);
+				full_refs_sc.at(i).at(2) = full_refs_sc.at(i - 1).at(2);
+				full_refs_sc.at(i).at(3) = full_refs_sc.at(i - 1).at(3);
+				full_refs_sc.at(i).at(4) = full_refs_sc.at(i - 1).at(4);
+				full_refs_sc.at(i).at(5) = full_refs_sc.at(i - 1).at(5);
+			}
 
 		}
 
@@ -172,67 +174,6 @@ void ScaleSide::GenerateAddedSwitch(bool left) { //new trajectory so that old sp
 //TODO: may need to rename the new waypoints
 //TODO: reuse addedswitch code for placing on scale backwards again
 void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spline interpolation does not carry over and new waypoints do not change old trajectory
-
-	//PLACE SWITCH POSITION (exactly the same as added switch, but will not finish out the 1500 points, and the waypoints will probably be slightly different since we're only going forward to get the cube, not get the cube and place it on the scale
-
-	int POINT_LENGTH = 2;
-
-	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
-
-	Waypoint p1, p2;
-
-//feet
-	if (left) {
-		p1 = {0.0, 0.0, 0.0}; //Y, X, yaw
-		p2 = {5.7, 1.25, d2r(20.0)};
-	}
-	else {
-		p1 = {0.0, 0.0, 0.0};
-		p2 = {5.7, -1.25, d2r(20.0)};
-	}
-
-	points[0] = p1;
-	points[1] = p2;
-
-	TrajectoryCandidate candidate;
-	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC, //always using cubic, to not go around the points so much
-			PATHFINDER_SAMPLES_FAST, 0.05, 8.0, 4.0, 100000.0, &candidate);
-
-	length = candidate.length;
-	added_switch_len = length;
-	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));
-
-	pathfinder_generate(&candidate, trajectory);
-
-	Segment *leftTrajectory = (Segment*) malloc(sizeof(Segment) * length);
-	Segment *rightTrajectory = (Segment*) malloc(sizeof(Segment) * length);
-
-	double wheelbase_width = 2.1;
-
-	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
-			wheelbase_width);
-
-	for (int i = (scale_traj_len); i < 1500; i++) { //starting from the next point, right after the pathfinder trajectory ends
-
-		Segment sl = leftTrajectory[i - (scale_traj_len)]; //starting from the first point in the new trajectory
-		Segment sr = rightTrajectory[i - (scale_traj_len)];
-
-		full_refs_sc.at(i).at(0) = ((double) sl.heading); //regular forward, no need to reverse
-		full_refs_sc.at(i).at(1) = ((double) sl.position);
-		full_refs_sc.at(i).at(2) = ((double) sr.position);
-		full_refs_sc.at(i).at(3) = (0.0);
-		full_refs_sc.at(i).at(4) = ((double) sl.velocity);
-		full_refs_sc.at(i).at(5) = ((double) sr.velocity);
-
-		if (i >= (scale_traj_len + added_switch_len)) { //still have more points left after placing on scale backwards and placing switch
-			break; //don't finish out 1500 points: add the profile to go back to place scale backwards position
-		}
-
-	}
-
-	free(trajectory); //need to free malloc'd elements
-	free(leftTrajectory);
-	free(rightTrajectory);
 
 	//GO BACK TO PLACE SCALE BACKWARDS POSITION
 
@@ -270,8 +211,8 @@ void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spl
 
 	double wheelbase_width = 2.1;
 
-	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
-			wheelbase_width);
+	pathfinder_modify_tank(trajectory, length, leftTrajectory,
+			rightTrajectory, wheelbase_width);
 
 	for (int i = (scale_traj_len + added_switch_len); i < 1500; i++) { //starting from the next point, right after the pathfinder trajectory ends
 
