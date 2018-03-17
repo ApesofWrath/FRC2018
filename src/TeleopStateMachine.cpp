@@ -33,15 +33,9 @@ int last_state = 0;
 
 bool arm_up = true;
 
-//bool store_last_state = last_state_a;
-
 Elevator *elevator;
 Intake *intake;
 DriveController *driveController;
-
-Timer *teleopTimer = new Timer();
-
-std::thread StateMachineThread;
 
 TeleopStateMachine::TeleopStateMachine(Elevator *elevator_, Intake *intake_,
 		DriveController *drive_controller) {
@@ -321,93 +315,5 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 
 		break;
 	}
-
-}
-
-void TeleopStateMachine::StartStateMachineThread(bool *wait_for_button,
-		bool *intake_spin_in, bool *intake_spin_out, bool *intake_spin_slow,
-		bool *intake_spin_stop, bool *get_cube_ground, bool *get_cube_station,
-		bool *post_intake, bool *raise_to_switch, bool *raise_to_scale,
-		bool *intake_arm_up, bool *intake_arm_mid, bool *intake_arm_down,
-		bool *elevator_up, bool *elevator_mid, bool *elevator_down,
-		bool *raise_to_scale_backwards, Joystick *JoyThrottle,
-		Joystick *JoyWheel) {
-
-	TeleopStateMachine *tsm = this;
-	StateMachineThread = std::thread(&TeleopStateMachine::StateMachineWrapper,
-			tsm, JoyThrottle, JoyWheel, wait_for_button, intake_spin_in,
-			intake_spin_out, intake_spin_slow, intake_spin_stop,
-			get_cube_ground, get_cube_station, post_intake, raise_to_switch,
-			raise_to_scale, intake_arm_up, intake_arm_mid, intake_arm_down,
-			elevator_up, elevator_mid, elevator_down, raise_to_scale_backwards);
-	StateMachineThread.detach();
-
-}
-
-void TeleopStateMachine::StateMachineWrapper(
-		TeleopStateMachine *teleop_state_machine, Joystick *JoyThrottle,
-		Joystick *JoyWheel, bool *wait_for_button, bool *intake_spin_in,
-		bool *intake_spin_out, bool *intake_spin_slow, bool *intake_spin_stop,
-		bool *get_cube_ground, bool *get_cube_station, bool *post_intake,
-		bool *raise_to_switch, bool *raise_to_scale, bool *intake_arm_up,
-		bool *intake_arm_mid, bool *intake_arm_down, bool *elevator_up,
-		bool *elevator_mid, bool *elevator_down,
-		bool *raise_to_scale_backwards) {
-
-	teleopTimer->Start();
-
-	while (true) {
-
-		teleopTimer->Reset();
-
-		if (frc::RobotState::IsEnabled()
-				&& frc::RobotState::IsOperatorControl()) {
-
-			if (intake->intake_arm_state != intake->STOP_ARM_STATE_H
-					&& intake->intake_arm_state != intake->INIT_STATE_H) {
-				intake->Rotate();
-			}
-
-			if (elevator->elevator_state != elevator->STOP_STATE_E_H
-					&& elevator->elevator_state != elevator->INIT_STATE_E_H) {
-				elevator->Move();
-			}
-
-			driveController->TeleopWCDrive(JoyThrottle, JoyWheel); //0.01
-
-			intake->IntakeArmStateMachine();
-			intake->IntakeWheelStateMachine();
-			elevator->ElevatorStateMachine();
-
-			teleop_state_machine->StateMachine((bool) *wait_for_button,
-					(bool) *intake_spin_in, (bool) *intake_spin_out,
-					(bool) *intake_spin_slow, (bool) *intake_spin_stop,
-					(bool) *get_cube_ground, (bool) *get_cube_station,
-					(bool) *post_intake, (bool) *raise_to_switch,
-					(bool) *raise_to_scale, (bool) *intake_arm_up,
-					(bool) *intake_arm_mid, (bool) *intake_arm_down,
-					(bool) *elevator_up, (bool) *elevator_mid,
-					(bool) *elevator_down, (bool) *raise_to_scale_backwards);
-
-		}
-
-		double wait_time = 0.02 - teleopTimer->Get();
-
-		wait_time *= 1000;
-		if (wait_time < 0) {
-			wait_time = 0;
-		}
-
-		std::this_thread::sleep_for(std::chrono::milliseconds((int) wait_time));
-
-		SmartDashboard::PutNumber("TIME", teleopTimer->Get());
-
-	}
-
-}
-
-void TeleopStateMachine::EndStateMachineThread() {
-
-	StateMachineThread.~thread(); //does not actually kill the thread
 
 }

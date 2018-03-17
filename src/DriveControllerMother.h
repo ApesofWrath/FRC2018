@@ -37,6 +37,15 @@ public:
 	AHRS *ahrs;
 
 	bool continue_profile = true;
+	bool set_profile = false;
+
+	std::vector<double> drive_ref = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }; //AutonDrive, row, individual points
+
+	std::vector<std::vector<double> > GetAutonProfile();
+
+	int row_index = 0;
+
+	int zeroing_index = 0;
 
 	//needs the CAN IDs of all the talons and whether or not this is a west coast or HDrive train, input -1 if no kicker (or really whatever you want since it wont be used)
 	DriveControllerMother(int fl, int fr, int rl, int rr, int k, bool is_wc, bool start_low); //for HDrive or West Coast with 4 total talons
@@ -47,6 +56,8 @@ public:
 	void SetGainsHigh();
 	void SetGainsLow();
 	void AutoShift(bool auto_shift);
+
+	void RunAutonDrive();
 
 	//Driving Operators
 	void TeleopHDrive(Joystick *JoyThrottle, Joystick *JoyWheel, bool *is_fc); //creates velocity references set by joysticks, for HDrive Train

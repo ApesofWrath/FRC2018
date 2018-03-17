@@ -10,7 +10,7 @@
 
 #include "ctre/Phoenix.h"
 
-#define CORNELIUS 1
+#define CORNELIUS 0
 
 #if CORNELIUS
 
@@ -194,10 +194,6 @@ double k_p_yaw_heading_pos, k_d_vision_pos;
 
 double k_f_left_vel, k_f_right_vel;
 
-int row_index = 0;
-
-int zeroing_index = 0;
-
 bool is_last_index = false;
 
 double Kv;
@@ -209,15 +205,12 @@ double feed_forward_r, feed_forward_l, feed_forward_k;
 double init_heading = 0;
 double total_heading = 0;
 
-bool set_profile = false;
-
 bool tank = false;
 bool is_low_gear = true;
 
 int LF = 0, L2 = 0, L3 = 0, LR = 0, RF = 0, R2 = 0, R3 = 0, RR = 0, KICKER = 0;
 
-std::vector<double> drive_ref = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }; //AutonDrive, row, individual points
-std::vector<std::vector<double> > auton_profile(1500, std::vector<double>(6)); //rows stacked on rows, all points
+std::vector<std::vector<double> > auton_profile(1500, std::vector<double>(6)); //rows stacked on rows, all points // can't be in .h for some reason
 std::vector<std::vector<double> > auton_rows(2, std::vector<double>(6));
 
 DriveControllerMother::DriveControllerMother(int fl, int fr, int rl, int rr,
@@ -380,7 +373,7 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 	canTalonRight4->ConfigPeakCurrentLimit(50, 0);
 
 	canTalonLeft1->ConfigContinuousCurrentLimit(35, 0);
-	canTalonLeft2->ConfigContinuousCurrentLimit(35, 0);//335
+	canTalonLeft2->ConfigContinuousCurrentLimit(35, 0); //335
 	canTalonLeft3->ConfigContinuousCurrentLimit(35, 0);
 	canTalonLeft4->ConfigContinuousCurrentLimit(35, 0);
 	canTalonRight1->ConfigContinuousCurrentLimit(35, 0);
@@ -433,9 +426,11 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 	canTalonRight4->ConfigVelocityMeasurementWindow(5, 0);
 
 	ahrs = new AHRS(SerialPort::kUSB);
-
-	solenoid = new DoubleSolenoid(3, 1, 0);//101
-
+#ifndef CORNELIUS
+	solenoid = new DoubleSolenoid(3, 1, 0); //101
+#else
+	solenoid = new DoubleSolenoid(1, 0, 1);
+#endif
 	canTalonKicker = new TalonSRX(-1);
 
 }
@@ -520,7 +515,8 @@ void DriveControllerMother::AutoShift(bool auto_shift) { //not used
 			0) / (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
 
 	if (std::abs(current_rpm_l) > UP_SHIFT_VEL
-			&& std::abs(current_rpm_r) > UP_SHIFT_VEL && is_low_gear && auto_shift) {
+			&& std::abs(current_rpm_r) > UP_SHIFT_VEL && is_low_gear
+			&& auto_shift) {
 		ShiftUp();
 	}
 
@@ -722,7 +718,7 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	double refYaw = drive_ref.at(0); //reversed in Generate
 	double refLeft = drive_ref.at(1);
 	double refRight = drive_ref.at(2);
-	double targetYawRate = 0.0;//drive_ref.at(3); //0 for now
+	double targetYawRate = 0.0; //drive_ref.at(3); //0 for now
 	double tarVelLeft = drive_ref.at(4);
 	double tarVelRight = drive_ref.at(5);
 
@@ -736,10 +732,6 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 //	SmartDashboard::PutNumber("refRightVel", tarVelRight);
 //	SmartDashboard::PutNumber("refYaw", refYaw);
 
-//	std::cout << "yep " << refYaw << "  " << refLeft << "  " << refRight << "  "
-//			<< targetYawRate << "  " << tarVelLeft << "   " << tarVelRight
-//			<< std::endl;
-
 	//rpm //not needed besides check for jitter
 	double r_current = -((double) canTalonRight1->GetSelectedSensorVelocity(0)
 			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
@@ -749,7 +741,7 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	//SmartDashboard::PutNumber("Actual left", l_current);
 
 	double r_dis = -((double) canTalonRight1->GetSelectedSensorPosition(0) //empirically determined ticks per foot
-			/ 1205.0);
+	/ 1205.0);
 	double l_dis = ((double) canTalonLeft1->GetSelectedSensorPosition(0)
 			/ 1205.0);
 
@@ -855,7 +847,6 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 //		k_d_yaw = 0.0;
 //	}
 
-
 	if (std::abs(yaw_error) < .3) { //TODO: maybe get rid of this
 		yaw_error = 0.0;
 	}
@@ -931,7 +922,6 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 		feed_forward_k = 0;
 	}
 
-
 	double total_right = D_RIGHT_VEL + P_RIGHT_VEL + feed_forward_r
 			+ (Kv * target_vel_right); //Kv only in auton, straight from motion profile
 	double total_left = D_LEFT_VEL + P_LEFT_VEL + feed_forward_l
@@ -949,7 +939,6 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	} else if (total_left < -1.0) {
 		total_left = -1.0;
 	}
-
 
 	canTalonLeft1->Set(ControlMode::PercentOutput, total_left);
 	canTalonRight1->Set(ControlMode::PercentOutput, -total_right); //negative for Koba and for new drive train
@@ -1012,7 +1001,7 @@ void DriveControllerMother::ZeroYaw() {
 double DriveControllerMother::GetLeftVel() {
 
 	double l_current = ((double) canTalonLeft1->GetSelectedSensorVelocity(0)
-				/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
+			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
 
 	return l_current;
 }
@@ -1020,7 +1009,7 @@ double DriveControllerMother::GetLeftVel() {
 double DriveControllerMother::GetRightVel() {
 
 	double r_current = ((double) canTalonRight1->GetSelectedSensorVelocity(0)
-				/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
+			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
 
 	return r_current;
 }
@@ -1110,6 +1099,30 @@ void DriveControllerMother::SetZeroingIndex(int zero_index) {
 
 }
 
+std::vector<std::vector<double> > DriveControllerMother::GetAutonProfile() {
+
+	return auton_profile;
+
+}
+
+void DriveControllerMother::RunAutonDrive() {
+
+	//put in profile //was finishing the for loop before we got a profile
+	for (int i = 0; i < auton_profile[0].size(); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs
+		drive_ref.at(i) = auton_profile.at(row_index).at(i); //from SetRef()
+	}
+
+	if (row_index == zeroing_index) {
+		ZeroAll(true);
+	}
+
+	AutonDrive(); //send each row to auton drive before getting the next row
+
+	if (continue_profile) {
+		row_index++;
+	}
+}
+
 //TODO: add vision support
 void DriveControllerMother::DriveWrapper(Joystick *JoyThrottle,
 		Joystick *JoyWheel, bool *is_heading, bool *is_vision, bool *is_fc,
@@ -1137,25 +1150,25 @@ void DriveControllerMother::DriveWrapper(Joystick *JoyThrottle,
 
 		}
 
-		else if (frc::RobotState::IsEnabled() && frc::RobotState::IsAutonomous()
-				&& set_profile) {
-
-			//put in profile //was finishing the for loop before we got a profile
-			for (int i = 0; i < auton_profile[0].size(); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs
-				drive_ref.at(i) = auton_profile.at(row_index).at(i); //from SetRef()
-			}
-
-			if (row_index == zeroing_index) {
-				driveController->ZeroAll(true);
-			}
-
-			driveController->AutonDrive(); //send each row to auton drive before getting the next row
-
-			if (driveController->continue_profile) {
-				row_index++;
-			}
-
-		}
+//		else if (frc::RobotState::IsEnabled() && frc::RobotState::IsAutonomous()
+//				&& set_profile) {
+//
+//			//put in profile //was finishing the for loop before we got a profile
+//			for (int i = 0; i < auton_profile[0].size(); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs
+//				drive_ref.at(i) = auton_profile.at(row_index).at(i); //from SetRef()
+//			}
+//
+//			if (row_index == zeroing_index) {
+//				driveController->ZeroAll(true);
+//			}
+//
+//			driveController->AutonDrive(); //send each row to auton drive before getting the next row
+//
+//			if (driveController->continue_profile) {
+//				row_index++;
+//			}
+//
+//		}
 
 		double time_a = DRIVE_WAIT_TIME - timerTeleop->Get(); //how much time left to sleep till 10 ms have passed. timerTeleop->Get() returns seconds
 

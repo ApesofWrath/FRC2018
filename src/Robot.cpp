@@ -25,6 +25,7 @@
 #include <TeleopStateMachine.h>
 #include <AutonStateMachine.h>
 #include <AutonSequences/SwitchSide.h>
+#include <TaskManager.h>
 
 #define STATEMACHINE 1
 #define CORNELIUS 1 //in every class
@@ -116,6 +117,7 @@ public:
 	IntakeMotionProfiler *intake_profiler_;
 	Compressor *compressor_;
 	Joystick *joyThrottle, *joyWheel, *joyOp;
+	TaskManager *task_manager;
 
 	DriveForward *drive_forward;
 	Switch *switch_;
@@ -161,6 +163,7 @@ public:
 				drive_controller); //actually has both state machines
 		auton_state_machine = new AutonStateMachine(elevator_, intake_,
 				drive_controller);
+		task_manager = new TaskManager(teleop_state_machine, auton_state_machine, drive_controller, elevator_, intake_);
 
 		joyThrottle = new Joystick(JOY_THROTTLE);
 		joyWheel = new Joystick(JOY_WHEEL);
@@ -180,7 +183,7 @@ public:
 
 #if TESTING
 		//starting threads in robot init so that they only are created once
-		teleop_state_machine->StartStateMachineThread(
+		task_manager->StartThread(
 				&wait_for_button, //both auton and teleop state machines
 				&intake_spin_in, &intake_spin_out, &intake_spin_slow,
 				&intake_spin_stop, &get_cube_ground, &get_cube_station,
@@ -453,10 +456,11 @@ public:
 
 	void DisabledInit() override { //between auton and teleop
 
-		teleop_state_machine->EndStateMachineThread();
-		drive_controller->EndDriveThreads();
-		intake_->EndIntakeThread(); //may not actually disable threads
-		elevator_->EndElevatorThread();
+	//	task_manager->EndThread();
+		//teleop_state_machine->EndStateMachineThread();
+//		drive_controller->EndDriveThreads();
+//		intake_->EndIntakeThread(); //may not actually disable threads
+//		elevator_->EndElevatorThread();
 
 		//teleop_state_machine->Initialize(); //17%
 
