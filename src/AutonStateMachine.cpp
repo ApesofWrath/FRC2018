@@ -129,13 +129,13 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 			store_last_state = last_state_a;
 		}
 
-		bool intake_low_enough_a = intake_a->GetAngularPosition() < (intake_a->UP_ANGLE + 0.05);
+		//bool intake_low_enough_a = intake_a->GetAngularPosition() < (intake_a->UP_ANGLE + 0.05);
 
-		if (intake_low_enough_a) {
+		//if (intake_low_enough_a) {
 			elevator_a->elevator_state = elevator_a->DOWN_STATE_E_H;
 			//if (last_state_a == PLACE_SCALE_BACKWARDS_STATE_A) { THIS IS THE SAME BUG WE TALKED ABOUT,ONLY IS TRUE ONCE
 			//}
-		}
+		///}
 
 		intake_a->intake_arm_state = intake_a->UP_STATE_H;
 		intake_a->intake_wheel_state = intake_a->STOP_WHEEL_STATE_H;
@@ -149,11 +149,11 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 //		} else if (store_last_state != PLACE_SWITCH_STATE_A) { //TODO: does still break 2cube auto //only needed for single switch //wasn't going back to wfb
 //			state_a = GET_CUBE_GROUND_STATE_A;
 		}
-		else if (last_state_a == PLACE_SCALE_STATE_A //will keep checking if arm is low enough to start lowering the elevator
-		|| last_state_a == PLACE_SWITCH_STATE_A
-				|| intake_low_enough_a) { //not going back to wfb //not making this check
-			state_a = WAIT_FOR_BUTTON_STATE_A;
-		}
+//		else if (last_state_a == PLACE_SCALE_STATE_A //will keep checking if arm is low enough to start lowering the elevator
+//		|| last_state_a == PLACE_SWITCH_STATE_A
+//				|| intake_low_enough_a) { //not going back to wfb //not making this check
+//			state_a = WAIT_FOR_BUTTON_STATE_A;
+//		}
 		last_state_a = POST_INTAKE_SWITCH_STATE_A;
 		//can always go back to wait for button state
 		break;

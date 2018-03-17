@@ -363,44 +363,44 @@ void TeleopStateMachine::StateMachineWrapper(
 		if (frc::RobotState::IsEnabled()
 				&& frc::RobotState::IsOperatorControl()) {
 
-			if (intake->intake_arm_state != intake->STOP_ARM_STATE_H
-					&& intake->intake_arm_state != intake->INIT_STATE_H) {
-				intake->Rotate(intake->GetNextRef());
-			}
-
-			if (elevator->elevator_state != elevator->STOP_STATE_E_H
-					&& elevator->elevator_state != elevator->INIT_STATE_E_H) {
-				elevator->Move(elevator->ElevatorGetNextRef());
-			}
-
+//			if (intake->intake_arm_state != intake->STOP_ARM_STATE_H
+//					&& intake->intake_arm_state != intake->INIT_STATE_H) {
+//				intake->Rotate(intake->GetNextRef());
+//			}
+//
+//			if (elevator->elevator_state != elevator->STOP_STATE_E_H
+//					&& elevator->elevator_state != elevator->INIT_STATE_E_H) {
+//				elevator->Move(elevator->ElevatorGetNextRef());
+//			}
+//
 			driveController->TeleopWCDrive(JoyThrottle, JoyWheel);
+//
+//			intake->IntakeArmStateMachine();
+//			intake->IntakeWheelStateMachine();
+//			elevator->ElevatorStateMachine();
 
-			intake->IntakeArmStateMachine();
-			intake->IntakeWheelStateMachine();
-			elevator->ElevatorStateMachine();
-
-			teleop_state_machine->StateMachine((bool) *wait_for_button,
-					(bool) *intake_spin_in, (bool) *intake_spin_out,
-					(bool) *intake_spin_slow, (bool) *intake_spin_stop,
-					(bool) *get_cube_ground, (bool) *get_cube_station,
-					(bool) *post_intake, (bool) *raise_to_switch,
-					(bool) *raise_to_scale, (bool) *intake_arm_up,
-					(bool) *intake_arm_mid, (bool) *intake_arm_down,
-					(bool) *elevator_up, (bool) *elevator_mid,
-					(bool) *elevator_down, (bool) *raise_to_scale_backwards);
+//			teleop_state_machine->StateMachine((bool) *wait_for_button,
+//					(bool) *intake_spin_in, (bool) *intake_spin_out,
+//					(bool) *intake_spin_slow, (bool) *intake_spin_stop,
+//					(bool) *get_cube_ground, (bool) *get_cube_station,
+//					(bool) *post_intake, (bool) *raise_to_switch,
+//					(bool) *raise_to_scale, (bool) *intake_arm_up,
+//					(bool) *intake_arm_mid, (bool) *intake_arm_down,
+//					(bool) *elevator_up, (bool) *elevator_mid,
+//					(bool) *elevator_down, (bool) *raise_to_scale_backwards);
 
 		}
 
-		double wait_time = 0.05 - teleopTimer->Get();
+		double wait_time = 0;// - teleopTimer->Get();
 
 		wait_time *= 1000;
 		if (wait_time < 0) {
 			wait_time = 0;
 		}
 
-		std::this_thread::sleep_for(std::chrono::milliseconds((int) wait_time));
-
 		SmartDashboard::PutNumber("TIME", teleopTimer->Get());
+
+		std::this_thread::sleep_for(std::chrono::milliseconds((int) wait_time));
 
 	}
 

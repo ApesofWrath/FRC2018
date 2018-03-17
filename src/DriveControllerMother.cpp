@@ -645,7 +645,7 @@ void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle, //finds targets
 
 	double reverse_y = 1.0;
 
-	if (JoyThrottle->GetY() > 0.0) {
+	if (-1.0 > 0.0) {//JoyThrottle->GetY()
 		reverse_y = -1.0;
 	} else {
 		reverse_y = 1.0;
@@ -920,12 +920,12 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
 	double r_current = -((double) canTalonRight1->GetSelectedSensorVelocity(0)
 			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
-	double kick_current = ((double) canTalonKicker->GetSelectedSensorVelocity(0)
-			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION; //going right is positive
+//	double kick_current = ((double) canTalonKicker->GetSelectedSensorVelocity(0)
+//			 (double) TICKS_PER_ROT) * MINUTE_CONVERSION; //going right is positive
 
 	SmartDashboard::PutNumber("Velocity", l_current);
 
-	double curr_fps = (l_current * TICKS_PER_ROT / 1205.0) / 60.0;
+	//double curr_fps = (l_current * TICKS_PER_ROT / 1205.0) / 60.0;
 
 	if ((std::abs(l_current) <= 0.5 && canTalonLeft1->GetOutputCurrent() > 4.0) //encoders not working
 			|| (std::abs(r_current) <= 0.5
@@ -1011,7 +1011,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	canTalonRight1->Set(ControlMode::PercentOutput, -total_right); //negative for Koba and for new drive train
 	//canTalonRearRight->Set(ControlMode::PercentOutput,  total_right); //these are slaves
 	//canTalonRearLeft->Set(ControlMode::PercentOutput, -total_left);
-	canTalonKicker->Set(ControlMode::PercentOutput, -total_kick);
+	///canTalonKicker->Set(ControlMode::PercentOutput, -total_kick);
 
 	//	std::cout << " Ref: " << ref_kick;
 	//std::cout << " Left: " << l_error_vel_t << std::endl;

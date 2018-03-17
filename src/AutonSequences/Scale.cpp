@@ -253,37 +253,37 @@ void Scale::GenerateAddedScale(bool left) { //new trajectory so that old spline 
 
 	POINT_LENGTH = 2;
 
-	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
-
-	Waypoint p1, p2;
-
-//feet
-	if (left) {
-		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
-		p2 = {-5.7, -1.25, d2r(-20.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
-	}
-	else { //change these
-		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
-		p2 = {-5.7, 1.25, d2r(-20.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
-	}
-
-	points[0] = p1;
-	points[1] = p2;
-
-	TrajectoryCandidate candidate;
-	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.05, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk
-
-	length = candidate.length;
-	added_switch_len = length;
-	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));
-
-	pathfinder_generate(&candidate, trajectory);
-
-	Segment *leftTrajectory = (Segment*) malloc(sizeof(Segment) * length);
-	Segment *rightTrajectory = (Segment*) malloc(sizeof(Segment) * length);
-
-	double wheelbase_width = 2.1;
+//	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
+//
+//	Waypoint p1, p2;
+//
+////feet
+//	if (left) {
+//		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
+//		p2 = {-5.7, -1.25, d2r(-20.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
+//	}
+//	else { //change these
+//		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
+//		p2 = {-5.7, 1.25, d2r(-20.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
+//	}
+//
+//	points[0] = p1;
+//	points[1] = p2;
+//
+//	TrajectoryCandidate candidate;
+//	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
+//	PATHFINDER_SAMPLES_FAST, 0.05, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk
+//
+//	length = candidate.length;
+//	added_switch_len = length;
+//	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));
+//
+//	pathfinder_generate(&candidate, trajectory);
+//
+//	Segment *leftTrajectory = (Segment*) malloc(sizeof(Segment) * length);
+//	Segment *rightTrajectory = (Segment*) malloc(sizeof(Segment) * length);
+//
+//	double wheelbase_width = 2.1;
 
 	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
 			wheelbase_width);

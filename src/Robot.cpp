@@ -282,11 +282,11 @@ public:
 			scale_ = new Scale(drive_controller, elevator_, intake_);
 
 			if (positionSelected == left && leftScale) {
-				scale_->GenerateScale(true, false, false);
+				//scale_->GenerateScale(true, false, false);
 				scaleState = true;
 
 			} else if (positionSelected == right && !leftScale) {
-				scale_->GenerateScale(false, false, false);
+				//scale_->GenerateScale(false, false, false);
 				scaleState = true;
 
 			} else if ((positionSelected == center)
@@ -305,10 +305,10 @@ public:
 
 			if (positionSelected == left) {
 				if (leftScale && leftSwitch) { //scale and switch
-					scale_->GenerateScale(true, true, true);
+				//	scale_->GenerateScale(true, true, true);
 					scaleState = true; //scale state machine works for both scale and scale+switch
 				} else if (leftScale && !leftSwitch) { //only scale
-					scale_->GenerateScale(true, false, false);
+			//		scale_->GenerateScale(true, false, false);
 					scaleState = true;
 				} else if (!leftScale && leftSwitch) {
 					switch_side->GenerateSwitchSide(true);
@@ -321,10 +321,10 @@ public:
 
 			} else if (positionSelected == right) {
 				if (!leftScale && !leftSwitch) {
-					scale_->GenerateScale(false, true, false);
+			//		scale_->GenerateScale(false, true, false);
 					scaleState = true;
 				} else if (!leftScale && leftSwitch) {
-					scale_->GenerateScale(false, false, false);
+				//	scale_->GenerateScale(false, false, false);
 					scaleState = true;
 				} else if (leftScale && !leftSwitch) {
 					switch_side->GenerateSwitchSide(false);
