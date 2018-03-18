@@ -11,12 +11,12 @@
 
 #define PI 3.14159265
 
-#define CORNELIUS 1
+#define CORNELIUS 0
 
 #if CORNELIUS
 double ff_percent = 0.4;
 #else
-double ff_percent = 0.4;
+double ff_percent = 0.0;
 #endif
 
 const int INIT_STATE_E = 0;
@@ -56,7 +56,7 @@ double position_offset_e = 0.0;
 std::vector<std::vector<double> > K_e;
 std::vector<std::vector<double> > K_down_e =
 		{ { 17.22, 0.94 }, { 25.90, 1.57 } }; //controller matrix that is calculated in the Python simulation
-std::vector<std::vector<double> > K_up_e = { { 91.91, 3.11 }, { 22.11, 1.75 } }; //controller matrix that is calculated in the Python simulation
+std::vector<std::vector<double> > K_up_e = { { 40.65, 1.90 }, { 22.11, 1.75 } }; //controller matrix that is calculated in the Python simulation
 
 std::vector<std::vector<double> > X_e = { { 0.0 }, //state matrix filled with the state of the states of the system //not used
 		{ 0.0 } };
@@ -91,8 +91,8 @@ Elevator::Elevator(PowerDistributionPanel *pdp,
 	talonElevator2 = new TalonSRX(0);
 	talonElevator2->Set(ControlMode::Follower, 33); //re-slaved
 
-	talonElevator1->EnableCurrentLimit(true);
-	talonElevator2->EnableCurrentLimit(true);
+	talonElevator1->EnableCurrentLimit(false);
+	talonElevator2->EnableCurrentLimit(false);
 	talonElevator1->ConfigContinuousCurrentLimit(40, 0);
 	talonElevator2->ConfigContinuousCurrentLimit(40, 0);
 	talonElevator1->ConfigPeakCurrentLimit(80, 0);
@@ -131,8 +131,14 @@ void Elevator::Move() {
 	double current_pos_e = GetElevatorPosition();
 	double current_vel_e = GetElevatorVelocity();
 
+	SmartDashboard::PutNumber("Actual Vel", current_vel_e);
+	SmartDashboard::PutNumber("Actual Pos", current_pos_e);
+
 	double goal_pos = ref_elevator[0][0];
 	goal_vel_e = ref_elevator[1][0];
+
+	SmartDashboard::PutNumber("Goal Vel", goal_vel_e);
+	SmartDashboard::PutNumber("Goal Pos", goal_pos);
 
 	error_e[0][0] = goal_pos - current_pos_e;
 	error_e[1][0] = goal_vel_e - current_vel_e;
@@ -223,6 +229,8 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 
 	}
 
+	SmartDashboard::PutNumber("El Volt", elevator_voltage);
+
 	elevator_voltage /= 12.0;
 
 	elevator_voltage *= -1.0; //reverse at END
@@ -292,7 +300,8 @@ void Elevator::ManualElevator(Joystick *joyOpElev) {
 
 void Elevator::ElevatorStateMachine() {
 
-	SmartDashboard::PutNumber("EC", talonElevator1->GetOutputCurrent());
+	SmartDashboard::PutNumber("EC1", talonElevator1->GetOutputCurrent());
+	SmartDashboard::PutNumber("EC2", talonElevator2->GetOutputCurrent());
 
 	switch (elevator_state) {
 

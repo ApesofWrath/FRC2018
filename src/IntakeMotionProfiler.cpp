@@ -59,7 +59,7 @@ void IntakeMotionProfiler::SetMaxAccIntake(double max_acc) { //not used
 //pre: set init pos and final goal for the first point in the whole profile
 std::vector<std::vector<double>> IntakeMotionProfiler::GetNextRefIntake() { //used by both elevator and intake
 
-	time_dt = 0.0001; //seconds //lower res without 0.000001 and counter, but still ok
+	//time_dt = 0.0001; //seconds //lower res without 0.000001 and counter, but still ok
 	//std::cout << "final goal: " << final_goal << std::endl;
 
 	//cant initialize any vectors outside of the function or their previous values will carry over into the next profiles made. Don't pull a ChezyChamps2k17
@@ -75,7 +75,7 @@ std::vector<std::vector<double>> IntakeMotionProfiler::GetNextRefIntake() { //us
 
 	int counter = 0;
 
-	while (counter < 100) {
+	while (counter < interval) {
 		if (ref >= init_pos) { //profile to go up
 			if (pos < ref) { //still need to go up, profile not over
 

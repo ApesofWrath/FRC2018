@@ -55,7 +55,7 @@ void ElevatorMotionProfiler::SetMaxAccElevator(double max_acc) { //not used
 //pre: set init pos and final goal for the first point in the whole profile
 std::vector<std::vector<double>> ElevatorMotionProfiler::GetNextRefElevator() { //used by both elevator and intake
 
-	time_dt = 0.0001; //seconds //lower res without 0.000001 and counter, but still ok //higher because lowered the counter threshold
+	//time_dt = 0.0001; //seconds //lower res without 0.000001 and counter, but still ok //higher because lowered the counter threshold
 
 	//cant initialize any vectors outside of the function or their previous values will carry over into the next profiles made. Don't pull a ChezyChamps2k17
 	std::vector<std::vector<double> > matrix; //new matrix every time because .push_back adds rows, moved from the top of the class
@@ -68,7 +68,7 @@ std::vector<std::vector<double>> ElevatorMotionProfiler::GetNextRefElevator() { 
 
 	int counter = 0;
 
-	while (counter < 100) { //lower threshold because profile is going too slow
+	while (counter < interval) { //lower threshold because profile is going too slow
 		if (ref >= init_pos) { //profile to go up
 			if (pos < ref) { //still need to go up, profile not over
 

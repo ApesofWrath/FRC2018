@@ -18,7 +18,7 @@ double ff_percent_i = 0.6;
 double offset_angle = 1.65;
 double SLOW_SPEED = 0.25;
 #else
-double ff_percent_i = 0.4;
+double ff_percent_i = 0.0;
 double offset_angle = 1.75; //1.5; with the new flippy back arm
 double SLOW_SPEED = 0.4;
 #endif
@@ -74,7 +74,7 @@ double v_bat_i = 0.0; //will be set to pdp's voltage
 std::vector<std::vector<double> > K_i;
 std::vector<std::vector<double> > K_down_i = { { 10.32, 0.063 }, //controller matrix that is calculated in the Python simulation, pos and vel  10.32, 0.063
 		{ 10.32, 0.063 } };
-std::vector<std::vector<double> > K_up_i = { { 63.9, 0.30 }, //controller matrix that is calculated in the Python simulation, pos and vel 16.75, 0.12
+std::vector<std::vector<double> > K_up_i = { { 28.64, 0.12 }, //controller matrix that is calculated in the Python simulation, pos and vel 16.75, 0.12
 		{ 16.75, 0.12 } };
 
 std::vector<std::vector<double> > error_i = { { 0.0 }, { 0.0 } };
@@ -232,8 +232,15 @@ void Intake::Rotate() { //a vector of a pos vector and a vel vector
 
 	double current_pos = GetAngularPosition();
 	double current_vel = GetAngularVelocity();
+
+	SmartDashboard::PutNumber("IntakeActualVel", current_vel);
+	SmartDashboard::PutNumber("IntakeActualPos", current_pos);
+
 	double goal_pos = ref_intake[0][0];
 	double goal_vel = ref_intake[1][0];
+
+	SmartDashboard::PutNumber("IntakeGoalVel", goal_vel);
+	SmartDashboard::PutNumber("IntakeGoalPos", goal_pos);
 
 	error_i[0][0] = goal_pos - current_pos;
 	error_i[1][0] = goal_vel - current_vel;

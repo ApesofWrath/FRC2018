@@ -34,7 +34,7 @@ private:
 	double max_velocity = 0.0;
 
 	double iterations = 0.0;
-	double time_dt = 0.00001; //this is the interval that the profiler will run the simulation at,
+	double time_dt = 0.0001; //this is the interval that the profiler will run the simulation at,
 	//needs to be faster for accurate integration (area calculation) since this is a reiman sum, it is in seconds
 	double interval = 0.0;
 
