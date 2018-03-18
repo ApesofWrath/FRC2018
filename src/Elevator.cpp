@@ -56,7 +56,7 @@ double position_offset_e = 0.0;
 std::vector<std::vector<double> > K_e;
 std::vector<std::vector<double> > K_down_e =
 		{ { 17.22, 0.94 }, { 25.90, 1.57 } }; //controller matrix that is calculated in the Python simulation
-std::vector<std::vector<double> > K_up_e = { { 22.11, 1.75 }, { 25.90, 1.57 } }; //controller matrix that is calculated in the Python simulation
+std::vector<std::vector<double> > K_up_e = { { 91.91, 3.11 }, { 22.11, 1.75 } }; //controller matrix that is calculated in the Python simulation
 
 std::vector<std::vector<double> > X_e = { { 0.0 }, //state matrix filled with the state of the states of the system //not used
 		{ 0.0 } };

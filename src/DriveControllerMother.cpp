@@ -247,7 +247,7 @@ DriveControllerMother::DriveControllerMother(int fl, int fr, int rl, int rr,
 	canTalonRight2->Set(ControlMode::Follower, RF);
 
 	canTalonKicker = new TalonSRX(KICKER);
-
+//TODO: try enabling in teleop
 	canTalonLeft1->ConfigPeakCurrentLimit(30, 0);
 	canTalonLeft2->ConfigPeakCurrentLimit(30, 0);
 	canTalonRight1->ConfigPeakCurrentLimit(30, 0);
