@@ -13,9 +13,9 @@ int added_scale_len = 0;
 
 std::vector<std::vector<double> > full_refs_sc(1500, std::vector<double>(6)); //initalizes each index value to 0, depends on only needing 1500 points: one every 10 ms, should only be using 300 since actually using a 50 ms time step, but we may change the time step
 
-Timer *timerPauseScale = new Timer(); //may need later
+//Timer *timerPauseScale = new Timer(); //may need later
 
-void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch, bool added_scale, bool left_added_scale) {
+void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch, bool added_scale, bool left_added_scale) { //true, false, true, true, true //direction on the switch needs to be accurate, but switch_ can be false
 
 	//FC FORWARD TO PLACE ON SCALE BACKWARDS, robot starts backwards
 
@@ -73,9 +73,8 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch, b
 		full_refs_sc.at(i).at(5) = -1.0 * ((double) sr.velocity);
 
 		if (i >= length) { //still have more in the 1500 allotted points, finished putting in the points to get to the place backwards position
-			if (switch_) {
-				//GenerateAddedSwitch(left_switch, added_scale, left_added_scale); //this function will finish off 1500 points
-				drive_controller->SetZeroingIndex(scale_traj_len);
+			if (switch_ || added_scale) {
+				GenerateAddedSwitch(left_switch, added_scale, left_added_scale); //this function will finish off 1500 points //added scale goes through switch first //true, true, true
 				break;
 			} else { //fill the rest with the last point to just stay there
 				full_refs_sc.at(i).at(0) = full_refs_sc.at(i - 1).at(0); //l - 1 will always be the last sensible value since it cascades through the vector
@@ -120,7 +119,7 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale, bool lef
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC, //always using cubic, to not go around the points so much
-			PATHFINDER_SAMPLES_FAST, 0.05, 8.0, 4.0, 100000.0, &candidate);
+			PATHFINDER_SAMPLES_FAST, 0.05, 8.0, 4.0, 100000.0, &candidate); //TODO: update time step
 
 	length = candidate.length;
 	added_switch_len = length;
@@ -164,6 +163,8 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale, bool lef
 		}
 
 	}
+
+	drive_controller->SetZeroingIndex(scale_traj_len);
 
 	free(trajectory); //need to free malloc'd elements
 	free(leftTrajectory);
@@ -242,10 +243,12 @@ void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spl
 	free(leftTrajectory);
 	free(rightTrajectory);
 
+	drive_controller->SetZeroingIndex(scale_traj_len + added_switch_len);
+
 }
 
 //USED FOR BOTH SCALE AND SCALE/SWITCH
-void ScaleSide::RunStateMachine(bool *place_scale_backwards, bool *place_switch,
+void ScaleSide::RunStateMachineScaleSwitch(bool *place_scale_backwards, bool *place_switch,
 		bool *get_cube_ground) {
 
 //no other state machine booleans needed, all other ones will stay false
@@ -270,3 +273,26 @@ void ScaleSide::RunStateMachine(bool *place_scale_backwards, bool *place_switch,
 
 }
 
+void ScaleSide::RunStateMachineScaleScale(bool *place_scale_backwards,
+		bool *get_cube_ground) {
+
+//no other state machine booleans needed, all other ones will stay false
+
+	if (drive_controller->GetDriveIndex() >= scale_traj_len) { //robot is at position to place scale backwards
+		if (!StartedShoot()) { //still need to change this to be reusable
+			*place_scale_backwards = true; //needs to go back to being false
+		} else {
+			*place_scale_backwards = false;
+		}
+		if (intake_->ReleasedCube()) {
+			*get_cube_ground = true;
+		}
+
+		if (drive_controller->GetDriveIndex()
+				>= (scale_traj_len + added_switch_len + added_scale_len)
+				&& added_switch_len > 0) { //if at end of profile, and added profile exists
+			place_scale_backwards = true;
+		}
+	}
+
+}

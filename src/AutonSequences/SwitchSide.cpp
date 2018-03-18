@@ -12,7 +12,7 @@ int forward_switch_len = 0;
 
 std::vector<std::vector<double> > full_refs_sw_s(1500, std::vector<double>(6)); //initalizes each index value to 0
 
-Timer *timerPause = new Timer();
+//Timer *timerPause = new Timer();
 
 void SwitchSide::GenerateSwitchSide(bool left) { //left center right //left is positive for x and for angle //TODO: make center switch, side switch subclasses
 

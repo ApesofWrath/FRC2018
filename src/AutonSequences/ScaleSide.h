@@ -26,7 +26,8 @@ public:
 	void GenerateAddedScale(bool left);
 
 	//TODO: 2-scale state machine function
-	void RunStateMachine(bool *place_scale_backwards, bool *place_switch, bool *get_cube_ground);
+	void RunStateMachineScaleSwitch(bool *place_scale_backwards, bool *place_switch, bool *get_cube_ground);
+	void RunStateMachineScaleScale(bool *place_scale_backwards, bool *get_cube_ground);
 
 	int length;
 
