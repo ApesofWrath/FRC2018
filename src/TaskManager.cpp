@@ -107,7 +107,7 @@ void TaskManager::ThreadWrapper(TaskManager *task_manager,
 
 		}
 
-		double wait_time = 0.02 - threadTimer->Get();
+		double wait_time = 0.02 - threadTimer->Get(); //time step also needs to be changed in the motion profiler parameter
 
 		wait_time *= 1000000;
 		if (wait_time < 0) {

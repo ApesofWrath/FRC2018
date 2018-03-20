@@ -141,6 +141,7 @@ public:
 	bool switchState, scaleState, switchSideState;
 
 	std::string autoSelected;
+
 	std::string positionSelected;
 
 	int state_test = 0;
@@ -150,8 +151,8 @@ public:
 
 	void RobotInit() {
 
-		elevator_profiler_ = new ElevatorMotionProfiler(1.15, 2.0, 0.02); //max vel, max accel, timestep //1.6, 10
-		intake_profiler_ = new IntakeMotionProfiler(1.5, 4.0, 0.02);
+		elevator_profiler_ = new ElevatorMotionProfiler(1.15, 5.0, 0.02); //max vel, max accel, timestep //1.6, 10
+		intake_profiler_ = new IntakeMotionProfiler(2.0, 10.0, 0.02);
 
 		compressor_ = new Compressor(3);
 		pdp_ = new PowerDistributionPanel(3);

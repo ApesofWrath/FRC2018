@@ -16,7 +16,7 @@
 #if CORNELIUS
 double ff_percent = 0.4;
 #else
-double ff_percent = 0.0;
+double ff_percent = 0.32;
 #endif
 
 const int INIT_STATE_E = 0;
@@ -35,10 +35,10 @@ const double PULLEY_DIAMETER = 0.0381; //radius of the pulley in meters
 const double MAX_VOLTAGE_E = 12.0; //CANNOT EXCEED abs(12)  //4.0
 const double MIN_VOLTAGE_E = -10.0;
 
-const double friction_loss = 0.707; //checked with graph. ff matches ref vel
+const double friction_loss = 0.75; //checked with graph. ff matches ref vel
 
 const double MAX_THEORETICAL_VELOCITY_E = (free_speed_e / G_e) / 60.0
-		* PULLEY_DIAMETER * PI * friction_loss; //m/s
+		* PULLEY_DIAMETER * PI * friction_loss; //m/s //1.87 //1.32
 const double Kv_e = 1 / MAX_THEORETICAL_VELOCITY_E;
 
 const int ELEVATOR_SLEEP_TIME = 0;
@@ -56,7 +56,7 @@ double position_offset_e = 0.0;
 std::vector<std::vector<double> > K_e;
 std::vector<std::vector<double> > K_down_e =
 		{ { 17.22, 0.94 }, { 25.90, 1.57 } }; //controller matrix that is calculated in the Python simulation
-std::vector<std::vector<double> > K_up_e = { { 40.65, 1.90 }, { 22.11, 1.75 } }; //controller matrix that is calculated in the Python simulation
+std::vector<std::vector<double> > K_up_e = { { 25.89, 4.12 }, { 22.11, 1.75 } }; //controller matrix that is calculated in the Python simulation
 
 std::vector<std::vector<double> > X_e = { { 0.0 }, //state matrix filled with the state of the states of the system //not used
 		{ 0.0 } };
@@ -153,7 +153,7 @@ void Elevator::Move() {
 			ff = 0.0;
 			offset = 1.0; //dampen
 		} else {
-			offset = 0.0;
+			offset = 1.0;
 			K_e = K_up_e;
 
 			ff = (Kv_e * goal_vel_e * v_bat_e) * ff_percent;
