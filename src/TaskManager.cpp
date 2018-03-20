@@ -64,15 +64,8 @@ void TaskManager::ThreadWrapper(TaskManager *task_manager,
 
 		if (frc::RobotState::IsEnabled() && frc::RobotState::IsAutonomous()) {
 
-			if (intake_t->intake_arm_state != intake_t->STOP_ARM_STATE_H
-					&& intake_t->intake_arm_state != intake_t->INIT_STATE_H) {
-				intake_t->Rotate();
-			}
-
-			if (elevator_t->elevator_state != elevator_t->STOP_STATE_E_H
-					&& elevator_t->elevator_state != elevator_t->INIT_STATE_E_H) {
-				elevator_t->Move();
-			}
+			intake_t->Rotate();
+			elevator_t->Move();
 
 			drive_controller->RunAutonDrive();
 
@@ -93,15 +86,8 @@ void TaskManager::ThreadWrapper(TaskManager *task_manager,
 		} else if (frc::RobotState::IsEnabled()
 				&& frc::RobotState::IsOperatorControl()) {
 
-			if (intake_t->intake_arm_state != intake_t->STOP_ARM_STATE_H
-					&& intake_t->intake_arm_state != intake_t->INIT_STATE_H) {
-				intake_t->Rotate();
-			}
-
-			if (elevator_t->elevator_state != elevator_t->STOP_STATE_E_H
-					&& elevator_t->elevator_state != elevator_t->INIT_STATE_E_H) {
-				elevator_t->Move();
-			}
+			intake_t->Rotate();
+			elevator_t->Move();
 
 			drive_controller->TeleopWCDrive(JoyThrottle, JoyWheel); //0.01
 
@@ -123,12 +109,12 @@ void TaskManager::ThreadWrapper(TaskManager *task_manager,
 
 		double wait_time = 0.02 - threadTimer->Get();
 
-		wait_time *= 1000;
+		wait_time *= 1000000;
 		if (wait_time < 0) {
 			wait_time = 0;
 		}
 
-		std::this_thread::sleep_for(std::chrono::milliseconds((int) wait_time));
+		std::this_thread::sleep_for(std::chrono::microseconds((int) wait_time));
 
 		SmartDashboard::PutNumber("TIME", threadTimer->Get());
 

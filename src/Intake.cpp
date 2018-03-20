@@ -227,43 +227,47 @@ void Intake::Rotate() { //a vector of a pos vector and a vel vector
 
 	//top is position, bottom is velocity
 
-	std::vector<std::vector<double> > ref_intake =
-			intake_profiler->GetNextRefIntake();
+	if (intake_arm_state != STOP_ARM_STATE_H
+			&& intake_arm_state != INIT_STATE_H) {
 
-	double current_pos = GetAngularPosition();
-	double current_vel = GetAngularVelocity();
+		std::vector<std::vector<double> > ref_intake =
+				intake_profiler->GetNextRefIntake();
 
-	SmartDashboard::PutNumber("IntakeActualVel", current_vel);
-	SmartDashboard::PutNumber("IntakeActualPos", current_pos);
+		double current_pos = GetAngularPosition();
+		double current_vel = GetAngularVelocity();
 
-	double goal_pos = ref_intake[0][0];
-	double goal_vel = ref_intake[1][0];
+		SmartDashboard::PutNumber("IntakeActualVel", current_vel);
+		SmartDashboard::PutNumber("IntakeActualPos", current_pos);
 
-	SmartDashboard::PutNumber("IntakeGoalVel", goal_vel);
-	SmartDashboard::PutNumber("IntakeGoalPos", goal_pos);
+		double goal_pos = ref_intake[0][0];
+		double goal_vel = ref_intake[1][0];
 
-	error_i[0][0] = goal_pos - current_pos;
-	error_i[1][0] = goal_vel - current_vel;
+		SmartDashboard::PutNumber("IntakeGoalVel", goal_vel);
+		SmartDashboard::PutNumber("IntakeGoalPos", goal_pos);
 
-	v_bat_i = 12.0;
+		error_i[0][0] = goal_pos - current_pos;
+		error_i[1][0] = goal_vel - current_vel;
 
-	if (intake_profiler->GetFinalGoalIntake()
-			< intake_profiler->GetInitPosIntake()) {
-		K_i = K_down_i;
-	} else {
-		K_i = K_up_i;
-	}
+		v_bat_i = 12.0;
+
+		if (intake_profiler->GetFinalGoalIntake()
+				< intake_profiler->GetInitPosIntake()) {
+			K_i = K_down_i;
+		} else {
+			K_i = K_up_i;
+		}
 
 //	if (IsAtBottomIntake() && std::abs(error_i[0][0]) > 0.4) { //shaking
 //		intake_arm_state = DOWN_STATE;
 //	}
 
-	double offset = 1.3 * cos(current_pos); //counter gravity
+		double offset = 1.3 * cos(current_pos); //counter gravity
 
-	u_i = (K_i[0][0] * error_i[0][0]) + (K_i[0][1] * error_i[1][0])
-			+ (Kv_i * goal_vel * v_bat_i) * ff_percent_i + offset; // for this system the second row of the K matrix is a copy and does not matter.
+		u_i = (K_i[0][0] * error_i[0][0]) + (K_i[0][1] * error_i[1][0])
+				+ (Kv_i * goal_vel * v_bat_i) * ff_percent_i + offset; // for this system the second row of the K matrix is a copy and does not matter.
 
-	SetVoltageIntake(u_i);
+		SetVoltageIntake(u_i);
+	}
 
 }
 
@@ -275,14 +279,13 @@ void Intake::SetVoltageIntake(double voltage_i) {
 
 	//top soft limits
 	if (elevator_i->GetElevatorPosition() < elevator_safety_position) {
-		if (ang_pos >= (1.6) && voltage_i > 0.0
-				&& is_init_intake) { //at max height and still trying to move up //there is no upper soft limit when initializing
+		if (ang_pos >= (1.6) && voltage_i > 0.0 && is_init_intake) { //at max height and still trying to move up //there is no upper soft limit when initializing
 			voltage_i = 0.0;
 			SmartDashboard::PutString("INTAKE SAFETY", "top soft limit");
 		}
 	} else {
-		if (ang_pos >= (INTAKE_BACKWARDS_SOFT_LIMIT)
-				&& voltage_i > 0.0 && is_init_intake) { //at max height and still trying to move up //no upper soft limit when initializing
+		if (ang_pos >= (INTAKE_BACKWARDS_SOFT_LIMIT) && voltage_i > 0.0
+				&& is_init_intake) { //at max height and still trying to move up //no upper soft limit when initializing
 			voltage_i = 0.0;
 			SmartDashboard::PutString("INTAKE SAFETY", "top soft limit");
 		}
@@ -410,67 +413,67 @@ void Intake::IntakeArmStateMachine() {
 
 	switch (intake_arm_state) {
 
-case INIT_STATE:
-	SmartDashboard::PutString("IA", "INIT");
-	if (is_init_intake) {
-		intake_arm_state = UP_STATE; //PUT BACK IN
-	} else {
-		InitializeIntake();
-	}
-	last_intake_state = INIT_STATE;
-	break;
+	case INIT_STATE:
+		SmartDashboard::PutString("IA", "INIT");
+		if (is_init_intake) {
+			intake_arm_state = UP_STATE; //PUT BACK IN
+		} else {
+			InitializeIntake();
+		}
+		last_intake_state = INIT_STATE;
+		break;
 
-case UP_STATE:
-	SmartDashboard::PutString("IA", "UP");
-	//	SmartDashboard::PutString("actually in up state", "yep");
-	if (last_intake_state != UP_STATE) { //first time in state
-		intake_profiler->SetFinalGoalIntake(UP_ANGLE); //is 0.0 for testing
-		intake_profiler->SetInitPosIntake(GetAngularPosition()); //is 0
-	}
-	last_intake_state = UP_STATE;
-	break;
+	case UP_STATE:
+		SmartDashboard::PutString("IA", "UP");
+		//	SmartDashboard::PutString("actually in up state", "yep");
+		if (last_intake_state != UP_STATE) { //first time in state
+			intake_profiler->SetFinalGoalIntake(UP_ANGLE); //is 0.0 for testing
+			intake_profiler->SetInitPosIntake(GetAngularPosition()); //is 0
+		}
+		last_intake_state = UP_STATE;
+		break;
 
-case MID_STATE:
-	SmartDashboard::PutString("IA", "MID");
-	if (last_intake_state != MID_STATE) {
-		intake_profiler->SetFinalGoalIntake(MID_ANGLE);
-		intake_profiler->SetInitPosIntake(GetAngularPosition());
-	}
-	last_intake_state = MID_STATE;
-	break;
+	case MID_STATE:
+		SmartDashboard::PutString("IA", "MID");
+		if (last_intake_state != MID_STATE) {
+			intake_profiler->SetFinalGoalIntake(MID_ANGLE);
+			intake_profiler->SetInitPosIntake(GetAngularPosition());
+		}
+		last_intake_state = MID_STATE;
+		break;
 
-case DOWN_STATE:
-	SmartDashboard::PutString("IA", "DOWN");
-	if (last_intake_state != DOWN_STATE) {
-		intake_profiler->SetFinalGoalIntake(DOWN_ANGLE);
-		intake_profiler->SetInitPosIntake(GetAngularPosition());
-	}
-	last_intake_state = DOWN_STATE;
-	break;
+	case DOWN_STATE:
+		SmartDashboard::PutString("IA", "DOWN");
+		if (last_intake_state != DOWN_STATE) {
+			intake_profiler->SetFinalGoalIntake(DOWN_ANGLE);
+			intake_profiler->SetInitPosIntake(GetAngularPosition());
+		}
+		last_intake_state = DOWN_STATE;
+		break;
 
-case STOP_ARM_STATE: //for emergencies
-	SmartDashboard::PutString("IA", "STOP");
-	StopArm();
-	last_intake_state = STOP_ARM_STATE;
-	break;
+	case STOP_ARM_STATE: //for emergencies
+		SmartDashboard::PutString("IA", "STOP");
+		StopArm();
+		last_intake_state = STOP_ARM_STATE;
+		break;
 
-case SWITCH_STATE: //these last two were in wrong order
-	SmartDashboard::PutString("IA", "SWITCH");
-	if (last_intake_state != SWITCH_STATE) {
-		intake_profiler->SetFinalGoalIntake(SWITCH_ANGLE);
-		intake_profiler->SetInitPosIntake(GetAngularPosition());
-	}
-	last_intake_state = SWITCH_STATE;
-	break;
+	case SWITCH_STATE: //these last two were in wrong order
+		SmartDashboard::PutString("IA", "SWITCH");
+		if (last_intake_state != SWITCH_STATE) {
+			intake_profiler->SetFinalGoalIntake(SWITCH_ANGLE);
+			intake_profiler->SetInitPosIntake(GetAngularPosition());
+		}
+		last_intake_state = SWITCH_STATE;
+		break;
 
-case SWITCH_BACK_SHOT_STATE:
-	SmartDashboard::PutString("IA", "DOWN");
-	if (last_intake_state != SWITCH_BACK_SHOT_STATE) {
-		intake_profiler->SetFinalGoalIntake(BACK_SHOT_ANGLE);
-		intake_profiler->SetInitPosIntake(GetAngularPosition());
-	}
-	last_intake_state = SWITCH_BACK_SHOT_STATE;
-	break;
+	case SWITCH_BACK_SHOT_STATE:
+		SmartDashboard::PutString("IA", "DOWN");
+		if (last_intake_state != SWITCH_BACK_SHOT_STATE) {
+			intake_profiler->SetFinalGoalIntake(BACK_SHOT_ANGLE);
+			intake_profiler->SetInitPosIntake(GetAngularPosition());
+		}
+		last_intake_state = SWITCH_BACK_SHOT_STATE;
+		break;
 	}
 
 	//last_intake_state = intake_arm_state; //move this into individual states if profile not switching

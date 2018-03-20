@@ -125,43 +125,47 @@ void Elevator::StopElevator() {
 
 void Elevator::Move() {
 
-	std::vector<std::vector<double> > ref_elevator =
-			elevator_profiler->GetNextRefElevator();
+	if (elevator_state != STOP_STATE_E_H && elevator_state != INIT_STATE_E_H) {
 
-	double current_pos_e = GetElevatorPosition();
-	double current_vel_e = GetElevatorVelocity();
+		std::vector<std::vector<double> > ref_elevator =
+				elevator_profiler->GetNextRefElevator();
 
-	SmartDashboard::PutNumber("Actual Vel", current_vel_e);
-	SmartDashboard::PutNumber("Actual Pos", current_pos_e);
+		double current_pos_e = GetElevatorPosition();
+		double current_vel_e = GetElevatorVelocity();
 
-	double goal_pos = ref_elevator[0][0];
-	goal_vel_e = ref_elevator[1][0];
+		SmartDashboard::PutNumber("Actual Vel", current_vel_e);
+		SmartDashboard::PutNumber("Actual Pos", current_pos_e);
 
-	SmartDashboard::PutNumber("Goal Vel", goal_vel_e);
-	SmartDashboard::PutNumber("Goal Pos", goal_pos);
+		double goal_pos = ref_elevator[0][0];
+		goal_vel_e = ref_elevator[1][0];
 
-	error_e[0][0] = goal_pos - current_pos_e;
-	error_e[1][0] = goal_vel_e - current_vel_e;
+		SmartDashboard::PutNumber("Goal Vel", goal_vel_e);
+		SmartDashboard::PutNumber("Goal Pos", goal_pos);
 
-	v_bat_e = 12.0;
+		error_e[0][0] = goal_pos - current_pos_e;
+		error_e[1][0] = goal_vel_e - current_vel_e;
 
-	if (elevator_profiler->GetFinalGoalElevator()
-			< elevator_profiler->GetInitPosElevator()) { //can't be the next goal in case we get ahead of the profiler
-		K_e = K_down_e;
-		ff = 0.0;
-		offset = 1.0; //dampen
-	} else {
-		offset = 0.0;
-		K_e = K_up_e;
+		v_bat_e = 12.0;
 
-		ff = (Kv_e * goal_vel_e * v_bat_e) * ff_percent;
+		if (elevator_profiler->GetFinalGoalElevator()
+				< elevator_profiler->GetInitPosElevator()) { //can't be the next goal in case we get ahead of the profiler
+			K_e = K_down_e;
+			ff = 0.0;
+			offset = 1.0; //dampen
+		} else {
+			offset = 0.0;
+			K_e = K_up_e;
+
+			ff = (Kv_e * goal_vel_e * v_bat_e) * ff_percent;
+
+		}
+
+		u_e = (K_e[0][0] * error_e[0][0]) + (K_e[0][1] * error_e[1][0]);
+
+		u_e += ff + offset;
+		SetVoltageElevator(u_e);
 
 	}
-
-	u_e = (K_e[0][0] * error_e[0][0]) + (K_e[0][1] * error_e[1][0]);
-
-	u_e += ff + offset;
-	SetVoltageElevator(u_e);
 
 }
 
@@ -300,8 +304,8 @@ void Elevator::ManualElevator(Joystick *joyOpElev) {
 
 void Elevator::ElevatorStateMachine() {
 
-	SmartDashboard::PutNumber("EC1", talonElevator1->GetOutputCurrent());
-	SmartDashboard::PutNumber("EC2", talonElevator2->GetOutputCurrent());
+//	SmartDashboard::PutNumber("EC1", talonElevator1->GetOutputCurrent());
+//	SmartDashboard::PutNumber("EC2", talonElevator2->GetOutputCurrent());
 
 	switch (elevator_state) {
 
