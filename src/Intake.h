@@ -51,7 +51,7 @@ public:
 	const int SLOW_SCALE_STATE_H = 4;
 	int intake_wheel_state = STOP_WHEEL_STATE_H;
 
-	const double DOWN_ANGLE = 0.02; //instead of changing the offset
+	const double DOWN_ANGLE = 0.0; //instead of changing the offset
 	const double MID_ANGLE = 0.55;
 	const double SWITCH_ANGLE = 0.8; //not used
 	const double UP_ANGLE = 1.30; //starting pos -> also the shooting position

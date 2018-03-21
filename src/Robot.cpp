@@ -132,7 +132,7 @@ public:
 	const std::string driveForward = "Drive Forward";
 	const std::string cubeSwitch = "Switch";
 	const std::string cubeScale = "Scale";
-	const std::string scaleSwit = "Scale & Switch";
+	const std::string scaleSwit = "Scale & Switch"; //TODO: add a do nothing
 
 	const std::string center = "Center";
 	const std::string left = "Left";
@@ -140,7 +140,7 @@ public:
 
 	bool leftSwitch, leftScale;
 
-	bool switchState, scaleState, switchSideState;
+	bool switchState, scaleScaleState, scaleSwitchState, scaleOnlyState, switchSideState;
 
 	std::string autoSelected;
 
@@ -262,13 +262,13 @@ public:
 			if (positionSelected == left && leftSwitch) {
 				switch_side = new SwitchSide(drive_controller, elevator_,
 						intake_);
-				switch_side->GenerateSwitchSide(leftSwitch);
+				switch_side->GenerateSwitchSide(leftSwitch, false);
 				switchState = true;
 
 			} else if (positionSelected == right && !leftSwitch) {
 				switch_side = new SwitchSide(drive_controller, elevator_,
 						intake_);
-				switch_side->GenerateSwitchSide(leftSwitch); //leftswitch is false
+				switch_side->GenerateSwitchSide(leftSwitch, false); //leftswitch is false
 				switchState = true;
 
 			} else if (positionSelected == center) {
@@ -287,11 +287,11 @@ public:
 
 			if (positionSelected == left && leftScale) {
 				scale_side->GenerateScale(true, false, false, false, false);
-				scaleState = true;
+				scaleOnlyState = true;
 
 			} else if (positionSelected == right && !leftScale) {
 				scale_side->GenerateScale(false, false, false, false, false);
-				scaleState = true;
+				scaleOnlyState = true;
 
 			} else if ((positionSelected == center)
 					|| (positionSelected == right && leftScale)
@@ -302,7 +302,7 @@ public:
 			}
 		}
 
-		//Scale and switch ----
+		//Scale and switch - Switch only or Scale only - Drive Forward
 		else if (autoSelected == scaleSwit) { //if only scale is on our side, will do scale only, likewise switch
 
 			scale_side = new ScaleSide(drive_controller, elevator_, intake_);
@@ -310,12 +310,12 @@ public:
 			if (positionSelected == left) {
 				if (leftScale && leftSwitch) { //scale and switch
 					scale_side->GenerateScale(true, true, true, false, false);
-					scaleState = true; //scale state machine works for both scale and scale+switch
+					scaleSwitchState = true; //scale state machine works for both scale and scale+switch
 				} else if (leftScale && !leftSwitch) { //only scale
-			//		scale_->GenerateScale(true, false, false);
-					scaleState = true;
+					scale_side->GenerateScale(true, false, false, false, false);
+					scaleSwitchState = true;
 				} else if (!leftScale && leftSwitch) {
-					switch_side->GenerateSwitchSide(true);
+					switch_side->GenerateSwitchSide(true, false);
 					switchSideState = true;
 				} else {
 					drive_forward = new DriveForward(drive_controller,
@@ -325,13 +325,13 @@ public:
 
 			} else if (positionSelected == right) {
 				if (!leftScale && !leftSwitch) {
-			//		scale_->GenerateScale(false, true, false);
-					scaleState = true;
-				} else if (!leftScale && leftSwitch) {
-				//	scale_->GenerateScale(false, false, false);
-					scaleState = true;
+					scale_side->GenerateScale(false, true, false, false, false);
+					scaleSwitchState = true;
+				} else if (!leftScale && leftSwitch) { //have the scale
+					scale_side->GenerateScale(false, true, false, false, false);
+					scaleSwitchState = true;
 				} else if (leftScale && !leftSwitch) {
-					switch_side->GenerateSwitchSide(false);
+					switch_side->GenerateSwitchSide(false, false);
 					switchSideState = true;
 				} else {
 					drive_forward = new DriveForward(drive_controller,
@@ -363,13 +363,14 @@ public:
 
 		//drive thread, auton state machine thread
 
-		if (scaleState) {
-		//	scale_->RunStateMachine(&raise_to_scale_backwards, &raise_to_switch, //raise to switch
-		//			&get_cube_ground); //works for both scale only and scale+switch
-//			scale_->RunStateMachineTwoScale(&raise_to_scale_backwards, //raise to switch
-//					&get_cube_ground); //works for both scale only and scale+switch
+		if (scaleOnlyState || scaleSwitchState) {
+			scale_side->RunStateMachineScaleSwitch(&raise_to_scale_backwards, &raise_to_switch, //raise to switch
+					&get_cube_ground); //works for both scale only and scale+switch
+		} else if (scaleScaleState) {
+			scale_side->RunStateMachineScaleScale(&raise_to_scale_backwards, //raise to switch
+							&get_cube_ground); //works for both scale only and scale+switch
 		} else if (switchState) {
-		//	switch_->RunStateMachine(&raise_to_switch);
+			switch_center->RunStateMachine(&raise_to_switch);
 		} else if (switchSideState) {
 			switch_side->RunStateMachineSide(&raise_to_switch);
 		}

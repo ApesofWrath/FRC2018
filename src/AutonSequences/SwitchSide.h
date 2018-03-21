@@ -17,11 +17,13 @@ public:
 
 	}
 
-	void GenerateSwitchSide(bool left);
+	void GenerateSwitchSide(bool left, bool added_switch);
 
 	void RunStateMachineSide(bool *place_switch);
 
-	void ForwardSwitch(bool left);
+	void ForwardSwitch(bool left, bool added_switch);
+
+	void GetAddedSwitch(bool left);
 
 	int length;
 

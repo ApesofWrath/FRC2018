@@ -425,6 +425,9 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 			VelocityMeasPeriod::Period_10Ms, 0);
 	canTalonRight4->ConfigVelocityMeasurementWindow(5, 0);
 
+	canTalonLeft1->SetControlFramePeriod(ControlFrame::Control_3_General, 5); //set talons every 5ms, default is 10
+	canTalonRight1->SetStatusFramePeriod(StatusFrameEnhanced::Status_2_Feedback0, 10, 0); //for getselectedsensor //getselectedsensor defaults to 10ms anyway. don't use getsensorcollection because that defaults to 160ms
+
 	ahrs = new AHRS(SerialPort::kUSB);
 #ifndef CORNELIUS
 	solenoid = new DoubleSolenoid(3, 1, 0); //101

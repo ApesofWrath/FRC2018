@@ -39,7 +39,7 @@ void SwitchCenter::GenerateSwitch(bool left) { //left center right //left is pos
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.05, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk
+	PATHFINDER_SAMPLES_FAST, time_step, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk
 
 	length = candidate.length;
 	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));

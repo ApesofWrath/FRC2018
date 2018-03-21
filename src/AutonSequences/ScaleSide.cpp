@@ -43,7 +43,7 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch, b
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.05, 12.0, 6.0, 100000.0, &candidate); //had to be slowed down
+	PATHFINDER_SAMPLES_FAST, time_step, 12.0, 6.0, 100000.0, &candidate); //had to be slowed down
 
 	length = candidate.length;
 	scale_traj_len = length;
@@ -119,7 +119,7 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale, bool lef
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC, //always using cubic, to not go around the points so much
-			PATHFINDER_SAMPLES_FAST, 0.05, 8.0, 4.0, 100000.0, &candidate); //TODO: update time step
+			PATHFINDER_SAMPLES_FAST, time_step, 8.0, 4.0, 100000.0, &candidate); //TODO: update time step
 
 	length = candidate.length;
 	added_switch_len = length;
@@ -172,8 +172,6 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale, bool lef
 
 }
 
-//TODO: may need to rename the new waypoints
-//TODO: reuse addedswitch code for placing on scale backwards again
 void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spline interpolation does not carry over and new waypoints do not change old trajectory
 
 	//GO BACK TO PLACE SCALE BACKWARDS POSITION
@@ -199,7 +197,7 @@ void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spl
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC, //always using cubic, to not go around the points so much
-			PATHFINDER_SAMPLES_FAST, 0.05, 8.0, 4.0, 100000.0, &candidate);
+			PATHFINDER_SAMPLES_FAST, time_step, 8.0, 4.0, 100000.0, &candidate);
 
 	length = candidate.length;
 	added_scale_len = length;

@@ -17,9 +17,10 @@
 double ff_percent_i = 0.6;
 double offset_angle = 1.65;
 double SLOW_SPEED = 0.25;
+//down angle 0.02
 #else
-double ff_percent_i = 0.2;
-double offset_angle = 1.75; //1.5; with the new flippy back arm
+double ff_percent_i = 0.6;
+double offset_angle = 1.60; //raising this will make the arm positions be higher
 double SLOW_SPEED = 0.4;
 #endif
 
@@ -49,11 +50,6 @@ const double MAX_THEORETICAL_VELOCITY_I = ((free_speed_i / G_i))
 		* ((2.0 * PI) / 60.0) * 1.05; //rad/s
 const double Kv_i = 1 / MAX_THEORETICAL_VELOCITY_I;
 
-//For motion profiler
-//const double MAX_VELOCITY_I = 2.0; //1
-//const double MAX_ACCELERATION_I = 6.0; //2.5;
-//const double TIME_STEP_I = 0.01; //sec
-
 const double MAX_INTAKE_CURRENT = 14.0;
 const double OUTTAKE_INTAKE_CURRENT = 20.0;
 
@@ -71,7 +67,7 @@ double u_i = 0; //this is the input in volts to the motor
 double v_bat_i = 0.0; //will be set to pdp's voltage
 
 std::vector<std::vector<double> > K_i;
-std::vector<std::vector<double> > K_down_i = { { 10.32, 0.063 }, //controller matrix that is calculated in the Python simulation, pos and vel  10.32, 0.063
+std::vector<std::vector<double> > K_down_i = { { 15.00, 1.00 }, //controller matrix that is calculated in the Python simulation, pos and vel  10.32, 0.063
 		{ 10.32, 0.063 } };
 std::vector<std::vector<double> > K_up_i = { { 15.00, 1.00 }, //controller matrix that is calculated in the Python simulation, pos and vel 16.75, 0.12
 		{ 16.75, 0.12 } };
@@ -139,6 +135,10 @@ Intake::Intake(PowerDistributionPanel *pdp,
 	talonIntakeArm->ConfigVelocityMeasurementPeriod(
 			VelocityMeasPeriod::Period_10Ms, 0);
 	talonIntakeArm->ConfigVelocityMeasurementWindow(5, 0);
+
+	talonIntakeArm->SetControlFramePeriod(ControlFrame::Control_3_General, 5);
+
+	talonIntakeArm->SetStatusFramePeriod(StatusFrameEnhanced::Status_2_Feedback0, 10, 0);
 
 	pdp_i = pdp;
 
@@ -347,7 +347,7 @@ double Intake::GetAngularVelocity() {
 	//Native vel units are in ticks per 100ms so divide by TICKS_PER_ROT to get rotations per 100ms then multiply 10 to get per second
 	//multiply by 2pi to get into radians per second (2pi radians are in one revolution)
 	double ang_vel =
-			(talonIntakeArm->GetSensorCollection().GetQuadratureVelocity()
+			(talonIntakeArm->GetSelectedSensorVelocity(0)
 					/ (TICKS_PER_ROT_I)) * (2.0 * PI) * (10.0) * -1.0;
 	//double ang_vel = 0.0;
 
@@ -361,7 +361,7 @@ double Intake::GetAngularPosition() {
 	//2pi radians per rotations
 	double ang_pos =
 
-	((talonIntakeArm->GetSensorCollection().GetQuadraturePosition()
+	((talonIntakeArm->GetSelectedSensorPosition(0)
 			- position_offset)	//position offset
 	/ (TICKS_PER_ROT_I)) * (2.0 * PI) * -1.0;
 	//double ang_pos = 0.0;
@@ -605,7 +605,7 @@ bool Intake::ReleasedCube() {
 void Intake::SetZeroOffset() {
 
 	position_offset =
-			(talonIntakeArm->GetSensorCollection().GetQuadraturePosition());
+			(talonIntakeArm->GetSelectedSensorPosition(0));
 }
 
 bool Intake::ZeroEnc() { //called in Initialize() and in SetVoltage()

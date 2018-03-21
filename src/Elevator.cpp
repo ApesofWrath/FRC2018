@@ -9,15 +9,15 @@
 #include "ctre/Phoenix.h"
 #include <WPILib.h>
 
-#define PI 3.14159265
-
 #define CORNELIUS 0
 
 #if CORNELIUS
-double ff_percent = 0.4;
+double ff_percent_e = 0.4;
 #else
-double ff_percent = 0.32;
+double ff_percent_e = 0.75;
 #endif
+
+#define PI 3.14159265
 
 const int INIT_STATE_E = 0;
 const int DOWN_STATE_E = 1;
@@ -55,8 +55,8 @@ double position_offset_e = 0.0;
 
 std::vector<std::vector<double> > K_e;
 std::vector<std::vector<double> > K_down_e =
-		{ { 17.22, 0.94 }, { 25.90, 1.57 } }; //controller matrix that is calculated in the Python simulation
-std::vector<std::vector<double> > K_up_e = { { 25.89, 4.12 }, { 22.11, 1.75 } }; //controller matrix that is calculated in the Python simulation
+		{ {  27.89, 4.12 }, { 25.90, 1.57 } }; //controller matrix that is calculated in the Python simulation 17.22, 0.94
+std::vector<std::vector<double> > K_up_e = { { 27.89, 4.12 }, { 22.11, 1.75 } }; //controller matrix that is calculated in the Python simulation
 
 std::vector<std::vector<double> > X_e = { { 0.0 }, //state matrix filled with the state of the states of the system //not used
 		{ 0.0 } };
@@ -102,7 +102,10 @@ Elevator::Elevator(PowerDistributionPanel *pdp,
 
 	talonElevator1->ConfigVelocityMeasurementPeriod(
 			VelocityMeasPeriod::Period_10Ms, 0);
-	talonElevator1->ConfigVelocityMeasurementWindow(5, 0);
+	talonElevator1->ConfigVelocityMeasurementWindow(5, 0); //5 samples for every talon return
+
+	talonElevator1->SetControlFramePeriod(ControlFrame::Control_3_General, 5); //set talons every 5ms, default is 10
+	talonElevator1->SetStatusFramePeriod(StatusFrameEnhanced::Status_2_Feedback0, 10, 0); //for getselectedsensor //getselectedsensor defaults to 10ms anyway. don't use getsensorcollection because that defaults to 160ms
 
 	pdp_e = pdp;
 
@@ -150,13 +153,13 @@ void Elevator::Move() {
 		if (elevator_profiler->GetFinalGoalElevator()
 				< elevator_profiler->GetInitPosElevator()) { //can't be the next goal in case we get ahead of the profiler
 			K_e = K_down_e;
-			ff = 0.0;
+			ff = (Kv_e * goal_vel_e * v_bat_e) * 0.55;
 			offset = 1.0; //dampen
 		} else {
 			offset = 1.0;
 			K_e = K_up_e;
 
-			ff = (Kv_e * goal_vel_e * v_bat_e) * ff_percent;
+			ff = (Kv_e * goal_vel_e * v_bat_e) * ff_percent_e;
 
 		}
 
@@ -250,7 +253,7 @@ double Elevator::GetElevatorPosition() {
 	//radians
 
 	int elev_pos =
-			talonElevator1->GetSensorCollection().GetQuadraturePosition();
+			talonElevator1->GetSelectedSensorPosition(0);
 
 	double elevator_pos = ((elev_pos - position_offset_e) / TICKS_PER_ROT_E) //position offset to zero
 	* (PI * PULLEY_DIAMETER) * -1.0;
@@ -264,7 +267,7 @@ double Elevator::GetElevatorVelocity() {
 	//native units are ticks per 100 ms so we multiply the whole thing by 10 to get it into per second. Then divide by ticks per rotation to get into
 	//RPS then muliply by circumference for m/s
 	double elevator_vel =
-			(talonElevator1->GetSensorCollection().GetQuadratureVelocity()
+			(talonElevator1->GetSelectedSensorVelocity(0)
 					/ (TICKS_PER_ROT_E)) * (PULLEY_DIAMETER * PI) * (10.0)
 					* -1.0;
 	return elevator_vel;
@@ -425,7 +428,7 @@ void Elevator::EndElevatorThread() {
 void Elevator::SetZeroOffsetElevator() {
 
 	position_offset_e =
-			talonElevator1->GetSensorCollection().GetQuadraturePosition();
+			talonElevator1->GetSelectedSensorPosition(0);
 }
 
 bool Elevator::ZeroEncs() {
