@@ -5,15 +5,15 @@
  *      Author: DriversStation
  */
 
-#ifndef SRC_AUTONSEQUENCES_SWITCH_H_
-#define SRC_AUTONSEQUENCES_SWITCH_H_
+#ifndef SRC_AUTONSEQUENCES_SWITCH_CENTER_H_
+#define SRC_AUTONSEQUENCES_SWITCH_CENTER_H_
 
 #include <Autonomous.h>
 
-class Switch : public Autonomous {
+class SwitchCenter : public Autonomous {
 public:
 
-	Switch(DriveController *dc, Elevator *el, Intake *in) : Autonomous(dc, el, in) {
+	SwitchCenter(DriveController *dc, Elevator *el, Intake *in) : Autonomous(dc, el, in) {
 
 	}
 

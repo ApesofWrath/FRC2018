@@ -23,7 +23,9 @@
 class TaskManager {
 public:
 
-	TaskManager(TeleopStateMachine *tsm, AutonStateMachine *ausm, DriveController *dc, Elevator *el, Intake *in);
+	TaskManager(TeleopStateMachine *tsm, AutonStateMachine *ausm, DriveController *dc, Elevator *el, Intake *in, double thread_time);
+
+	double thread_time_step;
 
 	void StartThread(bool *wait_for_button, bool *intake_spin_in,
 			bool *intake_spin_out, bool *intake_spin_slow, bool *intake_spin_stop, bool *get_cube_ground,

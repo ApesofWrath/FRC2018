@@ -17,6 +17,8 @@
 
 bool has_started_shoot = false;
 
+//The naming convention for the auton subclasses are PLACE TO SCORE and STARTING POSITION
+
 Autonomous::Autonomous(DriveController *dc, Elevator *el, Intake *in) { //TODO: can now use inherited objects, take out middleperson functions
 
 	drive_controller = dc;

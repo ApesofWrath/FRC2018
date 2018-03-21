@@ -6,13 +6,13 @@
  */
 
 //Center Switch
-#include <AutonSequences/Switch.h>
+#include <AutonSequences/SwitchCenter.h>
 
 Timer *timerPauseSwitch = new Timer();
 
 std::vector<std::vector<double> > full_refs_sw(1500, std::vector<double>(6)); //initalizes each index value to 0
 
-void Switch::GenerateSwitch(bool left) { //left center right //left is positive for x and for angle //TODO: make center switch, side switch subclasses
+void SwitchCenter::GenerateSwitch(bool left) { //left center right //left is positive for x and for angle
 
 	//Auton thread started in auton constructor
 
@@ -39,7 +39,7 @@ void Switch::GenerateSwitch(bool left) { //left center right //left is positive 
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, time_step, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk
+	PATHFINDER_SAMPLES_FAST, 0.05, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk
 
 	length = candidate.length;
 	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));
@@ -90,7 +90,7 @@ void Switch::GenerateSwitch(bool left) { //left center right //left is positive 
 
 }
 
-void Switch::RunStateMachine(bool *place_switch) {
+void SwitchCenter::RunStateMachine(bool *place_switch) {
 
 	//no other state machine booleans needed, all other ones will stay false
 
@@ -102,4 +102,3 @@ void Switch::RunStateMachine(bool *place_switch) {
 	}
 
 }
-

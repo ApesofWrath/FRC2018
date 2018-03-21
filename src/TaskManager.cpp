@@ -18,13 +18,15 @@ Elevator *elevator_t;
 Intake *intake_t;
 
 TaskManager::TaskManager(TeleopStateMachine *tsm, AutonStateMachine *ausm,
-		DriveController *dc, Elevator *el, Intake *in) {
+		DriveController *dc, Elevator *el, Intake *in, double thread_time_dt) {
 
 	teleop_state_machine = tsm;
 	auton_state_machine = ausm;
 	drive_controller = dc;
 	elevator_t = el;
 	intake_t = in;
+
+	thread_time_step = thread_time_dt;
 
 }
 
@@ -107,7 +109,7 @@ void TaskManager::ThreadWrapper(TaskManager *task_manager,
 
 		}
 
-		double wait_time = 0.02 - threadTimer->Get(); //time step also needs to be changed in the motion profiler parameter
+		double wait_time = task_manager->thread_time_step - threadTimer->Get(); //time step also needs to be changed in the motion profiler parameter
 
 		wait_time *= 1000000;
 		if (wait_time < 0) {
