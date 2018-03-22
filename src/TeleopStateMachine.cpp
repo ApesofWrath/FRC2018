@@ -306,6 +306,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 				&& intake->GetAngularPosition() > 1.98 && state_intake_wheel
 				&& !raise_to_scale_backwards) { //shoot if the height of the elevator and the angle of the arm is good enough //hold button until ready to shoot, elevator and intake will be in position
 			intake->intake_wheel_state = intake->OUT_STATE_H;
+		//	std::cout << "intake out" << std::endl;
 			if (intake->ReleasedCube()) {
 				state = POST_INTAKE_SCALE_STATE;
 			}

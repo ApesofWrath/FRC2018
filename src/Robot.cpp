@@ -35,7 +35,7 @@
 class Robot: public frc::IterativeRobot {
 public:
 
-	double TIME_STEP = 0.02;
+	double TIME_STEP = 0.02; //finally consolidated
 
 	const int JOY_THROTTLE = 0;
 	const int JOY_WHEEL = 1;
@@ -46,7 +46,7 @@ public:
 
 #if BUTTONBOX
 
-	const int WAIT_FOR_BUTTON = 13; ///TODO: check thesse are right accrooding to regular joystick
+	const int WAIT_FOR_BUTTON = 13;
 
 	const int GET_CUBE_GROUND = 14;
 	const int GET_CUBE_STATION = 4;
@@ -156,10 +156,10 @@ public:
 		elevator_profiler_ = new ElevatorMotionProfiler(1.15, 5.0, TIME_STEP); //max vel, max accel, timestep //1.6, 10
 		intake_profiler_ = new IntakeMotionProfiler(2.0, 10.0, TIME_STEP);
 
-		compressor_ = new Compressor(3);
+		compressor_ = new Compressor(3); //commenting these out breaks the code
 		pdp_ = new PowerDistributionPanel(3);
 
-		drive_controller = new DriveController(); //inherits from mother class
+		drive_controller = new DriveController(TIME_STEP); //inherits from mother class //pass in time step here for auton subclasses
 		elevator_ = new Elevator(pdp_, elevator_profiler_);
 		intake_ = new Intake(pdp_, intake_profiler_, elevator_);
 		teleop_state_machine = new TeleopStateMachine(elevator_, intake_,
@@ -273,7 +273,8 @@ public:
 
 			} else if (positionSelected == center) {
 				switch_center = new SwitchCenter(drive_controller, elevator_, intake_);
-				switch_center->GenerateSwitch(leftSwitch);
+				std::cout << "here" << std::endl;
+				switch_center->GenerateSwitch(leftSwitch, false);
 				switchState = true;
 			} else {
 				drive_forward = new DriveForward(drive_controller, elevator_,
@@ -290,6 +291,7 @@ public:
 				scaleOnlyState = true;
 
 			} else if (positionSelected == right && !leftScale) {
+				std::cout << "here in right scale" << std::endl;
 				scale_side->GenerateScale(false, false, false, false, false);
 				scaleOnlyState = true;
 

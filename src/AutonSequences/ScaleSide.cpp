@@ -43,7 +43,7 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch, b
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, time_step, 12.0, 6.0, 100000.0, &candidate); //had to be slowed down
+	PATHFINDER_SAMPLES_FAST, 0.02, 17.0, 8.0, 100000.0, &candidate); //had to be slowed down
 
 	length = candidate.length;
 	scale_traj_len = length;
@@ -87,6 +87,8 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch, b
 		}
 	}
 
+	std::cout << "scale profile" << std::endl;
+
 	drive_controller->SetRefs(full_refs_sc);
 
 	free(trajectory);
@@ -119,7 +121,7 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale, bool lef
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC, //always using cubic, to not go around the points so much
-			PATHFINDER_SAMPLES_FAST, time_step, 8.0, 4.0, 100000.0, &candidate); //TODO: update time step
+			PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 4.0, 100000.0, &candidate); //TODO: update time step
 
 	length = candidate.length;
 	added_switch_len = length;
@@ -197,7 +199,7 @@ void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spl
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC, //always using cubic, to not go around the points so much
-			PATHFINDER_SAMPLES_FAST, time_step, 8.0, 4.0, 100000.0, &candidate);
+			PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 4.0, 100000.0, &candidate);
 
 	length = candidate.length;
 	added_scale_len = length;
@@ -251,7 +253,10 @@ void ScaleSide::RunStateMachineScaleSwitch(bool *place_scale_backwards, bool *pl
 
 //no other state machine booleans needed, all other ones will stay false
 
-	if (drive_controller->GetDriveIndex() >= scale_traj_len) { //robot is at position to place scale backwards
+	if (drive_controller->GetDriveIndex() >= (scale_traj_len - (scale_traj_len/2.0))) { //robot is at position to place scale backwards
+		if(drive_controller->GetDriveIndex() >= scale_traj_len) {
+			drive_controller->StopProfile(true);
+		}
 		if (!StartedShoot()) { //still need to change this to be reusable
 			*place_scale_backwards = true; //needs to go back to being false
 		} else {

@@ -26,6 +26,9 @@ double SLOW_SPEED = 0.4;
 
 using namespace std::chrono;
 
+int time_counter = 0;
+bool first_in_check = true;
+
 const int INIT_STATE = 0;
 const int UP_STATE = 1; //arm state machine
 const int MID_STATE = 2;
@@ -572,6 +575,19 @@ bool Intake::HaveCube() {
 
 bool Intake::ReleasedCube() {
 
+	if (first_in_check) {
+		time_counter = 0;
+	}
+
+	first_in_check = false;
+
+	time_counter++;
+
+	if (time_counter > 15 && frc::RobotState::IsAutonomous()) { //this needs to be before the others return false
+		first_in_check = true;
+		return true;
+	}
+
 	if (intake_wheel_state == SLOW_STATE) { //out slow
 		if (talonIntake1->GetOutputCurrent() <= 10.0
 				&& talonIntake2->GetOutputCurrent() <= 10.0) {
@@ -581,8 +597,10 @@ bool Intake::ReleasedCube() {
 		}
 		if (current_counter >= 15) {
 			current_counter = 0;
+			first_in_check = true;
 			return true;
 		} else {
+			first_in_check = true;
 			return false;
 		}
 	} else {
@@ -592,10 +610,12 @@ bool Intake::ReleasedCube() {
 		} else {
 			current_counter = 0;
 		}
-		if (current_counter >= 10) { //This usedto be 5 3/4/18
+		if (current_counter >= 15) { //This usedto be 5 3/4/18
 			current_counter = 0; //only zero once has reached 10
+			first_in_check = true;
 			return true;
 		} else {
+			first_in_check = true;
 			return false;
 		}
 	}

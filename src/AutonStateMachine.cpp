@@ -216,7 +216,8 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 
 		SmartDashboard::PutString("STATE", "SCALE BACKWARDS");
 
-		driveController_a->StopProfile(true);
+		//if(driveController_a->GetDriveIndex() > drive_controller->GetDriveIndex() >= (scale_traj_len - (scale_traj_len/2.0)))
+		//driveController_a->StopProfile(true);
 
 		if (elevator_a->GetElevatorPosition() >= .85) { //move to the flippy angle when safe
 			intake_a->intake_arm_state = intake_a->SWITCH_BACK_SHOT_STATE_H;
@@ -225,8 +226,9 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 		}
 		elevator_a->elevator_state = elevator_a->UP_STATE_E_H;
 		if (elevator_a->GetElevatorPosition() >= 0.85
-				&& intake_a->GetAngularPosition() > 1.98) { //shoot if the height of the elevator and the angle of the arm is good enough
+				&& intake_a->GetAngularPosition() > 1.95) { //shoot if the height of the elevator and the angle of the arm is good enough //WAS 1.98
 			intake_a->intake_wheel_state = intake_a->OUT_STATE_H;
+			std::cout << "intake out " << std::endl;
 			if (intake_a->ReleasedCube()) {
 				state_a = POST_INTAKE_SCALE_STATE_A;
 			}

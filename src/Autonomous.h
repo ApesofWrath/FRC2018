@@ -28,19 +28,9 @@ public:
 	Elevator *elevator_;
 	Intake *intake_;
 
-	double time_step = 0.02;
-
 	Autonomous(DriveController *dc, Elevator *el, Intake *in);
 
-//	void FillProfile(std::vector<std::vector<double> > pathfinder_refs);
-//
-//	double GetLeftPos();
-//	double GetRightPos();
-//
-//	bool IsLastDriveIndex();
-//	int GetIndex();
-//
-//	bool IsCubeReleased();
+	double time_step_auton;
 
 	bool StartedShoot();
 

@@ -24,6 +24,8 @@ Autonomous::Autonomous(DriveController *dc, Elevator *el, Intake *in) { //TODO: 
 	drive_controller = dc;
 	elevator_ = el;
 	intake_ = in;
+
+	time_step_auton = dc->time_step_drive;
 }
 
 bool Autonomous::StartedShoot() { //has_started_shoot never resets to false

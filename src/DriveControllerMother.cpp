@@ -266,7 +266,9 @@ DriveControllerMother::DriveControllerMother(int fl, int fr, int rl, int rr,
 
 //We use this one
 DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
-		int r1, int r2, int r3, int r4, bool start_low) {
+		int r1, int r2, int r3, int r4, bool start_low, double time_step) {
+
+	time_step_drive = time_step;
 
 	k_p_yaw_au = K_P_YAW_AU_WC;
 	k_d_yaw_au = K_D_YAW_AU_WC;
@@ -395,9 +397,6 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 	canTalonLeft3->ConfigOpenloopRamp(0.15, 0);
 	canTalonLeft4->ConfigOpenloopRamp(0.15, 0);
 	canTalonRight1->ConfigOpenloopRamp(0.15, 0);
-	canTalonRight2->ConfigOpenloopRamp(0.15, 0);
-	canTalonRight3->ConfigOpenloopRamp(0.15, 0);
-	canTalonRight4->ConfigOpenloopRamp(0.15, 0);
 
 	canTalonLeft1->ConfigVelocityMeasurementPeriod(
 			VelocityMeasPeriod::Period_10Ms, 0);
@@ -636,7 +635,7 @@ void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle, //finds targets
 
 	double reverse_y = 1.0;
 
-	if (-1.0 > 0.0) {
+	if (throttle > 0.0) {
 		reverse_y = -1.0;
 	} else {
 		reverse_y = 1.0;
@@ -816,9 +815,10 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 
 //	std::cout << "yep " << target_rpm_right << "  " << target_rpm_left << "  " << targetYawRate  << "  " << tarVelLeft <<  "   " << tarVelRight << std::endl;
 //target rpm right, left
+
 	Controller(0.0, 0.0, 0.0, targetYawRate, k_p_right_vel_au, k_p_left_vel_au,
-			k_p_kick_vel_au, k_p_yaw_au, k_d_yaw_au, k_d_left_vel_au,
-			k_d_right_vel_au, k_d_kick_vel_au, target_rpm_left,
+			0.0, k_p_yaw_au, k_d_yaw_au, k_d_left_vel_au,
+			k_d_right_vel_au, 0.0, target_rpm_left,
 			target_rpm_right, 0.0);
 
 	l_last_error = l_error_dis_au;
@@ -836,7 +836,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	double yaw_rate_current = -1.0 * (double) ahrs->GetRate()
 			* (double) ((PI) / 180.0); //left should be positive
 
-	SmartDashboard::PutNumber("yrc", yaw_rate_current);
+	//SmartDashboard::PutNumber("yrc", yaw_rate_current);
 
 	double target_yaw_rate = ref_yaw;
 

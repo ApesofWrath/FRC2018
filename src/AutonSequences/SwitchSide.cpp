@@ -37,7 +37,7 @@ void SwitchSide::GenerateSwitchSide(bool left, bool added_switch) { //left cente
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, time_step, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk
+	PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk
 
 	length = candidate.length;
 	back_switch_len = length;
@@ -109,7 +109,7 @@ void SwitchSide::ForwardSwitch(bool left, bool added_switch) { //must zero profi
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, time_step, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk //profile speed must equal drive thread time step
+	PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk //profile speed must equal drive thread time step
 
 	int length = candidate.length;
 	forward_switch_len = length;
@@ -150,75 +150,6 @@ void SwitchSide::ForwardSwitch(bool left, bool added_switch) { //must zero profi
 				full_refs_sw_s.at(i).at(4) = full_refs_sw_s.at(i - 1).at(4);
 				full_refs_sw_s.at(i).at(5) = full_refs_sw_s.at(i - 1).at(5);
 //			}
-		}
-
-	}
-
-	free(trajectory);
-	free(leftTrajectory);
-	free(rightTrajectory);
-
-}
-
-void SwitchSide::GetAddedSwitch(bool left) { //must zero profile, need to not carry over old orientation and pause before continuing
-
-	int POINT_LENGTH = 2;
-
-	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
-
-	Waypoint p1, p2;
-
-	//feet
-	if (left) {
-		p1 = {0.0, 0.0, 0.0};
-		p2 = {5.0, 0.1, d2r(10.0)}; //10
-	} else {
-		p1 = {0.0, 0.0, 0.0};
-		p2 = {5.0, -0.1, d2r(-10.0)}; //10
-	}
-
-	points[0] = p1;
-	points[1] = p2;
-
-	TrajectoryCandidate candidate;
-	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, time_step, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk //profile speed must equal drive thread time step //TODO:make time step global
-
-	int length = candidate.length;
-	forward_switch_len = length;
-	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));
-
-	pathfinder_generate(&candidate, trajectory);
-
-	Segment *leftTrajectory = (Segment*) malloc(sizeof(Segment) * length);
-	Segment *rightTrajectory = (Segment*) malloc(sizeof(Segment) * length);
-
-	double wheelbase_width = 2.1;
-
-	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
-			wheelbase_width);
-
-	for (int i = (back_switch_len); i < 1500; i++) { //starting from the next point, right after the pathfinder trajectory ends
-
-		Segment sl = leftTrajectory[i - (back_switch_len)]; //start at beginning of new profile
-		Segment sr = rightTrajectory[i - (back_switch_len)];
-
-		full_refs_sw_s.at(i).at(0) = ((double) sl.heading); //positive
-		full_refs_sw_s.at(i).at(1) = ((double) sl.position);
-		full_refs_sw_s.at(i).at(2) = ((double) sr.position);
-		full_refs_sw_s.at(i).at(3) = (0.0);
-		full_refs_sw_s.at(i).at(4) = ((double) sl.velocity);
-		full_refs_sw_s.at(i).at(5) = ((double) sr.velocity);
-
-		if (i >= (back_switch_len + forward_switch_len)) { //still have more in the 1500 allotted points
-
-			full_refs_sw_s.at(i).at(0) = full_refs_sw_s.at(i - 1).at(0); //i - 1 will always be the last sensible value since it cascades
-			full_refs_sw_s.at(i).at(1) = full_refs_sw_s.at(i - 1).at(1);
-			full_refs_sw_s.at(i).at(2) = full_refs_sw_s.at(i - 1).at(2);
-			full_refs_sw_s.at(i).at(3) = full_refs_sw_s.at(i - 1).at(3);
-			full_refs_sw_s.at(i).at(4) = full_refs_sw_s.at(i - 1).at(4);
-			full_refs_sw_s.at(i).at(5) = full_refs_sw_s.at(i - 1).at(5);
-
 		}
 
 	}

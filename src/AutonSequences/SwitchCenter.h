@@ -13,15 +13,17 @@
 class SwitchCenter : public Autonomous {
 public:
 
+	int length;
+
 	SwitchCenter(DriveController *dc, Elevator *el, Intake *in) : Autonomous(dc, el, in) {
 
 	}
 
-	void GenerateSwitch(bool left);
+	void GenerateSwitch(bool left, bool added_switch);
+	void GetAddedSwitch(bool left);
+	void PlaceAddedSwitch(bool left);
 
 	void RunStateMachine(bool *place_switch);
-
-	int length;
 
 };
 

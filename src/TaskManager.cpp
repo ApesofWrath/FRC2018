@@ -91,7 +91,7 @@ void TaskManager::ThreadWrapper(TaskManager *task_manager,
 			intake_t->Rotate();
 			elevator_t->Move();
 
-			drive_controller->TeleopWCDrive(JoyThrottle, JoyWheel); //0.01
+			drive_controller->TeleopWCDrive(JoyThrottle, JoyWheel);
 
 			intake_t->IntakeArmStateMachine();
 			intake_t->IntakeWheelStateMachine();
