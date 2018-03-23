@@ -261,30 +261,30 @@ public:
 		if (autoSelected == cubeSwitch) {
 			if (positionSelected == left && leftSwitch) {
 				switch_side = new SwitchSide(drive_controller, elevator_,
-						intake_);
+						intake_, auton_state_machine);
 				switch_side->GenerateSwitchSide(leftSwitch, false);
 				switchState = true;
 
 			} else if (positionSelected == right && !leftSwitch) {
 				switch_side = new SwitchSide(drive_controller, elevator_,
-						intake_);
+						intake_, auton_state_machine);
 				switch_side->GenerateSwitchSide(leftSwitch, false); //leftswitch is false
 				switchState = true;
 
 			} else if (positionSelected == center) {
-				switch_center = new SwitchCenter(drive_controller, elevator_, intake_);
-				std::cout << "here" << std::endl;
+				switch_center = new SwitchCenter(drive_controller, elevator_, intake_, auton_state_machine);
+			//	std::cout << "here" << std::endl;
 				switch_center->GenerateSwitch(leftSwitch, false);
 				switchState = true;
 			} else {
 				drive_forward = new DriveForward(drive_controller, elevator_,
-						intake_);
+						intake_, auton_state_machine);
 				drive_forward->GenerateForward(true);
 			}
 
 			//Scale only - Drive Forward
 		} else if (autoSelected == cubeScale) { //can only scale if scale is on our side
-			scale_side = new ScaleSide(drive_controller, elevator_, intake_);
+			scale_side = new ScaleSide(drive_controller, elevator_, intake_, auton_state_machine);
 
 			if (positionSelected == left && leftScale) {
 				scale_side->GenerateScale(true, false, false, false, false);
@@ -299,7 +299,7 @@ public:
 					|| (positionSelected == right && leftScale)
 					|| (positionSelected == left && !leftScale)) {
 				drive_forward = new DriveForward(drive_controller, elevator_, //can't just set autoSelected to driveForward because code only goes through if-ifelse once
-						intake_);
+						intake_, auton_state_machine);
 				drive_forward->GenerateForward(false);
 			}
 		}
@@ -307,7 +307,7 @@ public:
 		//Scale and switch - Switch only or Scale only - Drive Forward
 		else if (autoSelected == scaleSwit) { //if only scale is on our side, will do scale only, likewise switch
 
-			scale_side = new ScaleSide(drive_controller, elevator_, intake_);
+			scale_side = new ScaleSide(drive_controller, elevator_, intake_, auton_state_machine);
 
 			if (positionSelected == left) {
 				if (leftScale && leftSwitch) { //scale and switch
@@ -321,7 +321,7 @@ public:
 					switchSideState = true;
 				} else {
 					drive_forward = new DriveForward(drive_controller,
-							elevator_, intake_);
+							elevator_, intake_, auton_state_machine);
 					drive_forward->GenerateForward(false);
 				}
 
@@ -337,25 +337,25 @@ public:
 					switchSideState = true;
 				} else {
 					drive_forward = new DriveForward(drive_controller,
-							elevator_, intake_);
+							elevator_, intake_, auton_state_machine);
 					drive_forward->GenerateForward(false);
 				}
 
 			} else {
 				drive_forward = new DriveForward(drive_controller, elevator_,
-						intake_);
+						intake_, auton_state_machine);
 				drive_forward->GenerateForward(false);
 			}
 		}
 
 		else if (autoSelected == driveForward && positionSelected == center) { //depends on starting robot backwards when on side, and forwards when in middle
 			drive_forward = new DriveForward(drive_controller, elevator_,
-					intake_);
+					intake_, auton_state_machine);
 			drive_forward->GenerateForward(true);
 
 		} else {
 			drive_forward = new DriveForward(drive_controller, elevator_,
-					intake_);
+					intake_, auton_state_machine);
 			drive_forward->GenerateForward(false);
 		}
 

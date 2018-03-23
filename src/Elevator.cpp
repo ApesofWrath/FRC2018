@@ -231,9 +231,13 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 
 	if (voltage_safety_e) {
 		elevator_voltage = 0.0;
-
 		SmartDashboard::PutString("ELEVATOR SAFETY", "stall");
 
+	}
+
+	if(zero_elevator_voltage) {
+		elevator_voltage = 0.0;
+		SmartDashboard::PutString("ELEVATOR SAFETY", "arm safety");
 	}
 
 	SmartDashboard::PutNumber("El Volt", elevator_voltage);

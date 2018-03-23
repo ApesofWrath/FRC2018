@@ -234,8 +234,10 @@ void SwitchCenter::RunStateMachine(bool *place_switch) {
 
 	//no other state machine booleans needed, all other ones will stay false
 
+
+
 	//start being true at end of drive profile, stop being true once start shooting
-	if (drive_controller->GetDriveIndex() >= length && !StartedShoot()) { //at the end of the drive, while we have not released a cube //GetIndex() >= length && //should be has started shooting
+	if (drive_controller->GetDriveIndex() >= switch_len && !StartedShoot()) { //at the end of the drive, while we have not released a cube //GetIndex() >= length && //should be has started shooting
 		*place_switch = true; //must run once initialized!
 	} else {
 		*place_switch = false;

@@ -21,6 +21,19 @@
 class AutonStateMachine {
 public:
 
+	const int INIT_STATE_A_H = 0;
+	const int WAIT_FOR_BUTTON_STATE_A_H = 1;
+	const int GET_CUBE_GROUND_STATE_A_H = 2;
+	const int GET_CUBE_STATION_STATE_A_H = 3;
+	const int POST_INTAKE_SWITCH_STATE_A_H = 4;
+	const int POST_INTAKE_SCALE_STATE_A_H = 5;
+	const int PLACE_SCALE_STATE_A_H = 6;
+	const int PLACE_SWITCH_STATE_A_H = 7;
+	const int PLACE_SCALE_BACKWARDS_STATE_A_H = 8;
+	int state_a = INIT_STATE_A_H;
+
+	bool has_started_shoot = false;
+
 	AutonStateMachine(Elevator *elevator_, Intake *intake_,
 			DriveController *drive_controller);
 

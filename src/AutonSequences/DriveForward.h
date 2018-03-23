@@ -13,7 +13,7 @@
 class DriveForward : public Autonomous {
 public:
 
-	DriveForward(DriveController *dc, Elevator *el, Intake *in) : Autonomous(dc, el, in) { //take objects from robot.cpp, place in drive_forward, put and initialize in autonomous
+	DriveForward(DriveController *dc, Elevator *el, Intake *in, AutonStateMachine *ausm) : Autonomous(dc, el, in, ausm) { //take objects from robot.cpp, place in drive_forward, put and initialize in autonomous
 
 	}
 

@@ -20,6 +20,7 @@
 #include <thread>
 #include <chrono>
 #include <Timer.h>
+#include <AutonStateMachine.h>
 
 class Autonomous {
 public:
@@ -27,8 +28,9 @@ public:
 	DriveController *drive_controller;
 	Elevator *elevator_;
 	Intake *intake_;
+	AutonStateMachine *auton_state_machine;
 
-	Autonomous(DriveController *dc, Elevator *el, Intake *in);
+	Autonomous(DriveController *dc, Elevator *el, Intake *in, AutonStateMachine *ausm);
 
 	double time_step_auton;
 

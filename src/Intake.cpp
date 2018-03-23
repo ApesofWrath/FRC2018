@@ -90,6 +90,19 @@ bool voltage_safety = false;
 
 std::vector<double> volts = { };
 
+const int sample_window = 50;
+
+double intake_currents_1 [sample_window];
+double intake_currents_2 [sample_window];
+
+int arr_counter = 0;
+double filled_arr = 0.0;
+double currents_sum_1 = 0;
+double currents_avg_1 = 0;
+double currents_sum_2 = 0;
+double currents_avg_2 = 0;
+bool arr_filled = false;
+
 int init_counter_i = 0;
 int current_counter_h = 0; //have
 int current_counter_r = 0; //release
@@ -141,9 +154,15 @@ Intake::Intake(PowerDistributionPanel *pdp,
 
 	talonIntakeArm->SetControlFramePeriod(ControlFrame::Control_3_General, 5);
 
-	talonIntakeArm->SetStatusFramePeriod(StatusFrameEnhanced::Status_2_Feedback0, 10, 0);
+	talonIntakeArm->SetStatusFramePeriod(
+			StatusFrameEnhanced::Status_2_Feedback0, 10, 0);
 
 	pdp_i = pdp;
+
+	for(int i = 0; i < sample_window; i++) {
+		intake_currents_1[i] = 1000.0;
+		intake_currents_2[i] = 1000.0;
+	}
 
 }
 
@@ -295,7 +314,9 @@ void Intake::SetVoltageIntake(double voltage_i) {
 
 	//safety to make sure that the elevator doesn't go down when the arm is up
 	if (ang_pos > 1.7 && elevator_i->GetVoltageElevator() < 0.0) { //checking and changing u_e
-		elevator_i->SetVoltageElevator(0.0);
+		elevator_i->zero_elevator_voltage = true;
+	} else {
+		elevator_i->zero_elevator_voltage = false;
 	}
 
 	if (talonIntakeArm->GetOutputCurrent() > 3.0) { //probably don't need this current check
@@ -349,9 +370,8 @@ double Intake::GetAngularVelocity() {
 
 	//Native vel units are in ticks per 100ms so divide by TICKS_PER_ROT to get rotations per 100ms then multiply 10 to get per second
 	//multiply by 2pi to get into radians per second (2pi radians are in one revolution)
-	double ang_vel =
-			(talonIntakeArm->GetSelectedSensorVelocity(0)
-					/ (TICKS_PER_ROT_I)) * (2.0 * PI) * (10.0) * -1.0;
+	double ang_vel = (talonIntakeArm->GetSelectedSensorVelocity(0)
+			/ (TICKS_PER_ROT_I)) * (2.0 * PI) * (10.0) * -1.0;
 	//double ang_vel = 0.0;
 
 	return ang_vel;
@@ -364,8 +384,7 @@ double Intake::GetAngularPosition() {
 	//2pi radians per rotations
 	double ang_pos =
 
-	((talonIntakeArm->GetSelectedSensorPosition(0)
-			- position_offset)	//position offset
+	((talonIntakeArm->GetSelectedSensorPosition(0) - position_offset)//position offset
 	/ (TICKS_PER_ROT_I)) * (2.0 * PI) * -1.0;
 	//double ang_pos = 0.0;
 
@@ -573,59 +592,97 @@ bool Intake::HaveCube() {
 
 }
 
-bool Intake::ReleasedCube() {
+bool Intake::ReleasedCube() { //TODO: change in havecube
 
-	if (first_in_check) {
-		time_counter = 0;
-	}
+	//allow for current spikes
 
-	first_in_check = false;
-
-	time_counter++;
-
-	if (time_counter > 15 && frc::RobotState::IsAutonomous()) { //this needs to be before the others return false
-		first_in_check = true;
-		return true;
-	}
-
-	if (intake_wheel_state == SLOW_STATE) { //out slow
-		if (talonIntake1->GetOutputCurrent() <= 10.0
-				&& talonIntake2->GetOutputCurrent() <= 10.0) {
-			current_counter++;
-		} else {
-			current_counter = 0;
-		}
-		if (current_counter >= 15) {
-			current_counter = 0;
-			first_in_check = true;
-			return true;
-		} else {
-			first_in_check = true;
-			return false;
-		}
+	if (arr_counter < (sample_window - 1)) {
+		arr_counter++;
 	} else {
-		if (talonIntake1->GetOutputCurrent() <= 17.0
-				|| talonIntake2->GetOutputCurrent() <= 17.0) {
-			current_counter++;
-		} else {
-			current_counter = 0;
-		}
-		if (current_counter >= 15) { //This usedto be 5 3/4/18
-			current_counter = 0; //only zero once has reached 10
-			first_in_check = true;
-			return true;
-		} else {
-			first_in_check = true;
-			return false;
-		}
+		arr_counter = 0;
 	}
+
+	SmartDashboard::PutNumber("CUR 1", talonIntake1->GetOutputCurrent());
+	SmartDashboard::PutNumber("CUR 2", talonIntake2->GetOutputCurrent());
+
+	intake_currents_1[arr_counter] = talonIntake1->GetOutputCurrent();
+	intake_currents_2[arr_counter] = talonIntake2->GetOutputCurrent();
+
+	currents_sum_1 = 0.0;
+	currents_sum_2 = 0.0;
+
+	for (int i = 0; i < sample_window; i++) {
+		currents_sum_1 += intake_currents_1[i];
+		currents_sum_2 += intake_currents_2[i];
+	}
+
+	currents_avg_1 = currents_sum_1 / (double)sample_window;
+	currents_avg_2 = currents_sum_2 / (double)sample_window;
+
+	SmartDashboard::PutNumber("AVG 1", currents_avg_1);
+	SmartDashboard::PutNumber("AVG 2", currents_avg_2);
+
+	if (currents_avg_1 < 5.0 && currents_avg_2 < 5.0) {
+		arr_counter = 0;
+		for (int i = 0; i < sample_window; i++) {
+			intake_currents_1[i] = 1000.0;
+			intake_currents_2[i] = 1000.0;
+		}
+		return true;
+	} else {
+		return false;
+	}
+
+//	if (first_in_check) {
+//		time_counter = 0;
+//	}
+//
+//	first_in_check = false;
+//
+//	time_counter++;
+//
+//	if (time_counter > 15 && frc::RobotState::IsAutonomous()) { //this needs to be before the others return false
+//		first_in_check = true;
+//		return true;
+//	}
+//
+//	if (intake_wheel_state == SLOW_STATE) { //out slow
+//		if (talonIntake1->GetOutputCurrent() <= 10.0
+//				&& talonIntake2->GetOutputCurrent() <= 10.0) {
+//			current_counter++;
+//		} else {
+//			current_counter = 0;
+//		}
+//		if (current_counter >= 15) {
+//			current_counter = 0;
+//			first_in_check = true;
+//			return true;
+//		} else {
+//			first_in_check = true;
+//			return false;
+//		}
+//	} else {
+//		if (talonIntake1->GetOutputCurrent() <= 17.0
+//				|| talonIntake2->GetOutputCurrent() <= 17.0) {
+//			current_counter++;
+//		} else {
+//			current_counter = 0;
+//		}
+//		if (current_counter >= 15) { //This usedto be 5 3/4/18
+//			current_counter = 0; //only zero once has reached 10
+//			first_in_check = true;
+//			return true;
+//		} else {
+//			first_in_check = true;
+//			return false;
+//		}
+//	}
 
 }
 
 void Intake::SetZeroOffset() {
 
-	position_offset =
-			(talonIntakeArm->GetSelectedSensorPosition(0));
+	position_offset = (talonIntakeArm->GetSelectedSensorPosition(0));
 }
 
 bool Intake::ZeroEnc() { //called in Initialize() and in SetVoltage()

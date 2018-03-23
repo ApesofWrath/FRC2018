@@ -15,7 +15,7 @@ public:
 
 	int length;
 
-	SwitchCenter(DriveController *dc, Elevator *el, Intake *in) : Autonomous(dc, el, in) {
+	SwitchCenter(DriveController *dc, Elevator *el, Intake *in, AutonStateMachine *ausm) : Autonomous(dc, el, in, ausm) {
 
 	}
 

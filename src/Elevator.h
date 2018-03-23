@@ -39,6 +39,7 @@ public:
 	PowerDistributionPanel *pdp_e;
 
 	bool is_elevator_init = false;
+	bool zero_elevator_voltage = false; //used in intake for safety
 
 	double goal_vel_e = 0.0;
 
@@ -72,8 +73,6 @@ public:
 
 	double GetElevatorPosition();
 	double GetElevatorVelocity();
-
-	//std::vector<std::vector<double> > ElevatorGetNextRef();
 
 	bool IsAtBottomElevator();
 	bool IsAtTopElevator();

@@ -21,7 +21,6 @@ const int POST_INTAKE_SCALE_STATE_A = 5;
 const int PLACE_SCALE_STATE_A = 6;
 const int PLACE_SWITCH_STATE_A = 7;
 const int PLACE_SCALE_BACKWARDS_STATE_A = 8;
-int state_a = INIT_STATE_A;
 
 bool came_from_switch = false;
 bool is_intake_low_enough_a = false;
@@ -129,8 +128,6 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 			store_last_state = last_state_a;
 		}
 
-		//bool intake_low_enough_a = intake_a->GetAngularPosition() < (intake_a->UP_ANGLE + 0.05);
-
 		//if (intake_low_enough_a) {
 			elevator_a->elevator_state = elevator_a->DOWN_STATE_E_H;
 			//if (last_state_a == PLACE_SCALE_BACKWARDS_STATE_A) { THIS IS THE SAME BUG WE TALKED ABOUT,ONLY IS TRUE ONCE
@@ -140,11 +137,11 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 		intake_a->intake_arm_state = intake_a->UP_STATE_H;
 		intake_a->intake_wheel_state = intake_a->STOP_WHEEL_STATE_H;
 
-		if (raise_to_switch) {
+		if (raise_to_switch && last_state_a != PLACE_SWITCH_STATE_A) {
 			state_a = PLACE_SWITCH_STATE_A;
-		} else if (raise_to_scale) { //came from placing
+		} else if (raise_to_scale && last_state_a != PLACE_SCALE_STATE_A) { //came from placing
 			state_a = PLACE_SCALE_STATE_A;
-		} else if (raise_to_scale_backwards) {
+		} else if (raise_to_scale_backwards && last_state_a != PLACE_SCALE_BACKWARDS_STATE_A) {
 			state_a = PLACE_SCALE_BACKWARDS_STATE_A;
 //		} else if (store_last_state != PLACE_SWITCH_STATE_A) { //TODO: does still break 2cube auto //only needed for single switch //wasn't going back to wfb
 //			state_a = GET_CUBE_GROUND_STATE_A;
@@ -226,7 +223,7 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 		}
 		elevator_a->elevator_state = elevator_a->UP_STATE_E_H;
 		if (elevator_a->GetElevatorPosition() >= 0.85
-				&& intake_a->GetAngularPosition() > 1.95) { //shoot if the height of the elevator and the angle of the arm is good enough //WAS 1.98
+				&& intake_a->GetAngularPosition() > 1.9) { //shoot if the height of the elevator and the angle of the arm is good enough //WAS 1.98
 			intake_a->intake_wheel_state = intake_a->OUT_STATE_H;
 			std::cout << "intake out " << std::endl;
 			if (intake_a->ReleasedCube()) {

@@ -13,8 +13,8 @@
 class ScaleSide : public Autonomous {
 public:
 
-	ScaleSide(DriveController *dc_, Elevator *el_, Intake *in_) :
-			Autonomous(dc_, el_, in_) {
+	ScaleSide(DriveController *dc_, Elevator *el_, Intake *in_, AutonStateMachine *ausm) :
+			Autonomous(dc_, el_, in_, ausm) {
 
 	}
 

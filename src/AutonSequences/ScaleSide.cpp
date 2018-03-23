@@ -19,7 +19,7 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch, b
 
 	//FC FORWARD TO PLACE ON SCALE BACKWARDS, robot starts backwards
 
-	int POINT_LENGTH = 3;
+	int POINT_LENGTH = 2;
 
 	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
 
@@ -28,18 +28,18 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch, b
 	//feet
 	if (left_scale) {
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {-10.5, -3.0, d2r(0.0)}; //intermediate point to go outward on x-axis and curving back
-		p3 = {-19.8, 6.2, d2r(0.0)};
+		p2 = {-19.8, 4.0, d2r(-20.0)}; //yaw is still from the robot's perspective
+	//	p3 = {-19.8, 6.2, d2r(0.0)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {-10.5, 3.0, d2r(0.0)};
-		p3 = {-19.8, -6.2, d2r(0.0)};
+		p2 = {-19.8, -4.0, d2r(20.0)}; //TODO: change this
+	//	p3 = {-19.8, -6.2, d2r(0.0)};
 	}
 
 	points[0] = p1;
 	points[1] = p2;
-	points[2] = p3;
+	//points[2] = p3;
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
@@ -87,7 +87,7 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch, b
 		}
 	}
 
-	std::cout << "scale profile" << std::endl;
+	//std::cout << "scale profile" << std::endl;
 
 	drive_controller->SetRefs(full_refs_sc);
 
