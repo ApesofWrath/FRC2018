@@ -15,7 +15,8 @@ std::vector<std::vector<double> > full_refs_sc(1500, std::vector<double>(6)); //
 
 //Timer *timerPauseScale = new Timer(); //may need later
 
-void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch, bool added_scale, bool left_added_scale) { //true, false, true, true, true //direction on the switch needs to be accurate, but switch_ can be false
+void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch,
+		bool added_scale, bool left_added_scale) { //true, false, true, true, true //direction on the switch needs to be accurate, but switch_ can be false
 
 	//FC FORWARD TO PLACE ON SCALE BACKWARDS, robot starts backwards
 
@@ -29,12 +30,12 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch, b
 	if (left_scale) {
 		p1 = {0.0, 0.0, 0.0};
 		p2 = {-19.8, 4.0, d2r(-20.0)}; //yaw is still from the robot's perspective
-	//	p3 = {-19.8, 6.2, d2r(0.0)};
+		//	p3 = {-19.8, 6.2, d2r(0.0)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
 		p2 = {-19.8, -4.0, d2r(20.0)}; //TODO: change this
-	//	p3 = {-19.8, -6.2, d2r(0.0)};
+		//	p3 = {-19.8, -6.2, d2r(0.0)};
 	}
 
 	points[0] = p1;
@@ -74,6 +75,7 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch, b
 
 		if (i >= length) { //still have more in the 1500 allotted points, finished putting in the points to get to the place backwards position
 			if (switch_ || added_scale) {
+				drive_controller->SetZeroingIndex(scale_traj_len);
 				GenerateAddedSwitch(left_switch, added_scale, left_added_scale); //this function will finish off 1500 points //added scale goes through switch first //true, true, true
 				break;
 			} else { //fill the rest with the last point to just stay there
@@ -87,8 +89,6 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch, b
 		}
 	}
 
-	//std::cout << "scale profile" << std::endl;
-
 	drive_controller->SetRefs(full_refs_sc);
 
 	free(trajectory);
@@ -96,7 +96,8 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch, b
 	free(rightTrajectory);
 }
 
-void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale, bool left_added_scale) { //new trajectory so that old spline interpolation does not carry over and new waypoints do not change old trajectory
+void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale,
+		bool left_added_scale) { //new trajectory so that old spline interpolation does not carry over and new waypoints do not change old trajectory
 
 	//PLACE SWITCH POSITION
 
@@ -151,6 +152,8 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale, bool lef
 
 		if (i >= (scale_traj_len + added_switch_len)) { //still have more points left after placing on scale backwards and placing switch
 			if (added_scale) {
+				drive_controller->SetZeroingIndex(
+						scale_traj_len + added_switch_len);
 				GenerateAddedScale(left_added_scale);
 				break; //generateAddedScale will finish off the 1500 points itself
 			} else {
@@ -165,8 +168,6 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale, bool lef
 		}
 
 	}
-
-	drive_controller->SetZeroingIndex(scale_traj_len);
 
 	free(trajectory); //need to free malloc'd elements
 	free(leftTrajectory);
@@ -212,8 +213,8 @@ void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spl
 
 	double wheelbase_width = 2.1;
 
-	pathfinder_modify_tank(trajectory, length, leftTrajectory,
-			rightTrajectory, wheelbase_width);
+	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
+			wheelbase_width);
 
 	for (int i = (scale_traj_len + added_switch_len); i < 1500; i++) { //starting from the next point, right after the pathfinder trajectory ends
 
@@ -243,21 +244,21 @@ void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spl
 	free(leftTrajectory);
 	free(rightTrajectory);
 
-	drive_controller->SetZeroingIndex(scale_traj_len + added_switch_len);
-
 }
 
-//USED FOR BOTH SCALE AND SCALE/SWITCH
-void ScaleSide::RunStateMachineScaleSwitch(bool *place_scale_backwards, bool *place_switch,
-		bool *get_cube_ground) {
+//1-scale, 1-switch
+void ScaleSide::RunStateMachineScaleSwitch(bool *place_scale_backwards,
+		bool *place_switch, bool *get_cube_ground) {
 
 //no other state machine booleans needed, all other ones will stay false
 
-	if (drive_controller->GetDriveIndex() >= (scale_traj_len - (scale_traj_len/2.0))) { //robot is at position to place scale backwards
-		if(drive_controller->GetDriveIndex() >= scale_traj_len) {
+	if (drive_controller->GetDriveIndex() >= (scale_traj_len / 2)) { //start moving superstructure halfway through drive profile
+		if ((drive_controller->GetDriveIndex() >= scale_traj_len && !intake_->ReleasedCube()) || drive_controller->GetDriveIndex() >= (scale_traj_len + added_switch_len)) { //second case should not be needed, but just there
 			drive_controller->StopProfile(true);
+		} else {
+			drive_controller->StopProfile(false);
 		}
-		if (!StartedShoot()) { //still need to change this to be reusable
+		if (auton_state_machine->shoot_counter == 0) { //!started shoot
 			*place_scale_backwards = true; //needs to go back to being false
 		} else {
 			*place_scale_backwards = false;
@@ -270,32 +271,63 @@ void ScaleSide::RunStateMachineScaleSwitch(bool *place_scale_backwards, bool *pl
 				>= (scale_traj_len + added_switch_len)
 				&& added_switch_len > 0) { //if at end of profile, and added profile exists
 			*place_switch = true;
-			//place_scale_backwards = true;
 		}
 	}
 
 }
 
+//1-scale
+void ScaleSide::RunStateMachineScaleOnly(bool *place_scale_backwards,
+		bool *get_cube_ground) { //arm/elev must go back down for the start of teleop, to not get caught on the scale
+
+//no other state machine booleans needed, all other ones will stay false
+
+	if (drive_controller->GetDriveIndex() >= (scale_traj_len / 2)) { //start moving superstructure once drive is halfway there
+		if (drive_controller->GetDriveIndex() >= scale_traj_len) { //drive profile refs should stay at the last index, at the scale position, anyway, but just for clarity
+			drive_controller->StopProfile(true);
+		}
+		if (auton_state_machine->shoot_counter == 0) { //!startedshoot
+			*place_scale_backwards = true; //needs to go back to being false so that after going through post_intake and staying in post_intake configuration, it stays in wfb_state
+		} else {
+			*place_scale_backwards = false;
+		}
+		if (intake_->ReleasedCube()) {
+			*get_cube_ground = true; //may change this
+		}
+	}
+
+}
+
+//2-scale
+//init, wfb, place_scale_backwards, post_intake_scale, wfb (just passing through), get_cube_ground_state, post_intake_switch, place_scale_backwards, post_intake_scale, wfb
+//      psb(1)		gcg	, !psb																					psb(2)				!psb , !gcg
 void ScaleSide::RunStateMachineScaleScale(bool *place_scale_backwards,
 		bool *get_cube_ground) {
 
 //no other state machine booleans needed, all other ones will stay false
 
-	if (drive_controller->GetDriveIndex() >= scale_traj_len) { //robot is at position to place scale backwards
-		if (!StartedShoot()) { //still need to change this to be reusable
+	if (drive_controller->GetDriveIndex() >= (scale_traj_len / 2)) { //start moving superstructure halfway
+		if ((drive_controller->GetDriveIndex() >= scale_traj_len && !intake_->ReleasedCube()) || drive_controller->GetDriveIndex() >= (scale_traj_len + added_switch_len + added_scale_len)) { //second case should not be needed, but just there
+			drive_controller->StopProfile(true);
+		} else {
+			drive_controller->StopProfile(false);
+		}
+		if (auton_state_machine->shoot_counter == 0
+				|| ((drive_controller->GetDriveIndex() //if have not shot before, if at end of the total profile and there is that addded profile
+				>= (scale_traj_len + added_switch_len + added_scale_len) //will need to divide by 2
+				&& added_switch_len > 0)
+						&& auton_state_machine->shoot_counter == 1)) {
 			*place_scale_backwards = true; //needs to go back to being false
 		} else {
-			*place_scale_backwards = false;
+			*place_scale_backwards = false; //have shot the first one, but drive has not gotten to the position to shoot the second one
 		}
-		if (intake_->ReleasedCube()) {
+		if (intake_->ReleasedCube() && auton_state_machine->shoot_counter != 2) { //if we have shot twice, then don't get more cubes
 			*get_cube_ground = true;
+		} else {
+			*get_cube_ground = false;
 		}
 
-		if (drive_controller->GetDriveIndex()
-				>= (scale_traj_len + added_switch_len + added_scale_len)
-				&& added_switch_len > 0) { //if at end of profile, and added profile exists
-			*place_scale_backwards = true;
-		}
 	}
 
 }
+

@@ -32,7 +32,9 @@ public:
 	const int PLACE_SCALE_BACKWARDS_STATE_A_H = 8;
 	int state_a = INIT_STATE_A_H;
 
-	bool has_started_shoot = false;
+	bool has_started_shoot;
+
+	int shoot_counter;
 
 	AutonStateMachine(Elevator *elevator_, Intake *intake_,
 			DriveController *drive_controller);

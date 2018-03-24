@@ -97,6 +97,8 @@ void TaskManager::ThreadWrapper(TaskManager *task_manager,
 			intake_t->IntakeWheelStateMachine();
 			elevator_t->ElevatorStateMachine();
 
+			std::cout << intake_t->talonIntake1->GetOutputCurrent() << ", " << intake_t->talonIntake2->GetOutputCurrent() << " , " <<  intake_t->intake_wheel_state << std::endl;
+
 			teleop_state_machine->StateMachine((bool) *wait_for_button,
 					(bool) *intake_spin_in, (bool) *intake_spin_out,
 					(bool) *intake_spin_slow, (bool) *intake_spin_stop,

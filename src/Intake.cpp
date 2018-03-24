@@ -314,9 +314,9 @@ void Intake::SetVoltageIntake(double voltage_i) {
 
 	//safety to make sure that the elevator doesn't go down when the arm is up
 	if (ang_pos > 1.7 && elevator_i->GetVoltageElevator() < 0.0) { //checking and changing u_e
-		elevator_i->zero_elevator_voltage = true;
+		elevator_i->keep_elevator_up = true;
 	} else {
-		elevator_i->zero_elevator_voltage = false;
+		elevator_i->keep_elevator_up = false;
 	}
 
 	if (talonIntakeArm->GetOutputCurrent() > 3.0) { //probably don't need this current check
@@ -505,6 +505,9 @@ void Intake::IntakeWheelStateMachine() {
 
 	switch (intake_wheel_state) {
 
+	currents_file.open("intakecurrents.csv");
+	currents_file << talonIntake1->GetOutputCurrent() << ", ";
+
 	case STOP_WHEEL_STATE: //has offset, not actually stopped
 		SmartDashboard::PutString("IW", "STOP");
 		if (last_intake_wheel_state != STOP_WHEEL_STATE) {
@@ -632,51 +635,6 @@ bool Intake::ReleasedCube() { //TODO: change in havecube
 	} else {
 		return false;
 	}
-
-//	if (first_in_check) {
-//		time_counter = 0;
-//	}
-//
-//	first_in_check = false;
-//
-//	time_counter++;
-//
-//	if (time_counter > 15 && frc::RobotState::IsAutonomous()) { //this needs to be before the others return false
-//		first_in_check = true;
-//		return true;
-//	}
-//
-//	if (intake_wheel_state == SLOW_STATE) { //out slow
-//		if (talonIntake1->GetOutputCurrent() <= 10.0
-//				&& talonIntake2->GetOutputCurrent() <= 10.0) {
-//			current_counter++;
-//		} else {
-//			current_counter = 0;
-//		}
-//		if (current_counter >= 15) {
-//			current_counter = 0;
-//			first_in_check = true;
-//			return true;
-//		} else {
-//			first_in_check = true;
-//			return false;
-//		}
-//	} else {
-//		if (talonIntake1->GetOutputCurrent() <= 17.0
-//				|| talonIntake2->GetOutputCurrent() <= 17.0) {
-//			current_counter++;
-//		} else {
-//			current_counter = 0;
-//		}
-//		if (current_counter >= 15) { //This usedto be 5 3/4/18
-//			current_counter = 0; //only zero once has reached 10
-//			first_in_check = true;
-//			return true;
-//		} else {
-//			first_in_check = true;
-//			return false;
-//		}
-//	}
 
 }
 

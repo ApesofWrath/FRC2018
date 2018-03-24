@@ -20,6 +20,8 @@
 #include <DigitalInput.h>
 #include <IntakeMotionProfiler.h>
 #include <Elevator.h>
+#include <iostream>
+#include <fstream>
 
 class Intake {
 public:
@@ -28,6 +30,8 @@ public:
 	DigitalInput *hallEffectIntake; //for bottom
 
 	std::thread IntakeThread;
+
+	std::ofstream currents_file;
 
 	const double elevator_safety_position = 0.85;
 	const double INTAKE_BACKWARDS_SOFT_LIMIT = 2.05;

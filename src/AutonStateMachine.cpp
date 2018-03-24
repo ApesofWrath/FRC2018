@@ -42,6 +42,9 @@ AutonStateMachine::AutonStateMachine(Elevator *elevator_, Intake *intake_,
 	intake_a = intake_;
 	driveController_a = drive_controller;
 
+	has_started_shoot = false;
+	shoot_counter = 0;
+
 }
 
 void AutonStateMachine::StateMachineAuton(bool wait_for_button,
@@ -60,32 +63,27 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 		elevator_a->elevator_state = elevator_a->INIT_STATE_E_H;
 		intake_a->intake_arm_state = intake_a->INIT_STATE_H;
 		intake_a->intake_wheel_state = intake_a->STOP_WHEEL_STATE_H;
-		state_a = WAIT_FOR_BUTTON_STATE_A;
+		if (elevator_a->is_elevator_init && intake_a->is_init_intake) {
+			state_a = WAIT_FOR_BUTTON_STATE_A;
+		}
 		last_state_a = INIT_STATE_A;
 		break;
 
-	case WAIT_FOR_BUTTON_STATE_A: //will look at position
+	case WAIT_FOR_BUTTON_STATE_A: //will start arm up and elev down
 
 		SmartDashboard::PutString("STATE", "WAIT FOR BUTTON.");
-
-		if (elevator_a->is_elevator_init && intake_a->is_init_intake) {
-//			if (last_state_a == POST_INTAKE_SWITCH_STATE_A
-//					|| last_state_a == POST_INTAKE_SCALE_STATE_A) { //should not be needed
-//				state_a = GET_CUBE_GROUND_STATE_A;
-//			} else
-			if (get_cube_ground) { //can go to all states below wfb state
-				state_a = GET_CUBE_GROUND_STATE_A;
-			} else if (get_cube_station) {
-				state_a = GET_CUBE_STATION_STATE_A;
-			} else if (post_intake) {
-				state_a = POST_INTAKE_SWITCH_STATE_A;
-			} else if (raise_to_scale) { //should not need to go from wfb state to a raise state, but in case
-				state_a = PLACE_SCALE_STATE_A;
-			} else if (raise_to_switch) {
-				state_a = PLACE_SWITCH_STATE_A;
-			} else if (raise_to_scale_backwards) {
-				state_a = PLACE_SCALE_BACKWARDS_STATE_A;
-			}
+		if (get_cube_ground) { //can go to all states below wfb state
+			state_a = GET_CUBE_GROUND_STATE_A;
+		} else if (get_cube_station) {
+			state_a = GET_CUBE_STATION_STATE_A;
+		} else if (post_intake) {
+			state_a = POST_INTAKE_SWITCH_STATE_A;
+		} else if (raise_to_scale) { //should not need to go from wfb state to a raise state, but in case
+			state_a = PLACE_SCALE_STATE_A;
+		} else if (raise_to_switch) {
+			state_a = PLACE_SWITCH_STATE_A;
+		} else if (raise_to_scale_backwards) {
+			state_a = PLACE_SCALE_BACKWARDS_STATE_A;
 		}
 		last_state_a = WAIT_FOR_BUTTON_STATE_A;
 		break;
@@ -129,9 +127,9 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 		}
 
 		//if (intake_low_enough_a) {
-			elevator_a->elevator_state = elevator_a->DOWN_STATE_E_H;
-			//if (last_state_a == PLACE_SCALE_BACKWARDS_STATE_A) { THIS IS THE SAME BUG WE TALKED ABOUT,ONLY IS TRUE ONCE
-			//}
+		elevator_a->elevator_state = elevator_a->DOWN_STATE_E_H;
+		//if (last_state_a == PLACE_SCALE_BACKWARDS_STATE_A) { THIS IS THE SAME BUG WE TALKED ABOUT,ONLY IS TRUE ONCE
+		//}
 		///}
 
 		intake_a->intake_arm_state = intake_a->UP_STATE_H;
@@ -141,7 +139,8 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 			state_a = PLACE_SWITCH_STATE_A;
 		} else if (raise_to_scale && last_state_a != PLACE_SCALE_STATE_A) { //came from placing
 			state_a = PLACE_SCALE_STATE_A;
-		} else if (raise_to_scale_backwards && last_state_a != PLACE_SCALE_BACKWARDS_STATE_A) {
+		} else if (raise_to_scale_backwards
+				&& last_state_a != PLACE_SCALE_BACKWARDS_STATE_A) {
 			state_a = PLACE_SCALE_BACKWARDS_STATE_A;
 //		} else if (store_last_state != PLACE_SWITCH_STATE_A) { //TODO: does still break 2cube auto //only needed for single switch //wasn't going back to wfb
 //			state_a = GET_CUBE_GROUND_STATE_A;
@@ -155,7 +154,7 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 		//can always go back to wait for button state
 		break;
 
-	case POST_INTAKE_SCALE_STATE_A: //have cube, waiting to place cube //backwards scale
+	case POST_INTAKE_SCALE_STATE_A: //backwards scale, is exclusively for post-shooting, not post intake
 
 		driveController_a->StopProfile(true);
 
@@ -179,7 +178,7 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 		//can always go back to wait for button state
 		break;
 
-	case PLACE_SCALE_STATE_A:
+	case PLACE_SCALE_STATE_A: //for the shooting states, drivecontroller->stopprofile is called in the runstatemachine functions to start getting superstructure ready to shoot before drive has gotten to shooting spot
 
 		SmartDashboard::PutString("STATE", "SCALE");
 		intake_a->intake_arm_state = intake_a->UP_STATE_H;
@@ -188,6 +187,7 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 			intake_a->intake_wheel_state = intake_a->OUT_STATE_H;
 			if (intake_a->ReleasedCube()) {
 				state_a = POST_INTAKE_SWITCH_STATE_A;
+				shoot_counter++;
 			}
 		}
 		last_state_a = PLACE_SCALE_STATE_A;
@@ -199,10 +199,12 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 		SmartDashboard::PutString("STATE", "SWITCH.");
 		elevator_a->elevator_state = elevator_a->MID_STATE_E_H;
 		intake_a->intake_arm_state = intake_a->MID_STATE_H;
-		if (std::abs(intake_a->GetAngularPosition() - intake_a->MID_ANGLE) <= 0.2) { //start shooting when high enough
+		if (std::abs(intake_a->GetAngularPosition() - intake_a->MID_ANGLE)
+				<= 0.2) { //start shooting when high enough
 			intake_a->intake_wheel_state = intake_a->SLOW_STATE_H;
 			if (intake_a->ReleasedCube()) {
 				state_a = POST_INTAKE_SWITCH_STATE_A;
+				shoot_counter++;
 			}
 		}
 		last_state_a = PLACE_SWITCH_STATE_A;
@@ -213,9 +215,6 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 
 		SmartDashboard::PutString("STATE", "SCALE BACKWARDS");
 
-		//if(driveController_a->GetDriveIndex() > drive_controller->GetDriveIndex() >= (scale_traj_len - (scale_traj_len/2.0)))
-		//driveController_a->StopProfile(true);
-
 		if (elevator_a->GetElevatorPosition() >= .85) { //move to the flippy angle when safe
 			intake_a->intake_arm_state = intake_a->SWITCH_BACK_SHOT_STATE_H;
 		} else if (elevator_a->GetElevatorPosition() < .85) { //move to normal up angle if not safe to go all the way to flippy angle
@@ -225,9 +224,10 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 		if (elevator_a->GetElevatorPosition() >= 0.85
 				&& intake_a->GetAngularPosition() > 1.9) { //shoot if the height of the elevator and the angle of the arm is good enough //WAS 1.98
 			intake_a->intake_wheel_state = intake_a->OUT_STATE_H;
-			std::cout << "intake out " << std::endl;
+			//std::cout << "intake out " << std::endl;
 			if (intake_a->ReleasedCube()) {
 				state_a = POST_INTAKE_SCALE_STATE_A;
+				shoot_counter++;
 			}
 		}
 
@@ -259,12 +259,12 @@ void AutonStateMachine::StartAutonStateMachineThread(bool *wait_for_button,
 		bool *raise_to_scale_backwards) {
 
 	AutonStateMachine *ausm = this;
-	AutonStateMachineThread = std::thread(&AutonStateMachine::AutonStateMachineWrapper,
-			ausm, wait_for_button, intake_spin_in, intake_spin_out,
-			intake_spin_slow, intake_spin_stop, get_cube_ground,
-			get_cube_station, post_intake, raise_to_switch, raise_to_scale,
-			intake_arm_up, intake_arm_mid, intake_arm_down, elevator_up,
-			elevator_mid, elevator_down, raise_to_scale_backwards);
+	AutonStateMachineThread = std::thread(
+			&AutonStateMachine::AutonStateMachineWrapper, ausm, wait_for_button,
+			intake_spin_in, intake_spin_out, intake_spin_slow, intake_spin_stop,
+			get_cube_ground, get_cube_station, post_intake, raise_to_switch,
+			raise_to_scale, intake_arm_up, intake_arm_mid, intake_arm_down,
+			elevator_up, elevator_mid, elevator_down, raise_to_scale_backwards);
 	AutonStateMachineThread.detach();
 
 }
@@ -284,8 +284,7 @@ void AutonStateMachine::AutonStateMachineWrapper(
 
 		autonTimer->Reset();
 
-		if (frc::RobotState::IsEnabled()
-				&& frc::RobotState::IsAutonomous()) {
+		if (frc::RobotState::IsEnabled() && frc::RobotState::IsAutonomous()) {
 
 			intake_a->IntakeArmStateMachine();
 			intake_a->IntakeWheelStateMachine();
@@ -321,5 +320,4 @@ void AutonStateMachine::EndAutonStateMachineThread() {
 	AutonStateMachineThread.~thread(); //does not actually kill the thread
 
 }
-
 

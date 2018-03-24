@@ -55,7 +55,7 @@ public:
 	const int RAISE_TO_SCALE = 1;
 	const int RAISE_TO_SCALE_BACKWARDS = 12;
 
-	const int INTAKE_SPIN_IN = 99; //not enough buttons for these three
+	const int INTAKE_SPIN_IN = 10; //not enough buttons for these three
 	const int INTAKE_SPIN_OUT = 1; //throttle
 	const int INTAKE_SPIN_STOP = 99;
 	const int INTAKE_SPIN_SLOW = 8;
@@ -140,7 +140,7 @@ public:
 
 	bool leftSwitch, leftScale;
 
-	bool switchState, scaleScaleState, scaleSwitchState, scaleOnlyState, switchSideState;
+	bool switchCenterState, scaleScaleState, scaleSwitchState, scaleOnlyState, switchSideState;
 
 	std::string autoSelected;
 
@@ -263,19 +263,19 @@ public:
 				switch_side = new SwitchSide(drive_controller, elevator_,
 						intake_, auton_state_machine);
 				switch_side->GenerateSwitchSide(leftSwitch, false);
-				switchState = true;
+				switchCenterState = true;
 
 			} else if (positionSelected == right && !leftSwitch) {
 				switch_side = new SwitchSide(drive_controller, elevator_,
 						intake_, auton_state_machine);
 				switch_side->GenerateSwitchSide(leftSwitch, false); //leftswitch is false
-				switchState = true;
+				switchCenterState = true;
 
 			} else if (positionSelected == center) {
 				switch_center = new SwitchCenter(drive_controller, elevator_, intake_, auton_state_machine);
 			//	std::cout << "here" << std::endl;
 				switch_center->GenerateSwitch(leftSwitch, false);
-				switchState = true;
+				switchCenterState = true;
 			} else {
 				drive_forward = new DriveForward(drive_controller, elevator_,
 						intake_, auton_state_machine);
@@ -365,13 +365,16 @@ public:
 
 		//drive thread, auton state machine thread
 
-		if (scaleOnlyState || scaleSwitchState) {
-			scale_side->RunStateMachineScaleSwitch(&raise_to_scale_backwards, &raise_to_switch, //raise to switch
-					&get_cube_ground); //works for both scale only and scale+switch
+		if (scaleOnlyState) {
+			scale_side->RunStateMachineScaleOnly(&raise_to_scale_backwards,
+					&get_cube_ground);
+		} else if (scaleSwitchState) {
+			scale_side->RunStateMachineScaleSwitch(&raise_to_scale_backwards, &raise_to_switch,
+					&get_cube_ground);
 		} else if (scaleScaleState) {
-			scale_side->RunStateMachineScaleScale(&raise_to_scale_backwards, //raise to switch
-							&get_cube_ground); //works for both scale only and scale+switch
-		} else if (switchState) {
+			scale_side->RunStateMachineScaleScale(&raise_to_scale_backwards,
+							&get_cube_ground);
+		} else if (switchCenterState) {
 			switch_center->RunStateMachine(&raise_to_switch);
 		} else if (switchSideState) {
 			switch_side->RunStateMachineSide(&raise_to_switch);
@@ -430,7 +433,7 @@ public:
 		intake_spin_in = joyThrottle->GetRawButton(INTAKE_SPIN_IN);
 		intake_spin_out = joyThrottle->GetRawButton(INTAKE_SPIN_OUT);
 		intake_spin_slow = joyThrottle->GetRawButton(INTAKE_SPIN_SLOW);
-		intake_spin_stop = joyThrottle->GetRawButton(INTAKE_SPIN_STOP);
+		//intake_spin_stop = joyThrottle->GetRawButton(INTAKE_SPIN_STOP);
 
 		intake_arm_up = joyOp->GetRawButton(INTAKE_ARM_UP);
 		intake_arm_mid = joyOp->GetRawButton(INTAKE_ARM_MID);
@@ -459,6 +462,8 @@ public:
 	}
 
 	void DisabledInit() override { //between auton and teleop
+
+		///intake_->currents_file.close();
 
 	//	task_manager->EndThread();
 		//teleop_state_machine->EndStateMachineThread();
