@@ -90,10 +90,11 @@ bool voltage_safety = false;
 
 std::vector<double> volts = { };
 
-const int sample_window = 50;
-
-double intake_currents_1 [sample_window];
-double intake_currents_2 [sample_window];
+const int sample_window = 20;
+alglib::ae_int_t arr_len = 50;
+alglib::real_1d_array currents;
+alglib::real_1d_array master;
+alglib::real_1d_array corr;
 
 int arr_counter = 0;
 double filled_arr = 0.0;
@@ -102,6 +103,8 @@ double currents_avg_1 = 0;
 double currents_sum_2 = 0;
 double currents_avg_2 = 0;
 bool arr_filled = false;
+
+int currents_index = 0;
 
 int init_counter_i = 0;
 int current_counter_h = 0; //have
@@ -159,9 +162,34 @@ Intake::Intake(PowerDistributionPanel *pdp,
 
 	pdp_i = pdp;
 
-	for(int i = 0; i < sample_window; i++) {
-		intake_currents_1[i] = 1000.0;
-		intake_currents_2[i] = 1000.0;
+	currents.setlength(arr_len);
+	master.setlength(arr_len);
+	corr.setlength(arr_len - 2);
+
+	for (int i = 0; i < arr_len; i++) {
+		currents[i] = 0.0;
+	}
+
+	master[0] = 10.3750000000000;
+	master[1] = 12.7500000000000;
+	master[2] = 23.3750000000000;
+	master[3] = 35.6250000000000;
+	master[4] = 46.5000000000000;
+	master[5] = 48.3750000000000;
+	master[6] = 44;
+	master[7] = 44;
+	master[8] = 40.5000000000000;
+	master[9] = 40.5000000000000;
+	master[10] = 34.7500000000000;
+	master[11] = 29.3750000000000;
+	master[12] = 24.5000000000000;
+	master[13] = 24.5000000000000;
+	master[14] = 17.7500000000000;
+	master[15] = 15.8750000000000;
+	master[16] = 14.1250000000000;
+
+	for (int i = 17; i < arr_len; i++) {
+		master[i] = 0.0;
 	}
 
 }
@@ -505,9 +533,6 @@ void Intake::IntakeWheelStateMachine() {
 
 	switch (intake_wheel_state) {
 
-	currents_file.open("intakecurrents.csv");
-	currents_file << talonIntake1->GetOutputCurrent() << ", ";
-
 	case STOP_WHEEL_STATE: //has offset, not actually stopped
 		SmartDashboard::PutString("IW", "STOP");
 		if (last_intake_wheel_state != STOP_WHEEL_STATE) {
@@ -597,44 +622,35 @@ bool Intake::HaveCube() {
 
 bool Intake::ReleasedCube() { //TODO: change in havecube
 
-	//allow for current spikes
+	currents[sample_window] = talonIntake1->GetOutputCurrent();
 
-	if (arr_counter < (sample_window - 1)) {
-		arr_counter++;
-	} else {
-		arr_counter = 0;
+	for(int i = 0; i < (sample_window - 1); i++) { //to index 18
+		currents[i] = currents[i + 1];
 	}
 
-	SmartDashboard::PutNumber("CUR 1", talonIntake1->GetOutputCurrent());
-	SmartDashboard::PutNumber("CUR 2", talonIntake2->GetOutputCurrent());
+	alglib::corrr1d(currents, arr_len, master, arr_len, corr);
 
-	intake_currents_1[arr_counter] = talonIntake1->GetOutputCurrent();
-	intake_currents_2[arr_counter] = talonIntake2->GetOutputCurrent();
+	std::cout << "corr: " << FindMaximum(corr) << std::endl;
 
-	currents_sum_1 = 0.0;
-	currents_sum_2 = 0.0;
-
-	for (int i = 0; i < sample_window; i++) {
-		currents_sum_1 += intake_currents_1[i];
-		currents_sum_2 += intake_currents_2[i];
-	}
-
-	currents_avg_1 = currents_sum_1 / (double)sample_window;
-	currents_avg_2 = currents_sum_2 / (double)sample_window;
-
-	SmartDashboard::PutNumber("AVG 1", currents_avg_1);
-	SmartDashboard::PutNumber("AVG 2", currents_avg_2);
-
-	if (currents_avg_1 < 5.0 && currents_avg_2 < 5.0) {
-		arr_counter = 0;
-		for (int i = 0; i < sample_window; i++) {
-			intake_currents_1[i] = 1000.0;
-			intake_currents_2[i] = 1000.0;
-		}
+	if(FindMaximum(corr) > 2500) {
 		return true;
 	} else {
 		return false;
 	}
+
+}
+
+double Intake::FindMaximum(alglib::real_1d_array corr) {
+
+	int max = -1;
+
+	for(int i = 0; i < (arr_len - 3); i++) { //only works for corr
+		if(std::abs(corr[i]) > max) {
+			max = std::abs(corr[i]);
+		}
+	}
+
+	return max;
 
 }
 

@@ -307,7 +307,7 @@ void ScaleSide::RunStateMachineScaleScale(bool *place_scale_backwards,
 //no other state machine booleans needed, all other ones will stay false
 
 	if (drive_controller->GetDriveIndex() >= (scale_traj_len / 2)) { //start moving superstructure halfway
-		if ((drive_controller->GetDriveIndex() >= scale_traj_len && !intake_->ReleasedCube()) || drive_controller->GetDriveIndex() >= (scale_traj_len + added_switch_len + added_scale_len)) { //second case should not be needed, but just there
+		if ((drive_controller->GetDriveIndex() >= scale_traj_len && auton_state_machine->shoot_counter == 0) || drive_controller->GetDriveIndex() >= (scale_traj_len + added_switch_len + added_scale_len)) { //second case should not be needed, but just there
 			drive_controller->StopProfile(true);
 		} else {
 			drive_controller->StopProfile(false);
@@ -321,7 +321,7 @@ void ScaleSide::RunStateMachineScaleScale(bool *place_scale_backwards,
 		} else {
 			*place_scale_backwards = false; //have shot the first one, but drive has not gotten to the position to shoot the second one
 		}
-		if (intake_->ReleasedCube() && auton_state_machine->shoot_counter != 2) { //if we have shot twice, then don't get more cubes
+		if (auton_state_machine->shoot_counter == 1) { //if we have shot twice, then don't get more cubes
 			*get_cube_ground = true;
 		} else {
 			*get_cube_ground = false;

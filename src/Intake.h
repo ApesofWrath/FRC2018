@@ -22,6 +22,8 @@
 #include <Elevator.h>
 #include <iostream>
 #include <fstream>
+#include <AlgLib/fasttransforms.h>
+#include <AlgLib/ap.h>
 
 class Intake {
 public:
@@ -65,6 +67,8 @@ public:
 
 	void InitializeIntake();
 	void SetStartingPos(double start);
+
+	double FindMaximum(alglib::real_1d_array corr);
 
 	void EnableCurrentLimits();
 	void DisableCurrentLimits();

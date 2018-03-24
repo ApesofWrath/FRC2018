@@ -166,7 +166,7 @@ void SwitchSide::RunStateMachineSide(bool *place_switch) {
 
 	//start being true at end of drive profile, stop being true once start shooting
 	if (drive_controller->GetDriveIndex()
-			>= (back_switch_len + forward_switch_len) && !StartedShoot()) { //at the end of the drive, while we have not released a cube //GetIndex() >= length && //should be has started shooting
+			>= (back_switch_len + forward_switch_len) && auton_state_machine->shoot_counter == 0) { //at the end of the drive, while we have not released a cube //GetIndex() >= length && //should be has started shooting
 		*place_switch = true; //must run once initialized!
 	} else {
 		*place_switch = false;

@@ -435,6 +435,10 @@ public:
 		intake_spin_slow = joyThrottle->GetRawButton(INTAKE_SPIN_SLOW);
 		//intake_spin_stop = joyThrottle->GetRawButton(INTAKE_SPIN_STOP);
 
+		if(intake_->ReleasedCube()) {
+
+		}
+
 		intake_arm_up = joyOp->GetRawButton(INTAKE_ARM_UP);
 		intake_arm_mid = joyOp->GetRawButton(INTAKE_ARM_MID);
 		intake_arm_down = joyOp->GetRawButton(INTAKE_ARM_DOWN);
