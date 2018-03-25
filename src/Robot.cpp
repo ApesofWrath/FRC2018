@@ -274,7 +274,7 @@ public:
 			} else if (positionSelected == center) {
 				switch_center = new SwitchCenter(drive_controller, elevator_, intake_, auton_state_machine);
 			//	std::cout << "here" << std::endl;
-				switch_center->GenerateSwitch(leftSwitch, false);
+				switch_center->GenerateSwitch(leftSwitch, false); ////////////////////////////
 				switchCenterState = true;
 			} else {
 				drive_forward = new DriveForward(drive_controller, elevator_,

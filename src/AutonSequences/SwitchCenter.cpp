@@ -242,3 +242,7 @@ void SwitchCenter::RunStateMachine(bool *place_switch) {
 	}
 
 }
+
+void SwitchCenter::RunStateMachineTwo(bool *place_switch, bool *get_cube_ground) {
+
+}
