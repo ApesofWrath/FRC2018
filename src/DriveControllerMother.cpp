@@ -724,6 +724,8 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	double tarVelLeft = drive_ref.at(4);
 	double tarVelRight = drive_ref.at(5);
 
+	SmartDashboard::PutNumber("tarVelLeft", tarVelLeft);
+
 	if (refYaw > PI) { //get negative half and positive half on circle
 		refYaw -= (2 * PI);
 	}
@@ -886,8 +888,10 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
 	double r_current = -((double) canTalonRight1->GetSelectedSensorVelocity(0)
 			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
-//	double kick_current = ((double) canTalonKicker->GetSelectedSensorVelocity(0)
+//	double kick_current = ((double) canTalonKicker->GetSelectedSensorVelocity(0) //will timeout, taking too much time
 //			 (double) TICKS_PER_ROT) * MINUTE_CONVERSION; //going right is positive
+
+	SmartDashboard::PutNumber("actual left vel", l_current);
 
 	if ((std::abs(l_current) <= 0.5 && canTalonLeft1->GetOutputCurrent() > 4.0) //encoders not working
 			|| (std::abs(r_current) <= 0.5
@@ -901,6 +905,8 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 		k_p_right = 0.0;
 		k_d_left = 0.0;
 		k_d_right = 0.0;
+	} else {
+		SmartDashboard::PutString("Drive Motor Encoders", "Not working");
 	}
 
 	l_error_vel_t = ref_left - l_current;
@@ -926,9 +932,9 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	}
 
 	double total_right = D_RIGHT_VEL + P_RIGHT_VEL + feed_forward_r
-			+ (Kv * target_vel_right); //Kv only in auton, straight from motion profile
+			+ (Kv * target_vel_right * 0.7); //Kv only in auton, straight from motion profile
 	double total_left = D_LEFT_VEL + P_LEFT_VEL + feed_forward_l
-			+ (Kv * target_vel_left);
+			+ (Kv * target_vel_left * 0.7);
 //	double total_kick = D_KICK_VEL + P_KICK_VEL + feed_forward_k
 //			+ (Kv_KICK * target_vel_kick);
 

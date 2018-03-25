@@ -26,7 +26,7 @@ double SLOW_SPEED = 0.4;
 
 using namespace std::chrono;
 
-int time_counter = 0;
+//int time_counter = 0;
 bool first_in_check = true;
 
 const int INIT_STATE = 0;
@@ -105,6 +105,9 @@ alglib::real_1d_array master;
 alglib::real_1d_array corr_intake;
 alglib::real_1d_array corr_outtake_r;
 alglib::real_1d_array corr_outtake_l;
+
+int time_counter = 0;
+int TIME_LIMIT = 30;
 
 int arr_counter = 0;
 double filled_arr = 0.0;
@@ -669,6 +672,8 @@ bool Intake::HaveCube() {
 
 bool Intake::ReleasedCube() { //TODO: change in havecube
 
+	time_counter++;
+
 	for (int i = 0; i < (sample_window_outtake - 2); i++) { //to index 18
 		currents_outtake_r[i] = currents_outtake_r[i + 1];
 		currents_outtake_l[i] = currents_outtake_l[i + 1];
@@ -680,14 +685,14 @@ bool Intake::ReleasedCube() { //TODO: change in havecube
 	alglib::corrr1d(currents_outtake_r, arr_len, master, arr_len, corr_outtake_r);
 	alglib::corrr1d(currents_outtake_l, arr_len, master, arr_len, corr_outtake_l);
 
-
 	//std::cout << "corr: " << FindMaximum(corr_outtake_r) << ", "<< FindMaximum(corr_outtake_l) << std::endl;
 
-	if (FindMaximum(corr_outtake_r) > OUTTAKE_CORR_VALUE && FindMaximum(corr_outtake_l) > OUTTAKE_CORR_VALUE) {
+	if ((FindMaximum(corr_outtake_r) > OUTTAKE_CORR_VALUE && FindMaximum(corr_outtake_l) > OUTTAKE_CORR_VALUE) || (time_counter > TIME_LIMIT)) {
 		for (int i = 0; i < (sample_window_outtake - 1); i++) { //to index 18
 			currents_outtake_r[i] = 0.0;
 			currents_outtake_l[i] = 0.0;
 		}
+		time_counter = 0;
 		return true;
 	} else {
 		return false;

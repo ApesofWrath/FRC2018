@@ -44,7 +44,7 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch,
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.02, 17.0, 8.0, 100000.0, &candidate); //had to be slowed down
+	PATHFINDER_SAMPLES_FAST, 0.02, 17.0, 6.0, 100000.0, &candidate); //had to be slowed down
 
 	length = candidate.length;
 	scale_traj_len = length;
@@ -252,23 +252,31 @@ void ScaleSide::RunStateMachineScaleSwitch(bool *place_scale_backwards,
 
 //no other state machine booleans needed, all other ones will stay false
 
+	SmartDashboard::PutBoolean("place switch", *place_switch);
+	SmartDashboard::PutNumber("total indeces", added_switch_len + scale_traj_len);
+	SmartDashboard::PutNumber("index", drive_controller->GetDriveIndex()); //maybe can't call getindex more than once
+
 	bool released_cube = intake_->ReleasedCube();
 
-	if ((drive_controller->GetDriveIndex() >= scale_traj_len && !released_cube) || drive_controller->GetDriveIndex() >= (scale_traj_len + added_switch_len)) { //second case should not be needed, but just there
+	if ((drive_controller->GetDriveIndex() >= scale_traj_len && !released_cube)) { // || drive_controller->GetDriveIndex() >= (scale_traj_len + added_switch_len)) { //second case should not be needed, but just there
 		drive_controller->StopProfile(true);
 	} else {
 		drive_controller->StopProfile(false);
 	}
 
 	if (drive_controller->GetDriveIndex()
-			>= (scale_traj_len + added_switch_len)
-			&& added_switch_len > 0) { //if at end of profile, and added profile exists
+			>= (scale_traj_len + added_switch_len)) { //if at end of profile, and added profile exists
 		*place_switch = true;
 	}
 
 	if (drive_controller->GetDriveIndex() >= (scale_traj_len / 3)) { //start moving superstructure halfway through drive profile
 		if (auton_state_machine->shoot_counter == 0) { //!started shoot
 			*place_scale_backwards = true; //needs to go back to being false
+			if(std::abs(drive_controller->GetLeftVel()) < 0.5) {
+				auton_state_machine->shoot_cube = true;
+			} else {
+				auton_state_machine->shoot_cube = false; //will start that slow, and need to reset to false during middle ofprofile
+			}
 		} else {
 			*place_scale_backwards = false;
 		}
@@ -285,15 +293,18 @@ void ScaleSide::RunStateMachineScaleOnly(bool *place_scale_backwards,
 
 //no other state machine booleans needed, all other ones will stay false
 
+	//SmartDashboard::PutNumber("LEFT VEL", drive_controller->GetLeftVel());
+
 	if (drive_controller->GetDriveIndex() >= (scale_traj_len / 3)) { //start moving superstructure once drive is halfway there (1/3rd)
 		if (drive_controller->GetDriveIndex() >= scale_traj_len) { //drive profile refs should stay at the last index, at the scale position, anyway, but just for clarity
 			drive_controller->StopProfile(true);
 		} //no else
 		if (auton_state_machine->shoot_counter == 0) { //!startedshoot
 			*place_scale_backwards = true; //needs to go back to being false so that after going through post_intake and staying in post_intake configuration, it stays in wfb_state
-			if(drive_controller->GetLeftVel() < 2.0) {
+			if(std::abs(drive_controller->GetLeftVel()) < 0.5) {
 				auton_state_machine->shoot_cube = true;
-				SmartDashboard::PutNumber("here", 4);
+			} else {
+				auton_state_machine->shoot_cube = false; //will start that slow, and need to reset to false during middle ofprofile
 			}
 		} else {
 			*place_scale_backwards = false;
@@ -309,7 +320,7 @@ void ScaleSide::RunStateMachineScaleOnly(bool *place_scale_backwards,
 //init, wfb, place_scale_backwards, post_intake_scale, wfb (just passing through), get_cube_ground_state, post_intake_switch, place_scale_backwards, post_intake_scale, wfb
 //      psb(1)		gcg	, !psb																					psb(2)				!psb , !gcg
 void ScaleSide::RunStateMachineScaleScale(bool *place_scale_backwards,
-		bool *get_cube_ground) {
+		bool *get_cube_ground) { //TODO: add the shoot_cube logic
 
 //no other state machine booleans needed, all other ones will stay false
 
