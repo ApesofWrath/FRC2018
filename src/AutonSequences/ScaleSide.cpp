@@ -248,7 +248,7 @@ void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spl
 
 //1-scale, 1-switch
 void ScaleSide::RunStateMachineScaleSwitch(bool *place_scale_backwards,
-		bool *place_switch, bool *get_cube_ground) {
+		bool *place_switch, bool *get_cube_ground) { //switch and post-intake
 
 //no other state machine booleans needed, all other ones will stay false
 
@@ -259,15 +259,17 @@ void ScaleSide::RunStateMachineScaleSwitch(bool *place_scale_backwards,
 	bool released_cube = intake_->ReleasedCube(); //may not want to use this because it'll return true every 30*.2 ms
 	int drive_index = drive_controller->GetDriveIndex();
 
-	if (((drive_index >= scale_traj_len && auton_state_machine->shoot_counter == 0) || (intake_->GetAngularPosition() > 0.3 && auton_state_machine->shoot_counter == 1))) { // || drive_controller->GetDriveIndex() >= (scale_traj_len + added_switch_len)) { //second case should not be needed because the last points in the profile are copies of the last point for switch, but just there
+	if (((drive_index >= scale_traj_len && auton_state_machine->shoot_counter == 0) || (elevator_->GetElevatorPosition() > 0.3 && auton_state_machine->shoot_counter == 1))) { // || drive_controller->GetDriveIndex() >= (scale_traj_len + added_switch_len)) { //second case should not be needed because the last points in the profile are copies of the last point for switch, but just there
 		drive_controller->StopProfile(true);
 	} else {
 		drive_controller->StopProfile(false);
 	}
 
 	if (drive_index
-			>= ((scale_traj_len + added_switch_len) / 1.5)) { //if at end of profile, and added profile exists
+			>= ((scale_traj_len + added_switch_len) / 1.5) && auton_state_machine->shoot_counter == 1) { //if at end of profile, and added profile exists
 		*place_switch = true;
+	} else {
+		*place_switch = false;
 	}
 
 	if (drive_index >= (scale_traj_len / 3)) { //start moving superstructure halfway through drive profile
