@@ -991,12 +991,12 @@ void DriveControllerMother::ZeroEncs() { //acc to 8
 
 	canTalonRight1->SetSelectedSensorPosition(0, 0, 0);
 	canTalonLeft1->SetSelectedSensorPosition(0, 0, 0);
-	canTalonRight2->SetSelectedSensorPosition(0, 0, 0);
-	canTalonLeft2->SetSelectedSensorPosition(0, 0, 0);
-	canTalonRight3->SetSelectedSensorPosition(0, 0, 0);
-	canTalonLeft3->SetSelectedSensorPosition(0, 0, 0);
-	canTalonRight4->SetSelectedSensorPosition(0, 0, 0);
-	canTalonLeft4->SetSelectedSensorPosition(0, 0, 0);
+//	canTalonRight2->SetSelectedSensorPosition(0, 0, 0);
+//	canTalonLeft2->SetSelectedSensorPosition(0, 0, 0);
+//	canTalonRight3->SetSelectedSensorPosition(0, 0, 0);
+//	canTalonLeft3->SetSelectedSensorPosition(0, 0, 0);
+//	canTalonRight4->SetSelectedSensorPosition(0, 0, 0);
+//	canTalonLeft4->SetSelectedSensorPosition(0, 0, 0);
 	//canTalonKicker->SetSelectedSensorPosition(0, 0, 0);
 
 }
@@ -1116,97 +1116,20 @@ std::vector<std::vector<double> > DriveControllerMother::GetAutonProfile() {
 
 void DriveControllerMother::RunAutonDrive() {
 
+	//SmartDashboard::PutNumber("auton profile size", auton_profile.size());
+
 	//put in profile //was finishing the for loop before we got a profile
 	for (int i = 0; i < auton_profile[0].size(); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs
 		drive_ref.at(i) = auton_profile.at(row_index).at(i); //from SetRef()
 	}
 
-	if (row_index == zeroing_index) {
-		ZeroAll(true);
+	if (row_index == zeroing_index) { //zeroing index set in generateprofiler()'s //TODO: make zeroing_index a vector to look through so that we can zero in more than one place
+		ZeroAll(true); //sets drive to 0.0
+	} else {
+		AutonDrive(); //send each row to auton drive before getting the next row
 	}
 
-	AutonDrive(); //send each row to auton drive before getting the next row
-
-	if (continue_profile) {
+	if (continue_profile && row_index < auton_profile.size()) { //autonprofilesize is always 1500
 		row_index++;
 	}
-}
-
-//TODO: add vision support
-void DriveControllerMother::DriveWrapper(Joystick *JoyThrottle,
-		Joystick *JoyWheel, bool *is_heading, bool *is_vision, bool *is_fc,
-		DriveControllerMother *driveController) {
-
-	timerTeleop->Start();
-
-	while (true) {
-
-		timerTeleop->Reset();
-
-		if (frc::RobotState::IsEnabled() && !frc::RobotState::IsAutonomous()) { //may have been problem that this was !auton frc::RobotState::IsOperatorControl()
-
-			if (tank && !(bool) *is_heading && !(bool) *is_vision) {
-				driveController->TeleopWCDrive(JoyThrottle, JoyWheel);
-			}
-
-			else if (!tank && !(bool) *is_heading && !(bool) *is_vision) {
-				driveController->TeleopHDrive(JoyThrottle, JoyWheel, is_fc);
-			}
-
-			else if ((bool) *is_heading && !(bool) *is_vision) { //regardless of drivetrain type
-				driveController->RotationController(JoyWheel);
-			}
-
-		}
-
-//		else if (frc::RobotState::IsEnabled() && frc::RobotState::IsAutonomous()
-//				&& set_profile) {
-//
-//			//put in profile //was finishing the for loop before we got a profile
-//			for (int i = 0; i < auton_profile[0].size(); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs
-//				drive_ref.at(i) = auton_profile.at(row_index).at(i); //from SetRef()
-//			}
-//
-//			if (row_index == zeroing_index) {
-//				driveController->ZeroAll(true);
-//			}
-//
-//			driveController->AutonDrive(); //send each row to auton drive before getting the next row
-//
-//			if (driveController->continue_profile) {
-//				row_index++;
-//			}
-//
-//		}
-
-		double time_a = DRIVE_WAIT_TIME - timerTeleop->Get(); //how much time left to sleep till 10 ms have passed. timerTeleop->Get() returns seconds
-
-		time_a *= 1000.0; //convert to ms
-
-		if (time_a < 0.0) { //can't wait for negative time
-			time_a = 0.0;
-		}
-
-		std::this_thread::sleep_for(std::chrono::milliseconds((int) time_a));
-
-		SmartDashboard::PutNumber("time", timerTeleop->Get());
-
-	}
-}
-
-void DriveControllerMother::StartDriveThreads(Joystick *JoyThrottle, //must pass in parameters to wrapper to use them in functions
-		Joystick *JoyWheel, bool *is_heading, bool *is_vision, bool *is_fc) {
-
-	DriveControllerMother *dc = this;
-
-	DriveThread = std::thread(&DriveControllerMother::DriveWrapper, JoyThrottle,
-			JoyWheel, is_heading, is_vision, is_fc, dc);
-	DriveThread.detach();
-}
-
-void DriveControllerMother::EndDriveThreads() {
-
-	//timerTeleop->Stop();
-	DriveThread.~thread();
-
 }

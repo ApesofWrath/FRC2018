@@ -110,7 +110,7 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale,
 //feet
 	if (left_switch) {
 		p1 = {0.0, 0.0, 0.0}; //Y, X, yaw
-		p2 = {4.65, 2.25, d2r(45.0)};
+		p2 = {5.65, 2.35, d2r(35.0)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -256,32 +256,31 @@ void ScaleSide::RunStateMachineScaleSwitch(bool *place_scale_backwards,
 	SmartDashboard::PutNumber("total indeces", added_switch_len + scale_traj_len);
 	SmartDashboard::PutNumber("index", drive_controller->GetDriveIndex()); //maybe can't call getindex more than once
 
-	bool released_cube = intake_->ReleasedCube();
+	bool released_cube = intake_->ReleasedCube(); //may not want to use this because it'll return true every 30*.2 ms
+	int drive_index = drive_controller->GetDriveIndex();
 
-	if ((drive_controller->GetDriveIndex() >= scale_traj_len && !released_cube)) { // || drive_controller->GetDriveIndex() >= (scale_traj_len + added_switch_len)) { //second case should not be needed, but just there
+	if (((drive_index >= scale_traj_len && auton_state_machine->shoot_counter == 0) || (intake_->GetAngularPosition() > 0.3 && auton_state_machine->shoot_counter == 1))) { // || drive_controller->GetDriveIndex() >= (scale_traj_len + added_switch_len)) { //second case should not be needed because the last points in the profile are copies of the last point for switch, but just there
 		drive_controller->StopProfile(true);
 	} else {
 		drive_controller->StopProfile(false);
 	}
 
-	if (drive_controller->GetDriveIndex()
-			>= (scale_traj_len + added_switch_len)) { //if at end of profile, and added profile exists
+	if (drive_index
+			>= ((scale_traj_len + added_switch_len) / 1.5)) { //if at end of profile, and added profile exists
 		*place_switch = true;
 	}
 
-	if (drive_controller->GetDriveIndex() >= (scale_traj_len / 3)) { //start moving superstructure halfway through drive profile
+	if (drive_index >= (scale_traj_len / 3)) { //start moving superstructure halfway through drive profile
 		if (auton_state_machine->shoot_counter == 0) { //!started shoot
 			*place_scale_backwards = true; //needs to go back to being false
 			if(std::abs(drive_controller->GetLeftVel()) < 0.5) {
 				auton_state_machine->shoot_cube = true;
+				*get_cube_ground = true;
 			} else {
 				auton_state_machine->shoot_cube = false; //will start that slow, and need to reset to false during middle ofprofile
 			}
 		} else {
 			*place_scale_backwards = false;
-		}
-		if (released_cube) {
-			*get_cube_ground = true;
 		}
 	}
 
