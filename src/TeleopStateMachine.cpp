@@ -261,7 +261,9 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 				intake->intake_wheel_state = intake->SLOW_SCALE_STATE_H;
 			}
 			if (intake->ReleasedCube()) {
-				state = POST_INTAKE_SWITCH_STATE;
+				//state = POST_INTAKE_SWITCH_STATE;
+				state = POST_INTAKE_SCALE_STATE; //3/24/18 Max did this because we still clip the 775's when shooting regular shots.The response of the outtake algorithm is so fast,
+											     //that the elevator comes down while the shooter is still recoiling
 			}
 		}
 		last_state = PLACE_SCALE_STATE;

@@ -56,7 +56,7 @@ public:
 	const double DOWN_POS_E = 0.00;
 	const double MID_POS_E = 0.668;
 	const double SWITCH_POS_E = 0.5;
-	const double UP_POS_E = 0.87;//89;
+	const double UP_POS_E = 0.89;//87
 
 	void InitializeElevator();
 

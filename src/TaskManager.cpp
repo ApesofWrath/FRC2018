@@ -109,6 +109,10 @@ void TaskManager::ThreadWrapper(TaskManager *task_manager,
 					(bool) *elevator_up, (bool) *elevator_mid,
 					(bool) *elevator_down, (bool) *raise_to_scale_backwards);
 
+//			if(intake_t->ReleasedCube()) {
+//				std::cout<<"We did it"<<std::endl;
+//			}
+
 		}
 
 		double wait_time = task_manager->thread_time_step - threadTimer->Get(); //time step also needs to be changed in the motion profiler parameter

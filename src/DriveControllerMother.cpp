@@ -89,8 +89,8 @@ const double K_D_YAW_AU_HD = 0.0; //0.085;
 const double K_P_YAW_AU_WC = 0.0; //5.0;
 const double K_D_YAW_AU_WC = 0.0; //0.085;
 
-const double K_P_RIGHT_DIS = 0.1; //0.085; //0.1;
-const double K_P_LEFT_DIS = 0.1; //0.085; // 0.1;
+const double K_P_RIGHT_DIS = 0.15; //0.085; //0.1;
+const double K_P_LEFT_DIS = 0.15; //0.085; // 0.1;
 const double K_P_YAW_DIS = 0.5; //1.5;
 const double K_P_KICKER_DIS = 0.280;
 

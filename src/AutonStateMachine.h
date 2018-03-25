@@ -33,6 +33,7 @@ public:
 	int state_a = INIT_STATE_A_H;
 
 	bool has_started_shoot;
+	bool shoot_cube;
 
 	int shoot_counter;
 

@@ -53,8 +53,13 @@ const double MAX_THEORETICAL_VELOCITY_I = ((free_speed_i / G_i))
 		* ((2.0 * PI) / 60.0) * 1.05; //rad/s
 const double Kv_i = 1 / MAX_THEORETICAL_VELOCITY_I;
 
-const double MAX_INTAKE_CURRENT = 14.0;
+const double MAX_INTAKE_CURRENT = 10000000.0;
 const double OUTTAKE_INTAKE_CURRENT = 20.0;
+
+const double OUTTAKE_CORR_VALUE = 2200.0;
+const double INTAKE_CORR_VALUE = 1800.0;
+
+const double ZERO_CURRENT = 4.0;//3.0;
 
 const double PCL_WHEELS = 30.0; //peak current limit
 const double CCL_WHEELS = 10.0; //continuous current limit
@@ -90,11 +95,16 @@ bool voltage_safety = false;
 
 std::vector<double> volts = { };
 
-const int sample_window = 20;
-alglib::ae_int_t arr_len = 50;
-alglib::real_1d_array currents;
+const int sample_window_intake = 40;
+const int sample_window_outtake = 40;
+alglib::ae_int_t arr_len = 75;
+alglib::real_1d_array currents_intake;
+alglib::real_1d_array currents_outtake_r;
+alglib::real_1d_array currents_outtake_l;
 alglib::real_1d_array master;
-alglib::real_1d_array corr;
+alglib::real_1d_array corr_intake;
+alglib::real_1d_array corr_outtake_r;
+alglib::real_1d_array corr_outtake_l;
 
 int arr_counter = 0;
 double filled_arr = 0.0;
@@ -162,12 +172,18 @@ Intake::Intake(PowerDistributionPanel *pdp,
 
 	pdp_i = pdp;
 
-	currents.setlength(arr_len);
+	currents_intake.setlength(arr_len);
+	currents_outtake_r.setlength(arr_len);
+	currents_outtake_l.setlength(arr_len);
 	master.setlength(arr_len);
-	corr.setlength(arr_len - 2);
+	corr_intake.setlength(arr_len - 2);
+	corr_outtake_r.setlength(arr_len - 2);
+	corr_outtake_l.setlength(arr_len - 2);
 
 	for (int i = 0; i < arr_len; i++) {
-		currents[i] = 0.0;
+		currents_intake[i] = 0.0;
+		currents_outtake_r[i] = 0.0;
+		currents_outtake_l[i] = 0.0;
 	}
 
 	master[0] = 10.3750000000000;
@@ -187,8 +203,21 @@ Intake::Intake(PowerDistributionPanel *pdp,
 	master[14] = 17.7500000000000;
 	master[15] = 15.8750000000000;
 	master[16] = 14.1250000000000;
+	master[17] = 12.750000000000;
+	master[18] = 11.750000000000;
+	master[19] = 10.8750000000000;
+	master[20] = 9.62500000000000;
+	master[21] = 9.0000000000;
+	master[22] = 8.50000000000;
+	master[23] = 8.250000000000;
+	master[24] = 8.0000000000;
+	master[25] = 8.2500000000000;
+	master[26] = 7.870000000000;
+	master[27] = 7.870000000000;
+	master[28] = 8.0000000000;
+	master[29] = 8.250000000000;
 
-	for (int i = 17; i < arr_len; i++) {
+	for (int i = 30; i < arr_len; i++) {
 		master[i] = 0.0;
 	}
 
@@ -221,7 +250,7 @@ void Intake::SetStartingPos(double start) { //not used
 void Intake::InitializeIntake() {
 
 	if (!is_init_intake) {
-		SetVoltageIntake(2.5); //offset is changed accordingly //TODO: increase zeroing voltage
+		SetVoltageIntake(3.5); //offset is changed accordingly //TODO: increase zeroing voltage //2.5
 
 	}
 
@@ -347,7 +376,7 @@ void Intake::SetVoltageIntake(double voltage_i) {
 		elevator_i->keep_elevator_up = false;
 	}
 
-	if (talonIntakeArm->GetOutputCurrent() > 3.0) { //probably don't need this current check
+	if (talonIntakeArm->GetOutputCurrent() > ZERO_CURRENT) { //probably don't need this current check
 		counter_i++;
 		if (counter_i > 1) {
 			if (ZeroEnc()) { //successfully zeroed enc one time
@@ -592,47 +621,73 @@ bool Intake::EncodersRunning() { //will stop the controller from run //or stalle
 
 bool Intake::HaveCube() {
 
-	if (frc::RobotState::IsOperatorControl()) {
-		if (talonIntake1->GetOutputCurrent() >= MAX_INTAKE_CURRENT
-				&& talonIntake2->GetOutputCurrent() >= MAX_INTAKE_CURRENT) {
-			current_counter++;
-		} else {
-			current_counter = 0;
+//	if (frc::RobotState::IsOperatorControl()) {
+//		if (talonIntake1->GetOutputCurrent() >= MAX_INTAKE_CURRENT
+//				&& talonIntake2->GetOutputCurrent() >= MAX_INTAKE_CURRENT) {
+//			current_counter++;
+//		} else {
+//			current_counter = 0;
+//		}
+//		if (current_counter >= 3) {
+//			return true;
+//		} else {
+//			return false;
+//		}
+//	} else {
+//		if (talonIntake1->GetOutputCurrent() >= 10.0
+//				&& talonIntake2->GetOutputCurrent() >= 10.0) {
+//			current_counter++;
+//		} else {
+//			current_counter = 0;
+//		}
+//		if (current_counter >= 3) {
+//			return true;
+//		} else {
+//			return false;
+//		}
+//	}
+	for (int i = 0; i < (sample_window_intake - 2); i++) { //to index 18
+		currents_intake[i] = currents_intake[i + 1];
+	}
+
+	currents_intake[sample_window_intake - 1] = talonIntake1->GetOutputCurrent();
+
+	alglib::corrr1d(currents_intake, arr_len, master, arr_len, corr_intake);
+
+	//std::cout << "corr intake: " << FindMaximum(corr_intake) << std::endl;
+
+	if (FindMaximum(corr_intake) > INTAKE_CORR_VALUE) {
+		for (int i = 0; i < (sample_window_intake - 1); i++) { //to index 18
+			currents_intake[i] = 0;
 		}
-		if (current_counter >= 3) {
-			return true;
-		} else {
-			return false;
-		}
+		return true;
 	} else {
-		if (talonIntake1->GetOutputCurrent() >= 10.0
-				&& talonIntake2->GetOutputCurrent() >= 10.0) {
-			current_counter++;
-		} else {
-			current_counter = 0;
-		}
-		if (current_counter >= 3) {
-			return true;
-		} else {
-			return false;
-		}
+		return false;
 	}
 
 }
 
 bool Intake::ReleasedCube() { //TODO: change in havecube
 
-	currents[sample_window] = talonIntake1->GetOutputCurrent();
-
-	for(int i = 0; i < (sample_window - 1); i++) { //to index 18
-		currents[i] = currents[i + 1];
+	for (int i = 0; i < (sample_window_outtake - 2); i++) { //to index 18
+		currents_outtake_r[i] = currents_outtake_r[i + 1];
+		currents_outtake_l[i] = currents_outtake_l[i + 1];
 	}
 
-	alglib::corrr1d(currents, arr_len, master, arr_len, corr);
+	currents_outtake_r[sample_window_outtake - 1] = talonIntake1->GetOutputCurrent();
+	currents_outtake_l[sample_window_outtake - 1] = talonIntake2->GetOutputCurrent();
 
-	std::cout << "corr: " << FindMaximum(corr) << std::endl;
+	alglib::corrr1d(currents_outtake_r, arr_len, master, arr_len, corr_outtake_r);
+	alglib::corrr1d(currents_outtake_l, arr_len, master, arr_len, corr_outtake_l);
 
-	if(FindMaximum(corr) > 2500) {
+
+	//std::cout << "corr: " << FindMaximum(corr_outtake_r) << ", "<< FindMaximum(corr_outtake_l) << std::endl;
+
+	if (FindMaximum(corr_outtake_r) > OUTTAKE_CORR_VALUE && FindMaximum(corr_outtake_l) > OUTTAKE_CORR_VALUE) {
+		for (int i = 0; i < (sample_window_outtake - 1); i++) { //to index 18
+			currents_outtake_r[i] = 0.0;
+			currents_outtake_l[i] = 0.0;
+		}
 		return true;
 	} else {
 		return false;
@@ -644,8 +699,8 @@ double Intake::FindMaximum(alglib::real_1d_array corr) {
 
 	int max = -1;
 
-	for(int i = 0; i < (arr_len - 3); i++) { //only works for corr
-		if(std::abs(corr[i]) > max) {
+	for (int i = 0; i < (arr_len - 3); i++) { //only works for corr
+		if (std::abs(corr[i]) > max) {
 			max = std::abs(corr[i]);
 		}
 	}

@@ -44,6 +44,7 @@ AutonStateMachine::AutonStateMachine(Elevator *elevator_, Intake *intake_,
 
 	has_started_shoot = false;
 	shoot_counter = 0;
+	shoot_cube = false; //TODO: add shoot_cube to other shoot states
 
 }
 
@@ -221,8 +222,8 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 			intake_a->intake_arm_state = intake_a->UP_STATE_H;
 		}
 		elevator_a->elevator_state = elevator_a->UP_STATE_E_H;
-		if (elevator_a->GetElevatorPosition() >= 0.85
-				&& intake_a->GetAngularPosition() > 1.9) { //shoot if the height of the elevator and the angle of the arm is good enough //WAS 1.98
+		if (elevator_a->GetElevatorPosition() >= 0.82
+				&& intake_a->GetAngularPosition() > 1.9 && shoot_cube) { //shoot if the height of the elevator and the angle of the arm is good enough //WAS 1.98
 			intake_a->intake_wheel_state = intake_a->OUT_STATE_H;
 			//std::cout << "intake out " << std::endl;
 			if (intake_a->ReleasedCube()) {

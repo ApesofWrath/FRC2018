@@ -114,7 +114,7 @@ Elevator::Elevator(PowerDistributionPanel *pdp,
 void Elevator::InitializeElevator() {
 
 	if (!is_elevator_init) { //don't see hall effect
-		SetVoltageElevator(2.0);
+		SetVoltageElevator(0.0);
 	}
 
 }
@@ -197,7 +197,7 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 		SmartDashboard::PutString("ELEVATOR SAFETY", "lower soft");
 	}
 
-	if (!is_at_bottom_e) {
+	if (!is_elevator_init) { //changed this to just zero on start up (as it always be at the bottom at the start of the match)
 		if (ZeroEncs()) { //successfully zeroed one time
 			is_elevator_init = true;
 		}

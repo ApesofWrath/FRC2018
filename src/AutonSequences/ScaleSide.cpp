@@ -24,17 +24,17 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch,
 
 	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
 
-	Waypoint p1, p2, p3;
+	Waypoint p1, p2;
 
 	//feet
 	if (left_scale) {
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {-19.8, 4.0, d2r(-20.0)}; //yaw is still from the robot's perspective
+		p2 = {-22.5, 6.5, d2r(-35.0)}; //yaw is still from the robot's perspective
 		//	p3 = {-19.8, 6.2, d2r(0.0)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {-19.8, -4.0, d2r(20.0)}; //TODO: change this
+		p2 = {-22.5, -6.5, d2r(35.0)}; //TODO: change this
 		//	p3 = {-19.8, -6.2, d2r(0.0)};
 	}
 
@@ -110,11 +110,11 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale,
 //feet
 	if (left_switch) {
 		p1 = {0.0, 0.0, 0.0}; //Y, X, yaw
-		p2 = {5.7, 1.25, d2r(20.0)};
+		p2 = {4.65, 2.25, d2r(45.0)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {5.7, -1.25, d2r(20.0)};
+		p2 = {4.65, -2.25, d2r(-45.0)};
 	}
 
 	points[0] = p1;
@@ -122,7 +122,7 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale,
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC, //always using cubic, to not go around the points so much
-			PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 4.0, 100000.0, &candidate); //TODO: update time step
+			PATHFINDER_SAMPLES_FAST, 0.02, 17.0, 8.0, 100000.0, &candidate); //TODO: update time step
 
 	length = candidate.length;
 	added_switch_len = length;
@@ -188,11 +188,11 @@ void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spl
 //feet
 	if (left) {
 		p1 = {0.0, 0.0, 0.0}; //Y, X, yaw //just reversed all of these points
-		p2 = {-5.7, -1.25, d2r(-20.0)};
+		p2 = {-4.25, -1.25, d2r(-60.0)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {-5.7, 1.25, d2r(-20.0)};
+		p2 = {-4.25, 1.25, d2r(60.0)};
 	}
 
 	points[0] = p1;
@@ -252,25 +252,28 @@ void ScaleSide::RunStateMachineScaleSwitch(bool *place_scale_backwards,
 
 //no other state machine booleans needed, all other ones will stay false
 
-	if (drive_controller->GetDriveIndex() >= (scale_traj_len / 2)) { //start moving superstructure halfway through drive profile
-		if ((drive_controller->GetDriveIndex() >= scale_traj_len && !intake_->ReleasedCube()) || drive_controller->GetDriveIndex() >= (scale_traj_len + added_switch_len)) { //second case should not be needed, but just there
-			drive_controller->StopProfile(true);
-		} else {
-			drive_controller->StopProfile(false);
-		}
+	bool released_cube = intake_->ReleasedCube();
+
+	if ((drive_controller->GetDriveIndex() >= scale_traj_len && !released_cube) || drive_controller->GetDriveIndex() >= (scale_traj_len + added_switch_len)) { //second case should not be needed, but just there
+		drive_controller->StopProfile(true);
+	} else {
+		drive_controller->StopProfile(false);
+	}
+
+	if (drive_controller->GetDriveIndex()
+			>= (scale_traj_len + added_switch_len)
+			&& added_switch_len > 0) { //if at end of profile, and added profile exists
+		*place_switch = true;
+	}
+
+	if (drive_controller->GetDriveIndex() >= (scale_traj_len / 3)) { //start moving superstructure halfway through drive profile
 		if (auton_state_machine->shoot_counter == 0) { //!started shoot
 			*place_scale_backwards = true; //needs to go back to being false
 		} else {
 			*place_scale_backwards = false;
 		}
-		if (intake_->ReleasedCube()) {
+		if (released_cube) {
 			*get_cube_ground = true;
-		}
-
-		if (drive_controller->GetDriveIndex()
-				>= (scale_traj_len + added_switch_len)
-				&& added_switch_len > 0) { //if at end of profile, and added profile exists
-			*place_switch = true;
 		}
 	}
 
@@ -282,18 +285,22 @@ void ScaleSide::RunStateMachineScaleOnly(bool *place_scale_backwards,
 
 //no other state machine booleans needed, all other ones will stay false
 
-	if (drive_controller->GetDriveIndex() >= (scale_traj_len / 2)) { //start moving superstructure once drive is halfway there
+	if (drive_controller->GetDriveIndex() >= (scale_traj_len / 3)) { //start moving superstructure once drive is halfway there (1/3rd)
 		if (drive_controller->GetDriveIndex() >= scale_traj_len) { //drive profile refs should stay at the last index, at the scale position, anyway, but just for clarity
 			drive_controller->StopProfile(true);
-		}
+		} //no else
 		if (auton_state_machine->shoot_counter == 0) { //!startedshoot
 			*place_scale_backwards = true; //needs to go back to being false so that after going through post_intake and staying in post_intake configuration, it stays in wfb_state
+			if(drive_controller->GetLeftVel() < 2.0) {
+				auton_state_machine->shoot_cube = true;
+				SmartDashboard::PutNumber("here", 4);
+			}
 		} else {
 			*place_scale_backwards = false;
 		}
-		if (intake_->ReleasedCube()) {
-			*get_cube_ground = true; //may change this
-		}
+//		if (intake_->ReleasedCube()) {
+//			*get_cube_ground = true; //may change this
+//		}
 	}
 
 }
@@ -306,9 +313,10 @@ void ScaleSide::RunStateMachineScaleScale(bool *place_scale_backwards,
 
 //no other state machine booleans needed, all other ones will stay false
 
-	if (drive_controller->GetDriveIndex() >= (scale_traj_len / 2)) { //start moving superstructure halfway
+	if (drive_controller->GetDriveIndex() >= (scale_traj_len / 3)) { //start moving superstructure halfway
 		if ((drive_controller->GetDriveIndex() >= scale_traj_len && auton_state_machine->shoot_counter == 0) || drive_controller->GetDriveIndex() >= (scale_traj_len + added_switch_len + added_scale_len)) { //second case should not be needed, but just there
 			drive_controller->StopProfile(true);
+			//drive_controller->ZeroAll(true);
 		} else {
 			drive_controller->StopProfile(false);
 		}
