@@ -67,11 +67,12 @@ void SwitchSide::GenerateSwitchSide(bool left, bool added_switch) { //left cente
 
 		if (l >= length) { //still have more in the 1500 allotted points
 			ForwardSwitch(left, added_switch); //will finish off 1500 points
+			zeroing_indeces.push_back(back_switch_len);
 			break;
 		}
 
 		//always zero for single switch side
-		drive_controller->SetZeroingIndex(back_switch_len); //DONT DRIVE WHILE SHOOTING
+		drive_controller->SetZeroingIndex(zeroing_indeces); //DONT DRIVE WHILE SHOOTING
 
 		//	timerPause->Start();
 		//	if(timerPause->HasPeriodPassed(3)) {
@@ -140,8 +141,7 @@ void SwitchSide::ForwardSwitch(bool left, bool added_switch) { //must zero profi
 		if (i >= (back_switch_len + forward_switch_len)) { //still have more in the 1500 allotted points
 //			if (added_switch) { //for multiple side switch eventually
 //				GetAddedSwitch(left);
-//				drive_controller->SetZeroingIndex(
-//						back_switch_len + forward_switch_len);
+//				zeroing_indeces.push_back(back_switch_len);
 //			} else {
 				full_refs_sw_s.at(i).at(0) = full_refs_sw_s.at(i - 1).at(0); //i - 1 will always be the last sensible value since it cascades
 				full_refs_sw_s.at(i).at(1) = full_refs_sw_s.at(i - 1).at(1);

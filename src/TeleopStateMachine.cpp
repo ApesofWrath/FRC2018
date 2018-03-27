@@ -5,7 +5,8 @@
  *      Author: DriversStation
  */
 
-//CHANGE: hold button until ready to shoot, elevator and intake will be in position
+//CHANGE: hold button until ready to shoot, elevator and intake will be in position - test this
+//TODO: add safety in case we end auton unsafely
 #include <TeleopStateMachine.h>
 #include <WPILib.h>
 

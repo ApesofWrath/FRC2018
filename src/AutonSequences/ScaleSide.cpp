@@ -75,7 +75,7 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch,
 
 		if (i >= length) { //still have more in the 1500 allotted points, finished putting in the points to get to the place backwards position
 			if (switch_ || added_scale) {
-				drive_controller->SetZeroingIndex(scale_traj_len);
+				zeroing_indeces.push_back(scale_traj_len);
 				GenerateAddedSwitch(left_switch, added_scale, left_added_scale); //this function will finish off 1500 points //added scale goes through switch first //true, true, true
 				break;
 			} else { //fill the rest with the last point to just stay there
@@ -89,6 +89,7 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch,
 		}
 	}
 
+	drive_controller->SetZeroingIndex(zeroing_indeces);
 	drive_controller->SetRefs(full_refs_sc);
 
 	free(trajectory);
@@ -152,7 +153,7 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale,
 
 		if (i >= (scale_traj_len + added_switch_len)) { //still have more points left after placing on scale backwards and placing switch
 			if (added_scale) {
-				drive_controller->SetZeroingIndex(
+				zeroing_indeces.push_back(
 						scale_traj_len + added_switch_len);
 				GenerateAddedScale(left_added_scale);
 				break; //generateAddedScale will finish off the 1500 points itself

@@ -202,6 +202,8 @@ Timer *timerTeleop = new Timer();
 
 double feed_forward_r, feed_forward_l, feed_forward_k;
 
+bool is_zero;
+
 double init_heading = 0;
 double total_heading = 0;
 
@@ -425,13 +427,14 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 	canTalonRight4->ConfigVelocityMeasurementWindow(5, 0);
 
 	canTalonLeft1->SetControlFramePeriod(ControlFrame::Control_3_General, 5); //set talons every 5ms, default is 10
-	canTalonRight1->SetStatusFramePeriod(StatusFrameEnhanced::Status_2_Feedback0, 10, 0); //for getselectedsensor //getselectedsensor defaults to 10ms anyway. don't use getsensorcollection because that defaults to 160ms
+	canTalonRight1->SetStatusFramePeriod(
+			StatusFrameEnhanced::Status_2_Feedback0, 10, 0); //for getselectedsensor //getselectedsensor defaults to 10ms anyway. don't use getsensorcollection because that defaults to 160ms
 
 	ahrs = new AHRS(SerialPort::kUSB);
 #ifndef CORNELIUS
 	solenoid = new DoubleSolenoid(3, 1, 0); //101
 #else
-	solenoid = new DoubleSolenoid(1, 0, 1);
+	solenoid = new DoubleSolenoid(0, 0, 1);
 #endif
 	canTalonKicker = new TalonSRX(-1);
 
@@ -819,9 +822,8 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 //target rpm right, left
 
 	Controller(0.0, 0.0, 0.0, targetYawRate, k_p_right_vel_au, k_p_left_vel_au,
-			0.0, k_p_yaw_au, k_d_yaw_au, k_d_left_vel_au,
-			k_d_right_vel_au, 0.0, target_rpm_left,
-			target_rpm_right, 0.0);
+			0.0, k_p_yaw_au, k_d_yaw_au, k_d_left_vel_au, k_d_right_vel_au, 0.0,
+			target_rpm_left, target_rpm_right, 0.0);
 
 	l_last_error = l_error_dis_au;
 	r_last_error = r_error_dis_au;
@@ -1102,7 +1104,7 @@ int DriveControllerMother::GetDriveIndex() {
 
 }
 
-void DriveControllerMother::SetZeroingIndex(int zero_index) {
+void DriveControllerMother::SetZeroingIndex(std::vector<int> zero_index) {
 
 	zeroing_index = zero_index;
 
@@ -1123,12 +1125,18 @@ void DriveControllerMother::RunAutonDrive() {
 		drive_ref.at(i) = auton_profile.at(row_index).at(i); //from SetRef()
 	}
 
-	if (row_index == zeroing_index) { //zeroing index set in generateprofiler()'s //TODO: make zeroing_index a vector to look through so that we can zero in more than one place
+	for (int i = 0; i < zeroing_index.size(); i++) {
+		if(row_index == zeroing_index[i]) {
+			is_zero = true;
+		} else {
+			is_zero = false;
+		}
+	}
+	if (is_zero) { //zeroing indeces set in generateprofiler()'s
 		ZeroAll(true); //sets drive to 0.0
 	} else {
 		AutonDrive(); //send each row to auton drive before getting the next row
 	}
-
 	if (continue_profile && row_index < auton_profile.size()) { //autonprofilesize is always 1500
 		row_index++;
 	}

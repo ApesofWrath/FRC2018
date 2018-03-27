@@ -8,7 +8,7 @@
 //Center Switch
 #include <AutonSequences/SwitchCenter.h>
 
-int added_place_switch_len = 0;
+int added_get_switch_len = 0;
 int added_score_switch_len = 0;
 int switch_len = 0; //first place switch, we start auton with a cube in
 
@@ -44,7 +44,7 @@ void SwitchCenter::GenerateSwitch(bool left, bool added_switch) { //left center 
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, TODO:jerk time_step_auton
+	PATHFINDER_SAMPLES_FAST, time_step_auton, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, TODO:jerk time_step_auton
 
 	length = candidate.length;
 	switch_len = length;
@@ -73,10 +73,10 @@ void SwitchCenter::GenerateSwitch(bool left, bool added_switch) { //left center 
 		full_refs_sw.at(l).at(4) = ((double) sl.velocity);
 		full_refs_sw.at(l).at(5) = ((double) sr.velocity);
 
-		if (l >= length) {
+		if (l >= switch_len) {
 			if (added_switch) {
 				GetAddedSwitch(left);
-				drive_controller->SetZeroingIndex(switch_len);
+				zeroing_indeces.push_back(switch_len);
 				break; //TODO: make sure there are breaks
 			} else {
 				full_refs_sw.at(l).at(0) = full_refs_sw.at(l - 1).at(0);
@@ -89,8 +89,8 @@ void SwitchCenter::GenerateSwitch(bool left, bool added_switch) { //left center 
 		}
 	}
 
-	std::cout << "pathfnder" << std::endl;
-
+	//std::cout << "pathfnder" << std::endl;
+	drive_controller->SetZeroingIndex(zeroing_indeces);
 	drive_controller->SetRefs(full_refs_sw);
 
 	free(trajectory);
@@ -124,7 +124,7 @@ void SwitchCenter::GetAddedSwitch(bool left) { //must zero profile, need to not 
 	PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk //profile speed must equal drive thread time step //TODO:make time step global
 
 	int length = candidate.length;
-	added_place_switch_len = length;
+	added_get_switch_len = length;
 	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));
 
 	pathfinder_generate(&candidate, trajectory);
@@ -142,17 +142,17 @@ void SwitchCenter::GetAddedSwitch(bool left) { //must zero profile, need to not 
 		Segment sl = leftTrajectory[i - (switch_len)]; //start at beginning of new profile
 		Segment sr = rightTrajectory[i - (switch_len)];
 
-		full_refs_sw.at(i).at(0) = ((double) sl.heading); //positive
-		full_refs_sw.at(i).at(1) = ((double) sl.position);
-		full_refs_sw.at(i).at(2) = ((double) sr.position);
+		full_refs_sw.at(i).at(0) = ((double) sl.heading) - PI;
+		full_refs_sw.at(i).at(1) = -1.0 * ((double) sl.position);
+		full_refs_sw.at(i).at(2) = -1.0 * ((double) sr.position);
 		full_refs_sw.at(i).at(3) = (0.0);
-		full_refs_sw.at(i).at(4) = ((double) sl.velocity);
-		full_refs_sw.at(i).at(5) = ((double) sr.velocity);
+		full_refs_sw.at(i).at(4) = -1.0 * ((double) sl.velocity);
+		full_refs_sw.at(i).at(5) = -1.0 * ((double) sr.velocity);
 
-		if (i >= (switch_len + added_place_switch_len)) { //still have more in the 1500 allotted points
+		if (i >= (switch_len + added_get_switch_len)) { //still have more in the 1500 allotted points
 			PlaceAddedSwitch(left);
-			drive_controller->SetZeroingIndex(
-					switch_len + added_place_switch_len);
+			zeroing_indeces.push_back(switch_len + added_get_switch_len);
+			break;
 		}
 
 	}
@@ -201,10 +201,10 @@ void SwitchCenter::PlaceAddedSwitch(bool left) { //TODO: backwards refs
 	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
 			wheelbase_width);
 
-	for (int i = (switch_len + added_place_switch_len); i < 1500; i++) { //starting from the next point, right after the pathfinder trajectory ends
+	for (int i = (switch_len + added_get_switch_len); i < 1500; i++) { //starting from the next point, right after the pathfinder trajectory ends
 
-		Segment sl = leftTrajectory[i - (switch_len + added_place_switch_len)]; //start at beginning of new profile
-		Segment sr = rightTrajectory[i - (switch_len + added_place_switch_len)];
+		Segment sl = leftTrajectory[i - (switch_len + added_get_switch_len)]; //start at beginning of new profile
+		Segment sr = rightTrajectory[i - (switch_len + added_get_switch_len)];
 
 		full_refs_sw.at(i).at(0) = ((double) sl.heading); //positive
 		full_refs_sw.at(i).at(1) = ((double) sl.position);
@@ -213,7 +213,7 @@ void SwitchCenter::PlaceAddedSwitch(bool left) { //TODO: backwards refs
 		full_refs_sw.at(i).at(4) = ((double) sl.velocity);
 		full_refs_sw.at(i).at(5) = ((double) sr.velocity);
 
-		if (i >= (switch_len + added_place_switch_len + added_score_switch_len)) { //still have more in the 1500 allotted points
+		if (i >= (switch_len + added_get_switch_len + added_score_switch_len)) { //still have more in the 1500 allotted points
 			full_refs_sw.at(i).at(0) = full_refs_sw.at(i - 1).at(0); //i - 1 will always be the last sensible value sinwe it waswades
 			full_refs_sw.at(i).at(1) = full_refs_sw.at(i - 1).at(1);
 			full_refs_sw.at(i).at(2) = full_refs_sw.at(i - 1).at(2);

@@ -45,7 +45,7 @@ public:
 
 	int row_index = 0;
 
-	int zeroing_index = 0;
+	std::vector<int> zeroing_index;
 
 	//needs the CAN IDs of all the talons and whether or not this is a west coast or HDrive train, input -1 if no kicker (or really whatever you want since it wont be used)
 	DriveControllerMother(int fl, int fr, int rl, int rr, int k, bool is_wc, bool start_low); //for HDrive or West Coast with 4 total talons
@@ -94,7 +94,7 @@ public:
 	void SetRefs(std::vector<std::vector<double>> profile);
 	void SetRows(std::vector<std::vector<double>> two_rows_profile);
 
-	void SetZeroingIndex(int zero_index);
+	void SetZeroingIndex(std::vector<int> zero_index);
 	void StopProfile(bool stop_profile);
 
 	//Wrapper Functions

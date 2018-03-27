@@ -26,7 +26,7 @@ Autonomous::Autonomous(DriveController *dc, Elevator *el, Intake *in, AutonState
 	intake_ = in;
 	auton_state_machine = ausm;
 
-	time_step_auton = dc->time_step_drive;
+	time_step_auton = drive_controller->time_step_drive;
 }
 
 bool Autonomous::StartedShoot() { //has_started_shoot never resets to false

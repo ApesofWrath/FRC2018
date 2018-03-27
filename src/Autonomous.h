@@ -34,6 +34,8 @@ public:
 
 	double time_step_auton;
 
+	std::vector<int> zeroing_indeces; //can also add the profile refs here
+
 	bool StartedShoot();
 
 };
