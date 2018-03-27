@@ -72,6 +72,8 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 
 	case WAIT_FOR_BUTTON_STATE_A: //will start arm up and elev down
 
+		driveController_a->StopProfile(false);
+
 		SmartDashboard::PutString("STATE", "WAIT FOR BUTTON.");
 		if (get_cube_ground) { //can go to all states below wfb state
 			state_a = GET_CUBE_GROUND_STATE_A;
@@ -121,7 +123,7 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 
 		SmartDashboard::PutString("STATE", "POST INTAKE SWITCH");
 
-		driveController_a->StopProfile(true);
+		driveController_a->StopProfile(true); //TODO: put all drive stop in state changers
 
 		if (last_state_a != POST_INTAKE_SWITCH_STATE_A) { //stores last state
 			store_last_state = last_state_a;
@@ -132,14 +134,13 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 		intake_a->intake_arm_state = intake_a->UP_STATE_H;
 		intake_a->intake_wheel_state = intake_a->STOP_WHEEL_STATE_H;
 
-		if (raise_to_switch && last_state_a != PLACE_SWITCH_STATE_A) {
+		if(last_state_a == PLACE_SWITCH_STATE_A || last_state_a == PLACE_SCALE_STATE_A) {
+			state_a = WAIT_FOR_BUTTON_STATE_A;
+		} else if (raise_to_switch && last_state_a != PLACE_SWITCH_STATE_A) {
 			state_a = PLACE_SWITCH_STATE_A;
 		} else if (raise_to_scale && last_state_a != PLACE_SCALE_STATE_A) { //came from placing
 			state_a = PLACE_SCALE_STATE_A;
-		} else if (raise_to_scale_backwards
-				&& last_state_a != PLACE_SCALE_BACKWARDS_STATE_A) {
-			state_a = PLACE_SCALE_BACKWARDS_STATE_A;
-		}
+		} //
 		last_state_a = POST_INTAKE_SWITCH_STATE_A;
 		//can always go back to wait for button state
 		break;

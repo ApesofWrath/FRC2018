@@ -1126,7 +1126,7 @@ void DriveControllerMother::RunAutonDrive() {
 	}
 
 	for (int i = 0; i < zeroing_index.size(); i++) {
-		if(row_index == zeroing_index[i]) {
+		if(row_index == zeroing_index.at(i)) {
 			is_zero = true;
 		} else {
 			is_zero = false;
@@ -1140,4 +1140,6 @@ void DriveControllerMother::RunAutonDrive() {
 	if (continue_profile && row_index < auton_profile.size()) { //autonprofilesize is always 1500
 		row_index++;
 	}
+
+	SmartDashboard::PutNumber("row index", row_index);
 }

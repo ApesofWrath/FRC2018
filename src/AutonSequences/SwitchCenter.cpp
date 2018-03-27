@@ -44,7 +44,7 @@ void SwitchCenter::GenerateSwitch(bool left, bool added_switch) { //left center 
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, time_step_auton, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, TODO:jerk time_step_auton
+	PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, TODO:jerk time_step_auton
 
 	length = candidate.length;
 	switch_len = length;
@@ -101,29 +101,32 @@ void SwitchCenter::GenerateSwitch(bool left, bool added_switch) { //left center 
 
 void SwitchCenter::GetAddedSwitch(bool left) { //must zero profile, need to not carry over old orientation and pause before continuing //must also zero encoders
 
-	int POINT_LENGTH = 2;
+	int POINT_LENGTH = 3;
 
 	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
 
-	Waypoint p1, p2;
+	Waypoint p1, p2, p3;
 
 	//feet
 	if (left) {
-		p1 = {0.0, 0.0, 0.0};
-		p2 = {-2.0, 1.0, d2r(70.0)};
+		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
+		p2 = {-10.0, 0.2, 0.0};//{-6.0, 3.0, d2r(20.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
+		//p3 = {-10.0, 0.2, 0.0};//{-9.5, 4.5, d2r(0)}; //cannot just move in Y axis because of spline math
 	} else {
-		p1 = {0.0, 0.0, 0.0};
-		p2 = {-2.0, -1.0, d2r(-70.0)};
+		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
+		p2 = {-6.0, -3.0, d2r(-20.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
+		p3 = {-9.5, -4.0, d2r(0)}; //cannot just move in Y axis because of spline math //CENTER STARTS CLOSER TO THE RIGHT //3.5
 	}
 
 	points[0] = p1;
 	points[1] = p2;
+	//points[2] = p3;
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
 	PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk //profile speed must equal drive thread time step //TODO:make time step global
 
-	int length = candidate.length;
+	length = candidate.length;
 	added_get_switch_len = length;
 	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));
 
@@ -187,8 +190,9 @@ void SwitchCenter::PlaceAddedSwitch(bool left) { //TODO: backwards refs
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
 	PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk //profile speed must equal drive thread time step //TODO:make time step global
 
-	int length = candidate.length;
+	length = candidate.length;
 	added_score_switch_len = length;
+
 	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));
 
 	pathfinder_generate(&candidate, trajectory);
@@ -224,6 +228,10 @@ void SwitchCenter::PlaceAddedSwitch(bool left) { //TODO: backwards refs
 
 	}
 
+	SmartDashboard::PutNumber("all together", switch_len + added_get_switch_len + added_score_switch_len);
+	SmartDashboard::PutNumber("just the middle", added_get_switch_len);
+	SmartDashboard::PutNumber("just the last", added_score_switch_len);
+
 	free(trajectory);
 	free(leftTrajectory);
 	free(rightTrajectory);
@@ -235,7 +243,7 @@ void SwitchCenter::RunStateMachine(bool *place_switch) {
 	//no other state machine booleans needed, all other ones will stay false
 
 	//start being true at end of drive profile, stop being true once start shooting
-	if (drive_controller->GetDriveIndex() >= switch_len && !StartedShoot()) { //at the end of the drive, while we have not released a cube //GetIndex() >= length && //should be has started shooting
+	if (drive_controller->GetDriveIndex() >= switch_len && auton_state_machine->shoot_counter == 0) { //at the end of the drive, while we have not released a cube //GetIndex() >= length && //should be has started shooting
 		*place_switch = true; //must run once initialized!
 	} else {
 		*place_switch = false;

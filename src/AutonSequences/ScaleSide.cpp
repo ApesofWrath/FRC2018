@@ -13,8 +13,6 @@ int added_scale_len = 0;
 
 std::vector<std::vector<double> > full_refs_sc(1500, std::vector<double>(6)); //initalizes each index value to 0, depends on only needing 1500 points: one every 10 ms, should only be using 300 since actually using a 50 ms time step, but we may change the time step
 
-//Timer *timerPauseScale = new Timer(); //may need later
-
 void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch,
 		bool added_scale, bool left_added_scale) { //true, false, true, true, true //direction on the switch needs to be accurate, but switch_ can be false
 

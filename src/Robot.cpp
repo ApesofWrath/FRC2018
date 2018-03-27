@@ -292,21 +292,24 @@ public:
 			//Switch switch
 		} else if (autoSelected == cubeSwitchSwitch) { //TODO: replace this logic with a direct chooser
 			if (positionSelected == left && leftSwitch) {
-				switch_side = new SwitchSide(drive_controller, elevator_,
-						intake_, auton_state_machine);
-				switch_side->GenerateSwitchSide(leftSwitch, true);
-				switchCenterState = true;
+//				switch_side = new SwitchSide(drive_controller, elevator_,
+//						intake_, auton_state_machine);
+//				switch_side->GenerateSwitchSide(leftSwitch, true);
+//				switchCenterState = true;
 
 			} else if (positionSelected == right && !leftSwitch) {
-				switch_side = new SwitchSide(drive_controller, elevator_,
-						intake_, auton_state_machine);
-				switch_side->GenerateSwitchSide(leftSwitch, true);
-				switchCenterState = true;
+//				switch_center = new SwitchSide(drive_controller, elevator_,
+//						intake_, auton_state_machine);
+//				std::cout << "the right one" << std::endl;
+//				switch_center->GenerateSwitch(leftSwitch, true);
+//				switchCenterState = true;
 
-			} else if (positionSelected == center) { //DOES NOT YET SUPPORT 2 SWITCH
+			} else if (positionSelected == center) {
+				//std::cout << "the right one" << std::endl;
 				switch_center = new SwitchCenter(drive_controller, elevator_,
 						intake_, auton_state_machine);
-				switch_center->GenerateSwitch(leftSwitch, false);
+				//std::cout << "the right 2" << std::endl;
+				switch_center->GenerateSwitch(leftSwitch, true);
 				switchCenterState = true;
 			} else {
 				drive_forward = new DriveForward(drive_controller, elevator_,
