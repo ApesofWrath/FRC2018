@@ -141,8 +141,8 @@ public:
 
 	bool leftSwitch, leftScale;
 
-	bool switchCenterState, scaleScaleState, scaleSwitchState, scaleOnlyState,
-			switchSideState, switchSwitchState;
+	bool switchCenterOneState, scaleScaleState, scaleSwitchState, scaleOnlyState,
+			switchSideState, switchSwitchState, switchCenterTwoState;
 
 	std::string autoSelected;
 
@@ -269,20 +269,20 @@ public:
 				switch_side = new SwitchSide(drive_controller, elevator_,
 						intake_, auton_state_machine);
 				switch_side->GenerateSwitchSide(leftSwitch, false);
-				switchCenterState = true;
+				switchCenterOneState = true;
 
 			} else if (positionSelected == right && !leftSwitch) {
 				switch_side = new SwitchSide(drive_controller, elevator_,
 						intake_, auton_state_machine);
 				switch_side->GenerateSwitchSide(leftSwitch, false); //leftswitch is false
-				switchCenterState = true;
+				switchCenterOneState = true;
 
 			} else if (positionSelected == center) {
 				switch_center = new SwitchCenter(drive_controller, elevator_,
 						intake_, auton_state_machine);
 				//	std::cout << "here" << std::endl;
 				switch_center->GenerateSwitch(leftSwitch, false);
-				switchCenterState = true;
+				switchCenterOneState = true;
 			} else {
 				drive_forward = new DriveForward(drive_controller, elevator_,
 						intake_, auton_state_machine);
@@ -310,7 +310,7 @@ public:
 						intake_, auton_state_machine);
 				//std::cout << "the right 2" << std::endl;
 				switch_center->GenerateSwitch(leftSwitch, true);
-				switchCenterState = true;
+				switchCenterTwoState = true;
 			} else {
 				drive_forward = new DriveForward(drive_controller, elevator_,
 						intake_, auton_state_machine);
@@ -407,10 +407,12 @@ public:
 		} else if (scaleScaleState) {
 			scale_side->RunStateMachineScaleScale(&raise_to_scale_backwards,
 					&get_cube_ground);
-		} else if (switchCenterState) {
+		} else if (switchCenterOneState) {
 			switch_center->RunStateMachine(&raise_to_switch);
 		} else if (switchSideState) {
 			switch_side->RunStateMachineSide(&raise_to_switch);
+		} else if (switchCenterTwoState) {
+			switch_center->RunStateMachineTwo(&raise_to_switch, &get_cube_ground);
 		}
 
 	}
@@ -457,6 +459,11 @@ public:
 		get_cube_ground = joyOp->GetRawButton(GET_CUBE_GROUND);
 		get_cube_station = joyOp->GetRawButton(GET_CUBE_STATION);
 
+		bool test_button = joyOp->GetRawButton(17);
+		if(test_button) {
+			std::cout << "fcking works" << std::endl;
+		}
+
 		post_intake = joyOp->GetRawButton(POST_INTAKE);
 		raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
 		raise_to_scale = joyOp->GetRawButton(RAISE_TO_SCALE);
@@ -491,6 +498,7 @@ public:
 
 		//	drive_controller->AutoShift(is_auto_shift);
 
+		std::cout << intake_->talonIntake1->GetOutputCurrent() << ", " << intake_->talonIntake2->GetOutputCurrent() <<  ", " << intake_->intake_wheel_state << std::endl;
 #endif
 	}
 

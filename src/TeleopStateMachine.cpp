@@ -261,7 +261,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 			} else {
 				intake->intake_wheel_state = intake->SLOW_SCALE_STATE_H;
 			}
-			if (intake->ReleasedCube()) {
+			if (intake->ReleasedCube(true)) {
 				//state = POST_INTAKE_SWITCH_STATE;
 				state = POST_INTAKE_SCALE_STATE; //3/24/18 Max did this because we still clip the 775's when shooting regular shots.The response of the outtake algorithm is so fast,
 											     //that the elevator comes down while the shooter is still recoiling
@@ -284,7 +284,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		if (std::abs(intake->GetAngularPosition() - intake->MID_ANGLE) <= 0.2
 				&& state_intake_wheel && !raise_to_switch) { //hold button until ready to shoot, elevator and intake will be in position
 			intake->intake_wheel_state = intake->SLOW_STATE_H;
-			if (intake->ReleasedCube()) {
+			if (intake->ReleasedCube(true)) { //param does not matter
 				state = POST_INTAKE_SWITCH_STATE;
 			}
 		}
@@ -310,7 +310,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 				&& !raise_to_scale_backwards) { //shoot if the height of the elevator and the angle of the arm is good enough //hold button until ready to shoot, elevator and intake will be in position
 			intake->intake_wheel_state = intake->OUT_STATE_H;
 		//	std::cout << "intake out" << std::endl;
-			if (intake->ReleasedCube()) {
+			if (intake->ReleasedCube(false)) {
 				state = POST_INTAKE_SCALE_STATE;
 			}
 		}

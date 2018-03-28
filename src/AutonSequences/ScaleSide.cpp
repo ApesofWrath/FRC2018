@@ -151,8 +151,7 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale,
 
 		if (i >= (scale_traj_len + added_switch_len)) { //still have more points left after placing on scale backwards and placing switch
 			if (added_scale) {
-				zeroing_indeces.push_back(
-						scale_traj_len + added_switch_len);
+				zeroing_indeces.push_back(scale_traj_len + added_switch_len);
 				GenerateAddedScale(left_added_scale);
 				break; //generateAddedScale will finish off the 1500 points itself
 			} else {
@@ -251,34 +250,39 @@ void ScaleSide::RunStateMachineScaleSwitch(bool *place_scale_backwards,
 
 //no other state machine booleans needed, all other ones will stay false
 
-	SmartDashboard::PutBoolean("place switch", *place_switch);
-	SmartDashboard::PutNumber("total indeces", added_switch_len + scale_traj_len);
-	SmartDashboard::PutNumber("index", drive_controller->GetDriveIndex()); //maybe can't call getindex more than once
+//	SmartDashboard::PutBoolean("place switch", *place_switch);
+//	SmartDashboard::PutNumber("total indeces", added_switch_len + scale_traj_len);
+//	SmartDashboard::PutNumber("index", drive_controller->GetDriveIndex()); //maybe can't call getindex more than once
 
-	bool released_cube = intake_->ReleasedCube(); //may not want to use this because it'll return true every 30*.2 ms
 	int drive_index = drive_controller->GetDriveIndex();
 
-	if (((drive_index >= scale_traj_len && auton_state_machine->shoot_counter == 0) || (elevator_->GetElevatorPosition() > 0.3 && auton_state_machine->shoot_counter == 1))) { // || drive_controller->GetDriveIndex() >= (scale_traj_len + added_switch_len)) { //second case should not be needed because the last points in the profile are copies of the last point for switch, but just there
+	//added check for state to stop profile
+	if (((drive_index >= scale_traj_len
+			&& auton_state_machine->shoot_counter == 0)
+			|| (elevator_->GetElevatorPosition() > 0.3 //elevator going down
+					&& auton_state_machine->shoot_counter == 1))
+			|| auton_state_machine->state_a
+					== auton_state_machine->POST_INTAKE_SCALE_STATE_A_H || (intake_->GetAngularPosition() <= 0.3 && auton_state_machine->state_a == auton_state_machine->GET_CUBE_GROUND_STATE_A_H)) { //for shooting first cube, for waiting for elev/arm to come back down to get ready to get the second cube... a possibly redundant case, for getting the second cube
 		drive_controller->StopProfile(true);
 	} else {
 		drive_controller->StopProfile(false);
 	}
 
-	if (drive_index
-			>= ((scale_traj_len + added_switch_len) / 1.5) && auton_state_machine->shoot_counter == 1) { //if at end of profile, and added profile exists
+	if (drive_index >= ((scale_traj_len + added_switch_len) / 1.5) //start placing once close enough to switch
+			&& auton_state_machine->shoot_counter == 1) {
 		*place_switch = true;
 	} else {
 		*place_switch = false;
 	}
 
-	if (drive_index >= (scale_traj_len / 3)) { //start moving superstructure halfway through drive profile
-		if (auton_state_machine->shoot_counter == 0) { //!started shoot
-			*place_scale_backwards = true; //needs to go back to being false
-			if(std::abs(drive_controller->GetLeftVel()) < 0.5) {
+	if (drive_index >= (scale_traj_len / 3)) { //start moving superstructure on the way to the scale
+		if (auton_state_machine->shoot_counter == 0) {
+			*place_scale_backwards = true;
+			if (std::abs(drive_controller->GetLeftVel()) < 0.5) { //only shoot when drive is slow enough, to not shoot around the world
 				auton_state_machine->shoot_cube = true;
-				*get_cube_ground = true;
+				*get_cube_ground = true; //can stay true for after it's needed
 			} else {
-				auton_state_machine->shoot_cube = false; //will start that slow, and need to reset to false during middle ofprofile
+				auton_state_machine->shoot_cube = false;
 			}
 		} else {
 			*place_scale_backwards = false;
@@ -291,17 +295,13 @@ void ScaleSide::RunStateMachineScaleSwitch(bool *place_scale_backwards,
 void ScaleSide::RunStateMachineScaleOnly(bool *place_scale_backwards,
 		bool *get_cube_ground) { //arm/elev must go back down for the start of teleop, to not get caught on the scale
 
-//no other state machine booleans needed, all other ones will stay false
-
-	//SmartDashboard::PutNumber("LEFT VEL", drive_controller->GetLeftVel());
-
-	if (drive_controller->GetDriveIndex() >= (scale_traj_len / 3)) { //start moving superstructure once drive is halfway there (1/3rd)
+	if (drive_controller->GetDriveIndex() >= (scale_traj_len / 3)) { //start moving superstructure on the way
 		if (drive_controller->GetDriveIndex() >= scale_traj_len) { //drive profile refs should stay at the last index, at the scale position, anyway, but just for clarity
 			drive_controller->StopProfile(true);
 		} //no else
-		if (auton_state_machine->shoot_counter == 0) { //!startedshoot
+		if (auton_state_machine->shoot_counter == 0) {
 			*place_scale_backwards = true; //needs to go back to being false so that after going through post_intake and staying in post_intake configuration, it stays in wfb_state
-			if(std::abs(drive_controller->GetLeftVel()) < 0.5) {
+			if (std::abs(drive_controller->GetLeftVel()) < 0.5) {
 				auton_state_machine->shoot_cube = true;
 			} else {
 				auton_state_machine->shoot_cube = false; //will start that slow, and need to reset to false during middle ofprofile
@@ -325,9 +325,13 @@ void ScaleSide::RunStateMachineScaleScale(bool *place_scale_backwards,
 //no other state machine booleans needed, all other ones will stay false
 
 	if (drive_controller->GetDriveIndex() >= (scale_traj_len / 3)) { //start moving superstructure halfway
-		if ((drive_controller->GetDriveIndex() >= scale_traj_len && auton_state_machine->shoot_counter == 0) || drive_controller->GetDriveIndex() >= (scale_traj_len + added_switch_len + added_scale_len)) { //second case should not be needed, but just there
+		if ((drive_controller->GetDriveIndex() >= scale_traj_len
+				&& auton_state_machine->shoot_counter == 0)
+				|| drive_controller->GetDriveIndex()
+						>= (scale_traj_len + added_switch_len + added_scale_len)
+				|| auton_state_machine->state_a
+						== auton_state_machine->POST_INTAKE_SCALE_STATE_A_H) { //second case should not be needed, but just there
 			drive_controller->StopProfile(true);
-			//drive_controller->ZeroAll(true);
 		} else {
 			drive_controller->StopProfile(false);
 		}

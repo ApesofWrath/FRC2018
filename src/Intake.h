@@ -86,7 +86,7 @@ public:
 
 	bool IsAtBottomIntake();
 	bool HaveCube();
-	bool ReleasedCube();
+	bool ReleasedCube(bool forward_scale);
 	bool EncodersRunning();
 
 	void SetVoltageIntake(double voltage_i);

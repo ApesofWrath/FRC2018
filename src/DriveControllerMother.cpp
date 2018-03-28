@@ -967,14 +967,15 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 
 void DriveControllerMother::ZeroAll(bool stop_motors) {
 
-	ZeroI();
-	ZeroEncs();
-	ZeroYaw();
+	SmartDashboard::PutNumber("it zeroed.", 10);
 
 	if (stop_motors) {
 		StopAll();
 	}
 
+	ZeroI();
+	ZeroEncs();
+	ZeroYaw();
 }
 
 //will stop all driven motors in the drive controller
@@ -996,6 +997,7 @@ void DriveControllerMother::ZeroEncs() { //acc to 8
 //	canTalonRight2->SetSelectedSensorPosition(0, 0, 0);
 //	canTalonLeft2->SetSelectedSensorPosition(0, 0, 0);
 //	canTalonRight3->SetSelectedSensorPosition(0, 0, 0);
+
 //	canTalonLeft3->SetSelectedSensorPosition(0, 0, 0);
 //	canTalonRight4->SetSelectedSensorPosition(0, 0, 0);
 //	canTalonLeft4->SetSelectedSensorPosition(0, 0, 0);
@@ -1119,6 +1121,9 @@ std::vector<std::vector<double> > DriveControllerMother::GetAutonProfile() {
 void DriveControllerMother::RunAutonDrive() {
 
 	//SmartDashboard::PutNumber("auton profile size", auton_profile.size());
+
+	SmartDashboard::PutNumber("enc.", canTalonLeft1->GetSelectedSensorPosition(0));
+	SmartDashboard::PutNumber("yaw zeroed", ahrs->GetYaw());
 
 	//put in profile //was finishing the for loop before we got a profile
 	for (int i = 0; i < auton_profile[0].size(); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs

@@ -89,7 +89,6 @@ void SwitchCenter::GenerateSwitch(bool left, bool added_switch) { //left center 
 		}
 	}
 
-	//std::cout << "pathfnder" << std::endl;
 	drive_controller->SetZeroingIndex(zeroing_indeces);
 	drive_controller->SetRefs(full_refs_sw);
 
@@ -110,17 +109,17 @@ void SwitchCenter::GetAddedSwitch(bool left) { //must zero profile, need to not 
 	//feet
 	if (left) {
 		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
-		p2 = {-10.0, 0.2, 0.0};//{-6.0, 3.0, d2r(20.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
-		//p3 = {-10.0, 0.2, 0.0};//{-9.5, 4.5, d2r(0)}; //cannot just move in Y axis because of spline math
+		p2 = {-6.0, -3.0, d2r(-20.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
+		p3 = {-6.5, -4.0, d2r(0)}; //cannot just move in Y axis because of spline math //CENTER STARTS CLOSER TO THE RIGHT //3.5
 	} else {
 		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
-		p2 = {-6.0, -3.0, d2r(-20.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
-		p3 = {-9.5, -4.0, d2r(0)}; //cannot just move in Y axis because of spline math //CENTER STARTS CLOSER TO THE RIGHT //3.5
+		p2 = {-1.0, 1.0, d2r(20.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
+		p3 = {-1.5, 1.5, d2r(20)}; //cannot just move in Y axis because of spline math //CENTER STARTS CLOSER TO THE RIGHT //3.5
 	}
 
 	points[0] = p1;
 	points[1] = p2;
-	//points[2] = p3;
+	points[2] = p3;
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
@@ -177,10 +176,10 @@ void SwitchCenter::PlaceAddedSwitch(bool left) { //TODO: backwards refs
 	//feet
 	if (left) {
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {2.0, -1.0, d2r(-70.0)};
+		p2 = {2.0, -1.0, d2r(50.0)};
 	} else {
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {2.0, 1.0, d2r(70.0)};
+		p2 = {1.0, 2.0, d2r(0.0)};
 	}
 
 	points[0] = p1;
@@ -229,6 +228,7 @@ void SwitchCenter::PlaceAddedSwitch(bool left) { //TODO: backwards refs
 	}
 
 	SmartDashboard::PutNumber("all together", switch_len + added_get_switch_len + added_score_switch_len);
+	SmartDashboard::PutNumber("just the first", switch_len);
 	SmartDashboard::PutNumber("just the middle", added_get_switch_len);
 	SmartDashboard::PutNumber("just the last", added_score_switch_len);
 
@@ -240,17 +240,41 @@ void SwitchCenter::PlaceAddedSwitch(bool left) { //TODO: backwards refs
 
 void SwitchCenter::RunStateMachine(bool *place_switch) {
 
-	//no other state machine booleans needed, all other ones will stay false
-
 	//start being true at end of drive profile, stop being true once start shooting
-	if (drive_controller->GetDriveIndex() >= switch_len && auton_state_machine->shoot_counter == 0) { //at the end of the drive, while we have not released a cube //GetIndex() >= length && //should be has started shooting
-		*place_switch = true; //must run once initialized!
+	if (drive_controller->GetDriveIndex() >= switch_len && auton_state_machine->shoot_counter == 0) {
+		*place_switch = true;
 	} else {
 		*place_switch = false;
 	}
 
+//	if (auton_state_machine->state_a == auton_state_machine->POST_INTAKE_SWITCH_STATE_A_H) { //should never have to start/stop drive
+//		drive_controller->StopProfile(true);
+//	} else {
+//		drive_controller->StopProfile(false);
+//	}
+
 }
 
-void SwitchCenter::RunStateMachineTwo(bool *place_switch, bool *get_cube_ground) {
+void SwitchCenter::RunStateMachineTwo(bool *place_switch, bool *get_cube_ground) { //TODO: have the drive wait until postintakestate configuration is there
+
+	if ((drive_controller->GetDriveIndex() >= switch_len && auton_state_machine->shoot_counter == 0) || (drive_controller->GetDriveIndex() >= (switch_len + added_get_switch_len + added_score_switch_len) && auton_state_machine->shoot_counter == 1)) {
+		*place_switch = true;
+	} else {
+		*place_switch = false;
+	}
+
+	if (auton_state_machine->shoot_counter == 1 && drive_controller->GetDriveIndex() >= ((switch_len + added_get_switch_len) * 0.9)) {
+		*get_cube_ground = true;
+	} else {
+		*get_cube_ground = false;
+	}
+
+	if(auton_state_machine->state_a == auton_state_machine->PLACE_SWITCH_STATE_A_H || (auton_state_machine->shoot_counter == 1 && elevator_->GetElevatorPosition() > 0.3)) { //will stop until releases cube
+		drive_controller->StopProfile(true);
+	} else {
+		drive_controller->StopProfile(false);
+	}
+
+	//may need if arm is low enough and in get cube ground, stop the drive
 
 }

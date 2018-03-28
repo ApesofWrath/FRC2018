@@ -143,12 +143,12 @@ void SwitchSide::ForwardSwitch(bool left, bool added_switch) { //must zero profi
 //				GetAddedSwitch(left);
 //				zeroing_indeces.push_back(back_switch_len);
 //			} else {
-				full_refs_sw_s.at(i).at(0) = full_refs_sw_s.at(i - 1).at(0); //i - 1 will always be the last sensible value since it cascades
-				full_refs_sw_s.at(i).at(1) = full_refs_sw_s.at(i - 1).at(1);
-				full_refs_sw_s.at(i).at(2) = full_refs_sw_s.at(i - 1).at(2);
-				full_refs_sw_s.at(i).at(3) = full_refs_sw_s.at(i - 1).at(3);
-				full_refs_sw_s.at(i).at(4) = full_refs_sw_s.at(i - 1).at(4);
-				full_refs_sw_s.at(i).at(5) = full_refs_sw_s.at(i - 1).at(5);
+			full_refs_sw_s.at(i).at(0) = full_refs_sw_s.at(i - 1).at(0); //i - 1 will always be the last sensible value since it cascades
+			full_refs_sw_s.at(i).at(1) = full_refs_sw_s.at(i - 1).at(1);
+			full_refs_sw_s.at(i).at(2) = full_refs_sw_s.at(i - 1).at(2);
+			full_refs_sw_s.at(i).at(3) = full_refs_sw_s.at(i - 1).at(3);
+			full_refs_sw_s.at(i).at(4) = full_refs_sw_s.at(i - 1).at(4);
+			full_refs_sw_s.at(i).at(5) = full_refs_sw_s.at(i - 1).at(5);
 //			}
 		}
 
@@ -166,11 +166,17 @@ void SwitchSide::RunStateMachineSide(bool *place_switch) {
 
 	//start being true at end of drive profile, stop being true once start shooting
 	if (drive_controller->GetDriveIndex()
-			>= (back_switch_len + forward_switch_len) && auton_state_machine->shoot_counter == 0) { //at the end of the drive, while we have not released a cube //GetIndex() >= length && //should be has started shooting
+			>= (back_switch_len + forward_switch_len)
+			&& auton_state_machine->shoot_counter == 0) { //at the end of the drive, while we have not released a cube //GetIndex() >= length && //should be has started shooting
 		*place_switch = true; //must run once initialized!
 	} else {
 		*place_switch = false;
 	}
+
+//	if (auton_state_machine->state_a //should not need this
+//			== auton_state_machine->POST_INTAKE_SWITCH_STATE_A_H) {
+//		drive_controller->StopProfile(true);
+//	}
 
 }
 
