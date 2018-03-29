@@ -96,7 +96,7 @@ bool voltage_safety = false;
 std::vector<double> volts = { };
 
 const int sample_window_intake = 40;
-const int sample_window_outtake = 40;
+const int sample_window_outtake = 50;
 const int arr_len_int = 75;
 alglib::ae_int_t arr_len = arr_len_int;
 alglib::real_1d_array currents_intake;
@@ -105,23 +105,28 @@ alglib::real_1d_array currents_outtake_l;
 
 //; //magic #
 
-alglib::real_1d_array master_slow_scale;
-alglib::real_1d_array master_switch;
+alglib::real_1d_array master_slow_scale(
+		"[2.625,2.625,5,8.875,13.125,17.5,17.375,17.25,16.375,15.5,14.375,13.375,12.75,12,11,9.625,8.375,7.375,6.75,6,5.375,5,4.75,4.75,4.75,4.875,5,5,4.625,4.375,4,4,4,3.75,3.75,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]");
+alglib::real_1d_array master_switch(
+		"[2.625,2.625,4.25,5.5,7.125,8.125,8.25,8.375,8.375,8,7.5,6.75,6.5,6.375,6.25,6.25,6.375,6.25,5.875,5.25,4.625,4.25,3.75,3.5,3.25,3.125,3.25,3.375,3.125,2.75,2.75,2.75,2.5,2.5,2.5,2.5,2.5,2.5,2.125,2.5,2.5,2.125,2.125,2.125,2.125,2.125,2.125,2.125,2.125,2.125,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]");
 alglib::real_1d_array master_back;
 alglib::real_1d_array master_slow_back;
-alglib::real_1d_array master_scale;
+alglib::real_1d_array master_scale(
+		"[2.625,2.625,9.25,32.875,44.75,43.875,41.875,39.25,35.875,33.875,31.5,29,25,21.5,18.375,16.125,14.375,13.125,12,11.125,9.875,9,8.25,8,8.125,8.5,8.5,8.125,7.5,6.25,5.875,5.625,5.875,6.25,6.25,6.25,5.875,5.875,5.875,5.875,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]");
 
-int last_corr_val_r = 0; //can start at 0 because won't return true the first time anyway
-int last_corr_val_l = 0; //can start at 0 because won't return true the first time anyway
-int corr_val_now_r = 0;
-int corr_val_now_l = 0;
+
+
+double last_corr_val_r = 0.0; //can start at 0 because won't return true the first time anyway
+double last_corr_val_l = 0.0; //can start at 0 because won't return true the first time anyway
+double corr_val_now_r = 0.0;
+double corr_val_now_l = 0.0;
 
 alglib::real_1d_array corr_intake;
 alglib::real_1d_array corr_outtake_r;
 alglib::real_1d_array corr_outtake_l;
 
 int time_counter = 0;
-int TIME_LIMIT = 30000;
+int TIME_LIMIT = 250;
 
 int arr_counter = 0;
 double filled_arr = 0.0;
@@ -193,11 +198,11 @@ Intake::Intake(PowerDistributionPanel *pdp,
 	currents_outtake_r.setlength(arr_len);
 	currents_outtake_l.setlength(arr_len);
 
-	master_slow_scale.setlength(arr_len);
-	master_switch.setlength(arr_len);
-	master_back.setlength(arr_len);
-	master_slow_back.setlength(arr_len);
-	master_scale.setlength(arr_len);
+//	master_slow_scale.setlength(arr_len);
+//	master_switch.setlength(arr_len);
+//	master_back.setlength(arr_len);
+//	master_slow_back.setlength(arr_len);
+//	master_scale.setlength(arr_len);
 
 	corr_intake.setlength(arr_len - 2);
 	corr_outtake_r.setlength(arr_len - 2);
@@ -228,58 +233,24 @@ Intake::Intake(PowerDistributionPanel *pdp,
 //		14.1250000000000
 //	};
 
-	double master_switch_arr[] = {
-		2.62500000000000,
-		2.62500000000000,
-		4.25000000000000,
-		5.50000000000000,
-		7.12500000000000,
-		8.12500000000000,
-		8.25000000000000,
-		8.37500000000000,
-		8.37500000000000,
-		8,
-		7.50000000000000,
-		6.75000000000000,
-		6.50000000000000,
-		6.37500000000000,
-		6.25000000000000,
-		6.25000000000000,
-		6.37500000000000,
-		6.25000000000000,
-		5.87500000000000,
-		5.25000000000000,
-		4.62500000000000,
-		4.25000000000000,
-		3.75000000000000,
-		3.50000000000000,
-		3.25000000000000,
-		3.12500000000000,
-		3.25000000000000,
-		3.37500000000000,
-		3.12500000000000,
-		2.75000000000000,
-		2.75000000000000,
-		2.75000000000000,
-		2.50000000000000,
-		2.50000000000000,
-		2.50000000000000,
-		2.50000000000000,
-		2.50000000000000,
-		2.50000000000000,
-		2.12500000000000,
-		2.50000000000000,
-		2.50000000000000,
-		2.12500000000000,
-		2.12500000000000,
-		2.12500000000000,
-		2.12500000000000,
-		2.12500000000000,
-		2.12500000000000,
-		2.12500000000000,
-		2.12500000000000,
-		2.12500000000000};
-//
+//	double master_switch_arr[] = { 2.62500000000000, 2.62500000000000,
+//			4.25000000000000, 5.50000000000000, 7.12500000000000,
+//			8.12500000000000, 8.25000000000000, 8.37500000000000,
+//			8.37500000000000, 8, 7.50000000000000, 6.75000000000000,
+//			6.50000000000000, 6.37500000000000, 6.25000000000000,
+//			6.25000000000000, 6.37500000000000, 6.25000000000000,
+//			5.87500000000000, 5.25000000000000, 4.62500000000000,
+//			4.25000000000000, 3.75000000000000, 3.50000000000000,
+//			3.25000000000000, 3.12500000000000, 3.25000000000000,
+//			3.37500000000000, 3.12500000000000, 2.75000000000000,
+//			2.75000000000000, 2.75000000000000, 2.50000000000000,
+//			2.50000000000000, 2.50000000000000, 2.50000000000000,
+//			2.50000000000000, 2.50000000000000, 2.12500000000000,
+//			2.50000000000000, 2.50000000000000, 2.12500000000000,
+//			2.12500000000000, 2.12500000000000, 2.12500000000000,
+//			2.12500000000000, 2.12500000000000, 2.12500000000000,
+//			2.12500000000000, 2.12500000000000 };
+////
 //	master_switch[0] = 10.3750000000000;
 //	master_switch[1] = 12.7500000000000;
 //	master_switch[2] = 23.3750000000000;
@@ -310,7 +281,7 @@ Intake::Intake(PowerDistributionPanel *pdp,
 //	master_switch[27] = 7.870000000000;
 //	master_switch[28] = 8.0000000000;
 //	master_switch[29] = 8.250000000000;
-//
+////
 //	master_slow[0] = 10.3750000000000;
 //	master_slow[1] = 12.7500000000000;
 //	master_slow[2] = 23.3750000000000;
@@ -344,13 +315,13 @@ Intake::Intake(PowerDistributionPanel *pdp,
 
 	//master_switch.setcontent(50, master_switch_arr);
 //
-	for (int i = 50; i < arr_len; i++) {
-		master_scale[i] = 0.0;
-		master_slow_scale[i] = 0.0;
-		master_switch[i] = 0.0;
-		master_slow_back[i] = 0.0;
-		master_back[i] = 0.0;
-	}
+//	for (int i = 2; i < arr_len; i++) {
+//		master_scale[i] = 0.0;
+//		master_slow_scale[i] = 0.0;
+//		master_switch[i] = 0.0;
+//		master_slow_back[i] = 0.0;
+//		master_back[i] = 0.0;
+//	}
 
 }
 
@@ -759,7 +730,7 @@ bool Intake::HaveCube() {
 	currents_intake[sample_window_intake - 1] =
 			talonIntake1->GetOutputCurrent();
 
-	//alglib::corrr1d(currents_intake, arr_len, master, arr_len, corr_intake);
+	alglib::corrr1d(currents_intake, arr_len, master_scale, arr_len, corr_intake);
 
 	if (FindMaximum(corr_intake) > INTAKE_CORR_VALUE) {
 		for (int i = 0; i < (sample_window_intake - 1); i++) { //to index 18
@@ -772,7 +743,7 @@ bool Intake::HaveCube() {
 
 }
 
-bool Intake::ReleasedCube(bool forward) { //forward scale or backwards scale. is irrelevant for switch
+bool Intake::ReleasedCube(int shot_type) { //forward scale or backwards scale. is irrelevant for switch
 
 	time_counter++; //depends on calling this function when need to start the timer
 
@@ -781,61 +752,67 @@ bool Intake::ReleasedCube(bool forward) { //forward scale or backwards scale. is
 		currents_outtake_l[i] = currents_outtake_l[i + 1];
 	}
 
+	///std::cout << "in the method" << std::endl;
+
 	currents_outtake_r[sample_window_outtake - 1] =
 			talonIntake1->GetOutputCurrent();
 	currents_outtake_l[sample_window_outtake - 1] =
 			talonIntake2->GetOutputCurrent();
 
-	if (intake_arm_state == OUT_STATE && forward) { //scale, backwards
+	if (shot_type == SCALE) { //scale, backwards intake_arm_state == OUT_STATE && forward
 		alglib::corrr1d(currents_outtake_r, arr_len, master_scale, arr_len,
 				corr_outtake_r);
 		alglib::corrr1d(currents_outtake_l, arr_len, master_scale, arr_len,
 				corr_outtake_l);
-	} else if (intake_arm_state == SLOW_STATE) { //switch
-		std::cout << "correct" << std::endl;
-		alglib::corrr1d(currents_outtake_r, arr_len, master_switch, arr_len,
+	} else if (shot_type == SWITCH) { //switch intake_arm_state == SLOW_STATE && forward
+		//std::cout << "switch" << std::endl;
+		alglib::corrr1d(currents_outtake_r, arr_len, master_scale, arr_len,
 				corr_outtake_r);
-		alglib::corrr1d(currents_outtake_l, arr_len, master_switch, arr_len,
+		alglib::corrr1d(currents_outtake_l, arr_len, master_scale, arr_len,
 				corr_outtake_l);
-	} else if (intake_arm_state == SLOW_SCALE_STATE) {
+	} else if (shot_type == SLOW_SCALE) {
 		alglib::corrr1d(currents_outtake_r, arr_len, master_slow_scale, arr_len,
 				corr_outtake_r);
 		alglib::corrr1d(currents_outtake_l, arr_len, master_slow_scale, arr_len,
 				corr_outtake_l);
-	} else if (intake_arm_state == OUT_STATE && !forward) {
-		alglib::corrr1d(currents_outtake_r, arr_len, master_back, arr_len,
+	} else if (shot_type == BACK) {
+		alglib::corrr1d(currents_outtake_r, arr_len, master_scale, arr_len, //back
 				corr_outtake_r);
-		alglib::corrr1d(currents_outtake_l, arr_len, master_back, arr_len,
+		alglib::corrr1d(currents_outtake_l, arr_len, master_scale, arr_len,
 				corr_outtake_l);
-	} else if (intake_arm_state == SLOW_STATE && !forward) {
-		alglib::corrr1d(currents_outtake_r, arr_len, master_slow_back, arr_len,
+	} else if (shot_type == SLOW_BACK) {
+		alglib::corrr1d(currents_outtake_r, arr_len, master_scale, arr_len, //slow_back
 				corr_outtake_r);
-		alglib::corrr1d(currents_outtake_l, arr_len, master_slow_back, arr_len,
+		alglib::corrr1d(currents_outtake_l, arr_len, master_scale, arr_len,
 				corr_outtake_l);
 	}
 
 	//std::cout << "corr: " << FindMaximum(corr_outtake_r) << ", "<< FindMaximum(corr_outtake_l) << std::endl;
 
-	corr_val_now_r = FindMaximum(corr_outtake_r); //returns how correlated the actual currents are with the master currents. since the master dataset ends
-	corr_val_now_l = FindMaximum(corr_outtake_l); //returns how correlated the actual currents are with the master currents. since the master dataset ends
+	corr_val_now_r = corr_outtake_r[(int)(arr_len / 2)];//FindMaximum(corr_outtake_r); //returns how correlated the actual currents are with the master currents. since the master dataset ends
+	corr_val_now_l = corr_outtake_l[(int)(arr_len / 2)];//FindMaximum(corr_outtake_l); //returns how correlated the actual currents are with the master currents. since the master dataset ends
 
-	if (((corr_val_now_r > OUTTAKE_CORR_VALUE
-			&& corr_val_now_l > OUTTAKE_CORR_VALUE)
-			&& (last_corr_val_l > corr_val_now_l
-					&& last_corr_val_r > corr_val_now_r)) //if the arrays match close enough
+	//std::cout << "corr val: " << (corr_val_now_r - last_corr_val_r) << std::endl;
+
+	if (((last_corr_val_l > corr_val_now_l
+					|| last_corr_val_r > corr_val_now_r)) //if the arrays match close enough (corr_val_now_r > OUTTAKE_CORR_VALUE
+			//|| corr_val_now_l > OUTTAKE_CORR_VALUE)
+			///&&
 	|| (time_counter > TIME_LIMIT)) {
+		std::cout << "last corr val: " << last_corr_val_r << std::endl;
 		for (int i = 0; i < (sample_window_outtake - 1); i++) {
 			currents_outtake_r[i] = 0.0;
 			currents_outtake_l[i] = 0.0;
 		}
 		time_counter = 0;
+		last_corr_val_r = 0.0;
+		last_corr_val_l = 0.0;
 		return true;
 	} else {
+		last_corr_val_r = corr_val_now_r;
+		last_corr_val_l = corr_val_now_l;
 		return false;
 	}
-
-	last_corr_val_r = corr_val_now_r;
-	last_corr_val_l = corr_val_now_l;
 
 }
 

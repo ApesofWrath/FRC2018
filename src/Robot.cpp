@@ -35,7 +35,7 @@
 class Robot: public frc::IterativeRobot {
 public:
 
-	double TIME_STEP = 0.02; //finally consolidated
+	double TIME_STEP = 0.02; //not consolidated
 
 	const int JOY_THROTTLE = 0;
 	const int JOY_WHEEL = 1;
@@ -56,9 +56,9 @@ public:
 	const int RAISE_TO_SCALE_BACKWARDS = 12;
 
 	const int INTAKE_SPIN_IN = 10; //not enough buttons for these three
-	const int INTAKE_SPIN_OUT = 1; //throttle
+	const int INTAKE_SPIN_OUT = 99; //throttle
 	const int INTAKE_SPIN_STOP = 99;
-	const int INTAKE_SPIN_SLOW = 8;
+	const int INTAKE_SPIN_SLOW = 1; //back to what it should be
 
 	const int INTAKE_ARM_UP = 8;
 	const int INTAKE_ARM_MID = 2;
@@ -461,7 +461,7 @@ public:
 
 		bool test_button = joyOp->GetRawButton(17);
 		if(test_button) {
-			std::cout << "fcking works" << std::endl;
+			std::cout << "f works" << std::endl;
 		}
 
 		post_intake = joyOp->GetRawButton(POST_INTAKE);
@@ -498,7 +498,7 @@ public:
 
 		//	drive_controller->AutoShift(is_auto_shift);
 
-		std::cout << intake_->talonIntake1->GetOutputCurrent() << ", " << intake_->talonIntake2->GetOutputCurrent() <<  ", " << intake_->intake_wheel_state << std::endl;
+		//std::cout << intake_->talonIntake1->GetOutputCurrent() << ", " << intake_->talonIntake2->GetOutputCurrent() <<  ", " << intake_->intake_wheel_state << std::endl;
 #endif
 	}
 

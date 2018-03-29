@@ -41,6 +41,12 @@ public:
 
 	bool is_init_intake = false; //is arm initialized
 
+	const int SLOW_SCALE = 0; //releasedcube()
+	const int SWITCH = 1;
+	const int BACK = 2;
+	const int SLOW_BACK = 3;
+	const int SCALE = 4;
+
 	const int INIT_STATE_H = 0;
 	const int UP_STATE_H = 1; //arm state machine
 	const int MID_STATE_H = 2;
@@ -86,7 +92,7 @@ public:
 
 	bool IsAtBottomIntake();
 	bool HaveCube();
-	bool ReleasedCube(bool forward_scale);
+	bool ReleasedCube(int shot_type);
 	bool EncodersRunning();
 
 	void SetVoltageIntake(double voltage_i);
