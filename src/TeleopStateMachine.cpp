@@ -108,7 +108,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 
 		SmartDashboard::PutString("STATE", "INIT");
 
-		elevator->elevator_state = elevator->DOWN_STATE_E_H;
+		elevator->elevator_state = elevator->DOWN_STATE_E_H; //there is the safety for the elevator to not go down if the arm is too high (in setvoltagelevator), but that safety will basically just kill the elevator
 		intake->intake_arm_state = intake->UP_STATE_H;
 		//elevator->elevator_state = elevator->INIT_STATE_E_H;
 		//intake->intake_arm_state = intake->INIT_STATE_H;
@@ -126,7 +126,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		} else if (get_cube_station) {
 			state = GET_CUBE_STATION_STATE;
 		} else if (post_intake) {
-			state = POST_INTAKE_SWITCH_STATE; //TODO: this is not a great fix, but we don't use this button anyway
+			state = POST_INTAKE_SWITCH_STATE; //TODO: note that will go to switch
 		} else if (raise_to_scale) { //should not need to go from wfb state to a raise state, but in case
 			state = PLACE_SCALE_STATE;
 		} else if (raise_to_switch) {
@@ -175,7 +175,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		last_state = GET_CUBE_STATION_STATE;
 		break;
 
-	case POST_INTAKE_SWITCH_STATE: //has not been changed
+	case POST_INTAKE_SWITCH_STATE: //does not have the intermediate height for the arm. do not use this for after scale
 
 		SmartDashboard::PutString("STATE", "POST INTAKE SWITCH");
 

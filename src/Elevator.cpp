@@ -136,14 +136,14 @@ void Elevator::Move() {
 		double current_pos_e = GetElevatorPosition();
 		double current_vel_e = GetElevatorVelocity();
 
-		SmartDashboard::PutNumber("Actual Vel", current_vel_e);
-		SmartDashboard::PutNumber("Actual Pos", current_pos_e);
+	///	SmartDashboard::PutNumber("Actual Vel", current_vel_e);
+	//	SmartDashboard::PutNumber("Actual Pos", current_pos_e);
 
 		double goal_pos = ref_elevator[0][0];
 		goal_vel_e = ref_elevator[1][0];
 
-		SmartDashboard::PutNumber("Goal Vel", goal_vel_e);
-		SmartDashboard::PutNumber("Goal Pos", goal_pos);
+	//	SmartDashboard::PutNumber("Goal Vel", goal_vel_e);
+	//	SmartDashboard::PutNumber("Goal Pos", goal_pos);
 
 		error_e[0][0] = goal_pos - current_pos_e;
 		error_e[1][0] = goal_vel_e - current_vel_e;

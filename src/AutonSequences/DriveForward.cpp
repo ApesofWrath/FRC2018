@@ -57,14 +57,14 @@ void DriveForward::GenerateForward(bool forward) {
 		Segment sr = rightTrajectory[l];
 
 		if (forward) {
-			full_refs_df.at(l).at(0) = ((double) sl.heading); //TODO: make forward actually forward if starting in center
+			full_refs_df.at(l).at(0) = ((double) sl.heading);
 			full_refs_df.at(l).at(1) = ((double) sl.position);
 			full_refs_df.at(l).at(2) = ((double) sr.position);
 			full_refs_df.at(l).at(3) = (0.0);
 			full_refs_df.at(l).at(4) = ((double) sl.velocity);
 			full_refs_df.at(l).at(5) = ((double) sr.velocity);
 		} else {
-			full_refs_df.at(l).at(0) = ((double) sl.heading) - PI; //TODO: make forward actually forward if starting in center
+			full_refs_df.at(l).at(0) = ((double) sl.heading) - PI;
 			full_refs_df.at(l).at(1) = -1.0 * ((double) sl.position);
 			full_refs_df.at(l).at(2) = -1.0 * ((double) sr.position);
 			full_refs_df.at(l).at(3) = (0.0);

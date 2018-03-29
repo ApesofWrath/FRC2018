@@ -65,7 +65,7 @@ public:
 
 	const double DOWN_ANGLE = 0.0; //instead of changing the offset
 	const double MID_ANGLE = 0.55;
-	const double SWITCH_ANGLE = 0.8; //not used
+	const double SWITCH_ANGLE = 1.0; //safety for elev
 	const double UP_ANGLE = 1.30; //starting pos -> also the shooting position
 	const double BACK_SHOT_ANGLE = 2.0; // 120 ish degrees for the flippy back arm shot
 

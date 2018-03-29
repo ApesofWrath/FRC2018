@@ -61,6 +61,7 @@ public:
 	void SetGainsLow();
 	void AutoShift(bool auto_shift);
 
+	void RunTeleopDrive(Joystick *JoyThrottle, Joystick *JoyWheel, bool is_heading);
 	void RunAutonDrive();
 
 	//Driving Operators

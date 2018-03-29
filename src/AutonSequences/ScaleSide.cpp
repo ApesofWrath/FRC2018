@@ -32,7 +32,7 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch,
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {-22.5, -6.5, d2r(35.0)}; //TODO: change this
+		p2 = {-22.5, -6.5, d2r(35.0)};
 		//	p3 = {-19.8, -6.2, d2r(0.0)};
 	}
 
@@ -320,7 +320,7 @@ void ScaleSide::RunStateMachineScaleOnly(bool *place_scale_backwards,
 //init, wfb, place_scale_backwards, post_intake_scale, wfb (just passing through), get_cube_ground_state, post_intake_switch, place_scale_backwards, post_intake_scale, wfb
 //      psb(1)		gcg	, !psb																					psb(2)				!psb , !gcg
 void ScaleSide::RunStateMachineScaleScale(bool *place_scale_backwards,
-		bool *get_cube_ground) { //TODO: add the shoot_cube logic
+		bool *get_cube_ground) {
 
 //no other state machine booleans needed, all other ones will stay false
 

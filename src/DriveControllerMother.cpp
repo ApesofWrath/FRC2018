@@ -248,7 +248,7 @@ DriveControllerMother::DriveControllerMother(int fl, int fr, int rl, int rr,
 	canTalonRight2 = new TalonSRX(RR);
 	canTalonRight2->Set(ControlMode::Follower, RF);
 
-	canTalonKicker = new TalonSRX(KICKER);
+//	canTalonKicker = new TalonSRX(KICKER);
 //TODO: try enabling in teleop
 	canTalonLeft1->ConfigPeakCurrentLimit(30, 0);
 	canTalonLeft2->ConfigPeakCurrentLimit(30, 0);
@@ -840,7 +840,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	double yaw_rate_current = -1.0 * (double) ahrs->GetRate()
 			* (double) ((PI) / 180.0); //left should be positive
 
-	//SmartDashboard::PutNumber("yrc", yaw_rate_current);
+	SmartDashboard::PutNumber("yrc", yaw_rate_current);
 
 	double target_yaw_rate = ref_yaw;
 
@@ -1147,4 +1147,14 @@ void DriveControllerMother::RunAutonDrive() {
 	}
 
 	SmartDashboard::PutNumber("row index", row_index);
+}
+
+void DriveControllerMother::RunTeleopDrive(Joystick *JoyThrottle, Joystick *JoyWheel, bool is_heading) {
+
+	if (is_heading) {
+		RotationController(JoyWheel);
+	} else {
+		TeleopWCDrive(JoyThrottle, JoyWheel);
+	}
+
 }

@@ -36,7 +36,7 @@ void TaskManager::StartThread(bool *wait_for_button, bool *intake_spin_in,
 		bool *raise_to_switch, bool *raise_to_scale, bool *intake_arm_up,
 		bool *intake_arm_mid, bool *intake_arm_down, bool *elevator_up,
 		bool *elevator_mid, bool *elevator_down, bool *raise_to_scale_backwards,
-		Joystick *JoyThrottle, Joystick *JoyWheel) {
+		Joystick *JoyThrottle, Joystick *JoyWheel, bool *is_heading) {
 
 	TaskManager *tm = this;
 	Thread = std::thread(&TaskManager::ThreadWrapper, tm, JoyThrottle, JoyWheel,
@@ -44,7 +44,7 @@ void TaskManager::StartThread(bool *wait_for_button, bool *intake_spin_in,
 			intake_spin_stop, get_cube_ground, get_cube_station, post_intake,
 			raise_to_switch, raise_to_scale, intake_arm_up, intake_arm_mid,
 			intake_arm_down, elevator_up, elevator_mid, elevator_down,
-			raise_to_scale_backwards);
+			raise_to_scale_backwards, is_heading);
 	Thread.detach();
 
 }
@@ -56,7 +56,7 @@ void TaskManager::ThreadWrapper(TaskManager *task_manager,
 		bool *post_intake, bool *raise_to_switch, bool *raise_to_scale,
 		bool *intake_arm_up, bool *intake_arm_mid, bool *intake_arm_down,
 		bool *elevator_up, bool *elevator_mid, bool *elevator_down,
-		bool *raise_to_scale_backwards) {
+		bool *raise_to_scale_backwards, bool *is_heading) {
 
 	threadTimer->Start();
 
@@ -91,7 +91,7 @@ void TaskManager::ThreadWrapper(TaskManager *task_manager,
 			intake_t->Rotate();
 			elevator_t->Move();
 
-			drive_controller->TeleopWCDrive(JoyThrottle, JoyWheel);
+			drive_controller->RunTeleopDrive(JoyThrottle, JoyWheel, (bool)*is_heading);
 
 			intake_t->IntakeArmStateMachine();
 			intake_t->IntakeWheelStateMachine();

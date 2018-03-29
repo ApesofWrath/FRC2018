@@ -134,7 +134,8 @@ public:
 	const std::string cubeSwitch = "Switch";
 	const std::string cubeSwitchSwitch = "Switch Switch";
 	const std::string cubeScale = "Scale";
-	const std::string scaleSwit = "Scale & Switch"; //TODO: add a do nothing
+	const std::string scaleSwit = "Scale & Switch";
+	const std::string doNothing = "Do Nothing";
 
 	const std::string center = "Center";
 	const std::string left = "Left";
@@ -142,8 +143,9 @@ public:
 
 	bool leftSwitch, leftScale;
 
-	bool switchCenterOneState, scaleScaleState, scaleSwitchState, scaleOnlyState,
-			switchSideState, switchSwitchState, switchCenterTwoState;
+	bool switchCenterOneState, scaleScaleState, scaleSwitchState,
+			scaleOnlyState, switchSideState, switchSwitchState,
+			switchCenterTwoState;
 
 	std::string autoSelected;
 
@@ -182,6 +184,7 @@ public:
 		autonChooser.AddObject(cubeScale, cubeScale);
 		autonChooser.AddObject(scaleSwit, scaleSwit);
 		autonChooser.AddObject(cubeSwitchSwitch, cubeSwitchSwitch);
+		autonChooser.AddObject(doNothing, doNothing);
 
 		positionChooser.AddDefault(center, center);
 		positionChooser.AddObject(left, left);
@@ -199,7 +202,7 @@ public:
 				&post_intake, &raise_to_switch, &raise_to_scale, &intake_arm_up,
 				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
 				&elevator_down, &raise_to_scale_backwards, joyThrottle,
-				joyWheel);
+				joyWheel, &is_heading);
 
 #else
 		intake_->StartIntakeThread(); //controllers
@@ -318,7 +321,8 @@ public:
 				drive_forward->GenerateForward(true);
 			}
 		} else if (autoSelected == cubeScale) { //can only scale if scale is on our side
-			scale_side = new ScaleSide(drive_controller, elevator_, intake_, auton_state_machine);
+			scale_side = new ScaleSide(drive_controller, elevator_, intake_,
+					auton_state_machine);
 
 			if (positionSelected == left && leftScale) {
 				scale_side->GenerateScale(true, false, false, false, false);
@@ -341,12 +345,13 @@ public:
 		//Scale and switch - Switch only or Scale only - Drive Forward
 		else if (autoSelected == scaleSwit) { //if only scale is on our side, will do scale only, likewise switch
 
-			scale_side = new ScaleSide(drive_controller, elevator_, intake_, auton_state_machine);
+			scale_side = new ScaleSide(drive_controller, elevator_, intake_,
+					auton_state_machine);
 
 			if (positionSelected == left) {
 				if (leftScale && leftSwitch) { //scale and switch
 					scale_side->GenerateScale(true, true, true, false, false);
-					scaleSwitchState = true;//scale state machine works for both scale and scale+switch
+					scaleSwitchState = true; //scale state machine works for both scale and scale+switch
 				} else if (leftScale && !leftSwitch) { //only scale
 					scale_side->GenerateScale(true, false, false, false, false);
 					scaleSwitchState = true;
@@ -387,6 +392,8 @@ public:
 					intake_, auton_state_machine);
 			drive_forward->GenerateForward(true);
 
+		} else if (autoSelected == doNothing) {
+
 		} else {
 			drive_forward = new DriveForward(drive_controller, elevator_,
 					intake_, auton_state_machine);
@@ -403,8 +410,8 @@ public:
 			scale_side->RunStateMachineScaleOnly(&raise_to_scale_backwards,
 					&get_cube_ground);
 		} else if (scaleSwitchState) {
-			scale_side->RunStateMachineScaleSwitch(&raise_to_scale_backwards, &raise_to_switch,
-					&get_cube_ground);
+			scale_side->RunStateMachineScaleSwitch(&raise_to_scale_backwards,
+					&raise_to_switch, &get_cube_ground);
 		} else if (scaleScaleState) {
 			scale_side->RunStateMachineScaleScale(&raise_to_scale_backwards,
 					&get_cube_ground);
@@ -413,7 +420,8 @@ public:
 		} else if (switchSideState) {
 			switch_side->RunStateMachineSide(&raise_to_switch);
 		} else if (switchCenterTwoState) {
-			switch_center->RunStateMachineTwo(&raise_to_switch, &get_cube_ground);
+			switch_center->RunStateMachineTwo(&raise_to_switch,
+					&get_cube_ground);
 		}
 
 	}
@@ -492,31 +500,28 @@ public:
 			is_auto_shift = true;
 		}
 
-		//	drive_controller->AutoShift(is_auto_shift);
-
 		//std::cout << intake_->talonIntake1->GetOutputCurrent() << ", " << intake_->talonIntake2->GetOutputCurrent() <<  ", " << intake_->intake_wheel_state << std::endl;
 #endif
 	}
 
-	void DisabledInit()
-	override { //between auton and teleop
+	void DisabledInit() override { //between auton and teleop
 
-	///intake_->currents_file.close();
+		///intake_->currents_file.close();
 
-	//	task_manager->EndThread();
-	//teleop_state_machine->EndStateMachineThread();
+		//	task_manager->EndThread();
+		//teleop_state_machine->EndStateMachineThread();
 //		drive_controller->EndDriveThreads();
 //		intake_->EndIntakeThread(); //may not actually disable threads
 //		elevator_->EndElevatorThread();
 
-	//teleop_state_machine->Initialize(); //17%
+		//teleop_state_machine->Initialize(); //17%
 
 	}
 
-void TestPeriodic() {
+	void TestPeriodic() {
 
-	SmartDashboard::PutNumber("EL POS", elevator_->GetElevatorPosition());
-	SmartDashboard::PutNumber("ARM POS", intake_->GetAngularPosition());
+		SmartDashboard::PutNumber("EL POS", elevator_->GetElevatorPosition());
+		SmartDashboard::PutNumber("ARM POS", intake_->GetAngularPosition());
 
 //		drive_controller->canTalonLeft1->Set(ControlMode::PercentOutput, 1.0);
 //		drive_controller->canTalonRight1->Set(ControlMode::PercentOutput, 1.0);
@@ -557,50 +562,50 @@ void TestPeriodic() {
 //
 //		last_state_test = 0;
 
-	switch (state_test) { //threads are always running
+		switch (state_test) { //threads are always running
 
 		case 0:
-		intake_->IntakeArmStateMachine();//init state
-		intake_->IntakeWheelStateMachine();
-		elevator_->ElevatorStateMachine();
+			intake_->IntakeArmStateMachine(); //init state
+			intake_->IntakeWheelStateMachine();
+			elevator_->ElevatorStateMachine();
 
-		if (intake_->is_init_intake && elevator_->is_elevator_init) { //once initialized, state machines are ou
-			state_test = 0;
-		}
-		last_state_test = 0;
+			if (intake_->is_init_intake && elevator_->is_elevator_init) { //once initialized, state machines are ou
+				state_test = 0;
+			}
+			last_state_test = 0;
 
-		break;
+			break;
 
 		case 1:
-		intake_->IntakeArmStateMachine(); //up
-		intake_->IntakeWheelStateMachine();
-		if (std::abs(intake_->GetAngularPosition() - intake_->UP_ANGLE)
-				< 0.1) {
-			state_test = 2;
-		}
-		break;
+			intake_->IntakeArmStateMachine(); //up
+			intake_->IntakeWheelStateMachine();
+			if (std::abs(intake_->GetAngularPosition() - intake_->UP_ANGLE)
+					< 0.1) {
+				state_test = 2;
+			}
+			break;
 
 		case 2:
-		intake_->intake_arm_state = intake_->DOWN_STATE_H;
-		intake_->IntakeArmStateMachine(); //down states
-		intake_->IntakeWheelStateMachine();
-		if (std::abs(intake_->GetAngularPosition() - intake_->DOWN_ANGLE)
-				< 0.1) {
-			state_test = 3;
-		}
-		break;
+			intake_->intake_arm_state = intake_->DOWN_STATE_H;
+			intake_->IntakeArmStateMachine(); //down states
+			intake_->IntakeWheelStateMachine();
+			if (std::abs(intake_->GetAngularPosition() - intake_->DOWN_ANGLE)
+					< 0.1) {
+				state_test = 3;
+			}
+			break;
 
 		case 3:
-		elevator_->elevator_state = elevator_->MID_STATE_E_H;
-		elevator_->ElevatorStateMachine();
-		if (std::abs(
-						elevator_->GetElevatorPosition() - elevator_->MID_POS_E)
-				< 0.1) {
+			elevator_->elevator_state = elevator_->MID_STATE_E_H;
+			elevator_->ElevatorStateMachine();
+			if (std::abs(
+					elevator_->GetElevatorPosition() - elevator_->MID_POS_E)
+					< 0.1) {
 
+			}
 		}
-	}
 
-} //arm up, elev down
+	} //arm up, elev down
 
 private:
 
