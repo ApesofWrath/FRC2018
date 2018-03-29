@@ -185,7 +185,7 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 		if (std::abs(intake_a->GetAngularPosition() - intake_a->MID_ANGLE)
 				<= 0.2) { //start shooting when high enough
 			intake_a->intake_wheel_state = intake_a->SLOW_STATE_H;
-			if (intake_a->ReleasedCube(true)) { //param does not matter
+			if (intake_a->ReleasedCube(true)) { //param does not matter that's lie
 				state_a = POST_INTAKE_SWITCH_STATE_A;
 				shoot_counter++;
 			}
