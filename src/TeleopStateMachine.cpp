@@ -58,7 +58,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		state = WAIT_FOR_BUTTON_STATE;
 	}
 
-	//intake wheels
+	//intake wheels -- intake_spin_slow CANNOT make state_intake_wheel false or else when shooting forward/backward scale will not outtake cube //TODO: fix this
 	if (intake_spin_out) {
 		state_intake_wheel = false;
 		intake->intake_wheel_state = intake->OUT_STATE_H;
@@ -313,11 +313,18 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		if (elevator->GetElevatorPosition() >= 0.85
 				&& intake->GetAngularPosition() > 1.98 && state_intake_wheel
 				&& !raise_to_scale_backwards) { //shoot if the height of the elevator and the angle of the arm is good enough //hold button until ready to shoot, elevator and intake will be in position
-			intake->intake_wheel_state = intake->OUT_STATE_H;
-			//	std::cout << "intake out" << std::endl;
-			if (intake->ReleasedCube(intake->BACK)) {
-				state = POST_INTAKE_SCALE_STATE;
+			if (!intake_spin_slow) {
+				intake->intake_wheel_state = intake->OUT_STATE_H;
+				if (intake->ReleasedCube(intake->BACK)) {
+					state = POST_INTAKE_SCALE_STATE;
+				}
+			} else {
+				intake->intake_wheel_state = intake->SLOW_SCALE_STATE_H;
+				if (intake->ReleasedCube(intake->BACK)) {
+					state = POST_INTAKE_SCALE_STATE;
+				}
 			}
+
 		}
 
 		last_state = PLACE_SCALE_BACKWARDS_STATE;

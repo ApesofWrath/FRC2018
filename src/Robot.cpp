@@ -43,6 +43,7 @@ public:
 
 	const int LOW_GEAR_BUTTON = 5;
 	const int HIGH_GEAR_BUTTON = 6;
+	const int HEADING_BUTTON = 9;
 
 #if BUTTONBOX
 
@@ -56,9 +57,9 @@ public:
 	const int RAISE_TO_SCALE_BACKWARDS = 12;
 
 	const int INTAKE_SPIN_IN = 10; //not enough buttons for these three
-	const int INTAKE_SPIN_OUT = 99; //throttle
+	const int INTAKE_SPIN_OUT = 1; //throttle
 	const int INTAKE_SPIN_STOP = 99;
-	const int INTAKE_SPIN_SLOW = 1; //back to what it should be
+	const int INTAKE_SPIN_SLOW = 8; //back to what it should be
 
 	const int INTAKE_ARM_UP = 8;
 	const int INTAKE_ARM_MID = 2;
@@ -459,11 +460,6 @@ public:
 		get_cube_ground = joyOp->GetRawButton(GET_CUBE_GROUND);
 		get_cube_station = joyOp->GetRawButton(GET_CUBE_STATION);
 
-		bool test_button = joyOp->GetRawButton(17);
-		if(test_button) {
-			std::cout << "f works" << std::endl;
-		}
-
 		post_intake = joyOp->GetRawButton(POST_INTAKE);
 		raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
 		raise_to_scale = joyOp->GetRawButton(RAISE_TO_SCALE);
@@ -482,7 +478,7 @@ public:
 		elevator_mid = joyOp->GetRawButton(ELEVATOR_MID);
 		elevator_down = joyOp->GetRawButton(ELEVATOR_DOWN);
 
-		is_heading = false;
+		is_heading = joyThrottle->GetRawButton(HEADING_BUTTON);
 		is_vision = false;
 		is_fc = false;
 
