@@ -14,9 +14,7 @@ int added_scale_len = 0;
 std::vector<std::vector<double> > full_refs_sc(1500, std::vector<double>(6)); //initalizes each index value to 0, depends on only needing 1500 points: one every 10 ms, should only be using 300 since actually using a 50 ms time step, but we may change the time step
 
 void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch,
-		bool added_scale, bool left_added_scale) { //true, false, true, true, true //direction on the switch needs to be accurate, but switch_ can be false
-
-	//FC FORWARD TO PLACE ON SCALE BACKWARDS, robot starts backwards
+		bool added_scale, bool left_added_scale) { //true, true, true, false, false //direction on the switch needs to be accurate, but switch_ can be false //**switch_ and added_scale refer to if we want the second cube we get to be for scale or switch
 
 	int POINT_LENGTH = 2;
 
@@ -150,18 +148,18 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale,
 		full_refs_sc.at(i).at(5) = ((double) sr.velocity);
 
 		if (i >= (scale_traj_len + added_switch_len)) { //still have more points left after placing on scale backwards and placing switch
-			if (added_scale) {
+		//	if (added_scale) { //should not have been here
 				zeroing_indeces.push_back(scale_traj_len + added_switch_len);
 				GenerateAddedScale(left_added_scale);
 				break; //generateAddedScale will finish off the 1500 points itself
-			} else {
-				full_refs_sc.at(i).at(0) = full_refs_sc.at(i - 1).at(0); //i - 1 will always be the last sensible value since it cascades
-				full_refs_sc.at(i).at(1) = full_refs_sc.at(i - 1).at(1);
-				full_refs_sc.at(i).at(2) = full_refs_sc.at(i - 1).at(2);
-				full_refs_sc.at(i).at(3) = full_refs_sc.at(i - 1).at(3);
-				full_refs_sc.at(i).at(4) = full_refs_sc.at(i - 1).at(4);
-				full_refs_sc.at(i).at(5) = full_refs_sc.at(i - 1).at(5);
-			}
+		//	} else {
+//				full_refs_sc.at(i).at(0) = full_refs_sc.at(i - 1).at(0); //i - 1 will always be the last sensible value since it cascades
+//				full_refs_sc.at(i).at(1) = full_refs_sc.at(i - 1).at(1);
+//				full_refs_sc.at(i).at(2) = full_refs_sc.at(i - 1).at(2);
+//				full_refs_sc.at(i).at(3) = full_refs_sc.at(i - 1).at(3);
+//				full_refs_sc.at(i).at(4) = full_refs_sc.at(i - 1).at(4);
+//				full_refs_sc.at(i).at(5) = full_refs_sc.at(i - 1).at(5);
+//			}
 
 		}
 

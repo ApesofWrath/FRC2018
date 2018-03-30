@@ -472,6 +472,11 @@ void Intake::SetVoltageIntake(double voltage_i) {
 		}
 	}
 
+	//zero height moves up sometimes. this will make sure the arm goes all the way down every time
+	if (intake_arm_state == DOWN_STATE && GetAngularPosition() <= 0.2) {
+		voltage_i = 0.0;
+	}
+
 	//safety to make sure that the elevator doesn't go down when the arm is up
 	if (ang_pos > 1.7 && elevator_i->GetVoltageElevator() < 0.0) { //checking and changing u_e
 		elevator_i->keep_elevator_up = true;
@@ -657,7 +662,6 @@ void Intake::IntakeArmStateMachine() {
 		break;
 	}
 
-	//last_intake_state = intake_arm_state; //move this into individual states if profile not switching
 
 }
 
@@ -712,14 +716,6 @@ void Intake::IntakeWheelStateMachine() {
 
 	}
 
-}
-
-bool Intake::EncodersRunning() { //will stop the controller from run //or stalled //MOVE INTO SET VOLTAGE
-
-//	double current_pos = GetAngularPosition(); //radians
-//	double current_ref = intake_profiler->GetNextRefIntake().at(0).at(0);
-
-	return true;
 }
 
 bool Intake::HaveCube() {
@@ -884,51 +880,5 @@ bool Intake::ZeroEnc() { //called in Initialize() and in SetVoltage()
 		//std::cout << "here" << std::endl;
 		return false;
 	}
-
-}
-
-void Intake::IntakeWrapper(Intake *in) {
-
-	intakeTimer->Start();
-
-	while (true) {
-
-		intakeTimer->Reset();
-
-		if (frc::RobotState::IsEnabled()) {
-
-			if (in->intake_arm_state != STOP_ARM_STATE
-					&& in->intake_arm_state != INIT_STATE) {
-				//	in->Rotate(in->GetNextRef());
-			}
-
-		}
-
-		double time = .010 - intakeTimer->Get();
-
-		time *= 1000;
-		if (time < 0) {
-			time = 0;
-		}
-		std::this_thread::sleep_for(std::chrono::milliseconds((int) time));
-
-		//	std::cout << "time: " << intakeTimer->Get() << std::endl;
-	}
-
-}
-
-void Intake::StartIntakeThread() {
-
-	Intake *intake_ = this;
-
-	IntakeThread = std::thread(&Intake::IntakeWrapper, intake_);
-	IntakeThread.detach();
-
-}
-
-void Intake::EndIntakeThread() {
-
-	//intakeTimer->Stop();
-	IntakeThread.~thread();
 
 }

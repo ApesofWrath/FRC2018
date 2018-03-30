@@ -357,15 +357,16 @@ public:
 			if (positionSelected == left) {
 				if (leftScale && leftSwitch) { //scale and switch
 					SmartDashboard::PutString("AUTO SELEC", "Left ScSw");
+
+					//this should have happened
 					scale_side->GenerateScale(true, true, true, false, false);
 					scaleSwitchState = true; //scale state machine works for both scale and scale+switch
+
+
 				} else if (leftScale && !leftSwitch) { //only scale
 					scale_side->GenerateScale(true, false, false, false, false);
 					scaleOnlyState = true;
-				} else if (!leftScale && leftSwitch) {
-					//switch_side->GenerateSwitchSide(true, false); //side switch does not work yet
-					//switchSideState = true;
-				} else {
+				} else { //if only have switch or nothing
 					drive_forward = new DriveForward(drive_controller,
 							elevator_, intake_, auton_state_machine);
 					drive_forward->GenerateForward(false);
@@ -378,10 +379,7 @@ public:
 				} else if (!leftScale && leftSwitch) { //have the scale ONLY
 					scale_side->GenerateScale(false, false, false, false, false);
 					scaleOnlyState = true;
-				} else if (leftScale && !leftSwitch) { //have the switch
-//					switch_side->GenerateSwitchSide(false, false);
-//					switchSideState = true;
-				} else {
+				}  else { //if only have switch or nothing
 					drive_forward = new DriveForward(drive_controller,
 							elevator_, intake_, auton_state_machine);
 					drive_forward->GenerateForward(false);
