@@ -17,6 +17,8 @@ public:
 
 	}
 
+	int length;
+
 	void GenerateForward(bool forward);
 
 };

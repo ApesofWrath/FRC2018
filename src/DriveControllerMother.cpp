@@ -967,7 +967,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 
 void DriveControllerMother::ZeroAll(bool stop_motors) {
 
-	SmartDashboard::PutNumber("it zeroed.", 10);
+	///SmartDashboard::PutNumber("it zeroed.", 10);
 
 	if (stop_motors) {
 		StopAll();
@@ -1122,8 +1122,9 @@ void DriveControllerMother::RunAutonDrive() {
 
 	//SmartDashboard::PutNumber("auton profile size", auton_profile.size());
 
-	SmartDashboard::PutNumber("enc.", canTalonLeft1->GetSelectedSensorPosition(0));
-	SmartDashboard::PutNumber("yaw zeroed", ahrs->GetYaw());
+	SmartDashboard::PutNumber("zeroing 1", zeroing_index.at(0));
+	//SmartDashboard::PutNumber("zeroing 2", zeroing_index.at(1));
+
 
 	//put in profile //was finishing the for loop before we got a profile
 	for (int i = 0; i < auton_profile[0].size(); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs
@@ -1131,7 +1132,7 @@ void DriveControllerMother::RunAutonDrive() {
 	}
 
 	for (int i = 0; i < zeroing_index.size(); i++) {
-		if(row_index == zeroing_index.at(i)) {
+		if (row_index == zeroing_index.at(i)) {
 			is_zero = true;
 		} else {
 			is_zero = false;
@@ -1141,15 +1142,16 @@ void DriveControllerMother::RunAutonDrive() {
 		ZeroAll(true); //sets drive to 0.0
 	} else {
 		AutonDrive(); //send each row to auton drive before getting the next row
-	}
-	if (continue_profile && row_index < auton_profile.size()) { //autonprofilesize is always 1500
-		row_index++;
+		if (continue_profile && row_index < auton_profile.size()) { //autonprofilesize is always 1500 //only increment rows if not zeroing
+			row_index++;
+		}
 	}
 
 	SmartDashboard::PutNumber("row index", row_index);
 }
 
-void DriveControllerMother::RunTeleopDrive(Joystick *JoyThrottle, Joystick *JoyWheel, bool is_heading) {
+void DriveControllerMother::RunTeleopDrive(Joystick *JoyThrottle,
+		Joystick *JoyWheel, bool is_heading) {
 
 	if (is_heading) {
 		RotationController(JoyWheel);
