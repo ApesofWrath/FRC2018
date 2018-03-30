@@ -72,8 +72,6 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 
 	case WAIT_FOR_BUTTON_STATE_A: //will start arm up and elev down
 
-		//driveController_a->StopProfile(false);
-
 		SmartDashboard::PutString("STATE", "WAIT FOR BUTTON.");
 		if (get_cube_ground) { //can go to all states below wfb state
 			state_a = GET_CUBE_GROUND_STATE_A;
@@ -168,7 +166,7 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 		elevator_a->elevator_state = elevator_a->UP_STATE_E_H;
 		if (elevator_a->GetElevatorPosition() >= 0.55) { //start shooting at 0.6
 			intake_a->intake_wheel_state = intake_a->OUT_STATE_H;
-			if (intake_a->ReleasedCube(true)) {
+			if (intake_a->ReleasedCube(intake_a->SCALE)) {
 				state_a = POST_INTAKE_SWITCH_STATE_A;
 				shoot_counter++;
 			}
@@ -185,9 +183,9 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 		if (std::abs(intake_a->GetAngularPosition() - intake_a->MID_ANGLE)
 				<= 0.2) { //start shooting when high enough
 			intake_a->intake_wheel_state = intake_a->SLOW_STATE_H;
-			if (intake_a->ReleasedCube(true)) { //param does not matter that's lie
-				state_a = POST_INTAKE_SWITCH_STATE_A;
+			if (intake_a->ReleasedCube(intake_a->SWITCH)) { //param does not matter: that's lie
 				shoot_counter++;
+				state_a = POST_INTAKE_SWITCH_STATE_A;
 			}
 		}
 		last_state_a = PLACE_SWITCH_STATE_A;
@@ -208,7 +206,7 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 				&& intake_a->GetAngularPosition() > 1.9 && shoot_cube) { //shoot if the height of the elevator and the angle of the arm is good enough //WAS 1.98
 			intake_a->intake_wheel_state = intake_a->OUT_STATE_H;
 			//std::cout << "intake out " << std::endl;
-			if (intake_a->ReleasedCube(false)) {
+			if (intake_a->ReleasedCube(intake_a->BACK)) {
 				state_a = POST_INTAKE_SCALE_STATE_A;
 				shoot_counter++;
 			}

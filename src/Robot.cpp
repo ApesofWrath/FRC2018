@@ -360,7 +360,7 @@ public:
 
 					//this should have happened
 					scale_side->GenerateScale(true, true, true, false, false);
-					scaleSwitchState = true; //scale state machine works for both scale and scale+switch
+					scaleSwitchState = true;
 
 
 				} else if (leftScale && !leftSwitch) { //only scale

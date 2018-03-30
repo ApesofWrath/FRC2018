@@ -20,7 +20,9 @@ public:
 	}
 
 	void GenerateSwitch(bool left, bool added_switch);
-	void GetAddedSwitch(bool left);
+	void MoveToAddedSwitch(bool left); //back to starting position, for moving back on the x
+	void GetAddedSwitch(bool left); //forward
+	void BackUp(bool left); //back up first, so that we have forward room to move on the x, to place on the switch again
 	void PlaceAddedSwitch(bool left);
 
 	void RunStateMachine(bool *place_switch);
