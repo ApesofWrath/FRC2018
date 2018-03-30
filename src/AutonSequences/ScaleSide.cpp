@@ -250,11 +250,13 @@ void ScaleSide::RunStateMachineScaleSwitch(bool *place_scale_backwards,
 
 //no other state machine booleans needed, all other ones will stay false
 
-//	SmartDashboard::PutBoolean("place switch", *place_switch);
-//	SmartDashboard::PutNumber("total indeces", added_switch_len + scale_traj_len);
-//	SmartDashboard::PutNumber("index", drive_controller->GetDriveIndex()); //maybe can't call getindex more than once
-
 	int drive_index = drive_controller->GetDriveIndex();
+
+	SmartDashboard::PutNumber("total indeces", added_switch_len + scale_traj_len + added_scale_len);
+	SmartDashboard::PutNumber("1", scale_traj_len);
+	SmartDashboard::PutNumber("2", added_switch_len);
+	SmartDashboard::PutNumber("3", added_scale_len);
+	SmartDashboard::PutNumber("index", drive_index); //maybe can't call getindex more than onc
 
 	//added check for state to stop profile
 	if (((drive_index >= scale_traj_len

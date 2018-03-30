@@ -88,6 +88,7 @@ PowerDistributionPanel *pdp_i;
 Elevator *elevator_i;
 
 double starting_pos = 0.0;
+bool start_counting = false;
 
 bool is_at_bottom = false;
 bool first_time_at_bottom = false;
@@ -144,6 +145,8 @@ int current_counter = 0;
 int counter_i = 0;
 //int i = 0;
 int encoder_counter = 0;
+
+int have_cube_wait = 0;
 
 int position_offset = 0;
 
@@ -414,14 +417,14 @@ void Intake::Rotate() { //a vector of a pos vector and a vel vector
 		double current_pos = GetAngularPosition();
 		double current_vel = GetAngularVelocity();
 
-	///	SmartDashboard::PutNumber("IntakeActualVel", current_vel);
-	//	SmartDashboard::PutNumber("IntakeActualPos", current_pos);
+		///	SmartDashboard::PutNumber("IntakeActualVel", current_vel);
+		//	SmartDashboard::PutNumber("IntakeActualPos", current_pos);
 
 		double goal_pos = ref_intake[0][0];
 		double goal_vel = ref_intake[1][0];
 
-	//	SmartDashboard::PutNumber("IntakeGoalVel", goal_vel);
-	//	SmartDashboard::PutNumber("IntakeGoalPos", goal_pos);
+		//	SmartDashboard::PutNumber("IntakeGoalVel", goal_vel);
+		//	SmartDashboard::PutNumber("IntakeGoalPos", goal_pos);
 
 		error_i[0][0] = goal_pos - current_pos;
 		error_i[1][0] = goal_vel - current_vel;
@@ -731,11 +734,22 @@ bool Intake::HaveCube() {
 	alglib::corrr1d(currents_intake, arr_len, master_scale, arr_len,
 			corr_intake);
 
-	if (FindMaximum(corr_intake) > INTAKE_CORR_VALUE) {
-		for (int i = 0; i < (sample_window_intake - 1); i++) { //to index 18
-			currents_intake[i] = 0;
+	if (FindMaximum(corr_intake) > INTAKE_CORR_VALUE) { //just once, and will go through
+		start_counting = true;
+	}
+
+	if (start_counting) {
+		have_cube_wait++;
+		if (have_cube_wait == 25) { ///////////////////////
+			have_cube_wait = 0;
+			start_counting = false;
+			for (int i = 0; i < (sample_window_intake - 1); i++) { //to index 18
+				currents_intake[i] = 0;
+			}
+			return true;
+		} else {
+			return false; //but keep counting up
 		}
-		return true;
 	} else {
 		return false;
 	}
@@ -820,13 +834,11 @@ bool Intake::ReleasedCube(int shot_type) { //forward scale or backwards scale. i
 
 	//std::cout << "corr val: " << (corr_val_now_r - last_corr_val_r) << std::endl;
 
-
-
 	if (((last_corr_val_l > corr_val_now_l || last_corr_val_r > corr_val_now_r)) //if the arrays match close enough (corr_val_now_r > OUTTAKE_CORR_VALUE
 	//|| corr_val_now_l > OUTTAKE_CORR_VALUE)
 	///&&
 			|| (time_counter > TIME_LIMIT)) {
-	//	std::cout << "last corr val: " << last_corr_val_r << std::endl;
+		//	std::cout << "last corr val: " << last_corr_val_r << std::endl;
 		for (int i = 0; i < (sample_window_outtake - 1); i++) {
 			currents_outtake_r[i] = 0.0;
 			currents_outtake_l[i] = 0.0;

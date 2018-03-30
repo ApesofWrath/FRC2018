@@ -237,6 +237,8 @@ public:
 		drive_controller->ZeroAll(true);
 		drive_controller->ShiftUp();
 
+		///////////////////////////////////////////////////////////////////////////
+
 		std::string gameData = "";
 
 		for (int i = 0; i < 1000; i++) { //FMS data may not come immediately
@@ -266,6 +268,9 @@ public:
 		} else { //still have not received FMS data
 			autoSelected = driveForward; //regardless of auton chooser
 		}
+
+
+		/////////////////////////////////////////////////////////////////////////
 
 		//Switch only - Drive Forward
 		if (autoSelected == cubeSwitch) { //TODO: replace this logic with a direct chooser
@@ -320,6 +325,7 @@ public:
 						intake_, auton_state_machine);
 				drive_forward->GenerateForward(true);
 			}
+
 		} else if (autoSelected == cubeScale) { //can only scale if scale is on our side
 			scale_side = new ScaleSide(drive_controller, elevator_, intake_,
 					auton_state_machine);
@@ -350,14 +356,15 @@ public:
 
 			if (positionSelected == left) {
 				if (leftScale && leftSwitch) { //scale and switch
+					SmartDashboard::PutString("AUTO SELEC", "Left ScSw");
 					scale_side->GenerateScale(true, true, true, false, false);
 					scaleSwitchState = true; //scale state machine works for both scale and scale+switch
 				} else if (leftScale && !leftSwitch) { //only scale
 					scale_side->GenerateScale(true, false, false, false, false);
-					scaleSwitchState = true;
+					scaleOnlyState = true;
 				} else if (!leftScale && leftSwitch) {
-					switch_side->GenerateSwitchSide(true, false);
-					switchSideState = true;
+					//switch_side->GenerateSwitchSide(true, false); //side switch does not work yet
+					//switchSideState = true;
 				} else {
 					drive_forward = new DriveForward(drive_controller,
 							elevator_, intake_, auton_state_machine);
@@ -368,12 +375,12 @@ public:
 				if (!leftScale && !leftSwitch) {
 					scale_side->GenerateScale(false, true, false, false, false);
 					scaleSwitchState = true;
-				} else if (!leftScale && leftSwitch) { //have the scale
-					scale_side->GenerateScale(false, true, false, false, false);
-					scaleSwitchState = true;
-				} else if (leftScale && !leftSwitch) {
-					switch_side->GenerateSwitchSide(false, false);
-					switchSideState = true;
+				} else if (!leftScale && leftSwitch) { //have the scale ONLY
+					scale_side->GenerateScale(false, false, false, false, false);
+					scaleOnlyState = true;
+				} else if (leftScale && !leftSwitch) { //have the switch
+//					switch_side->GenerateSwitchSide(false, false);
+//					switchSideState = true;
 				} else {
 					drive_forward = new DriveForward(drive_controller,
 							elevator_, intake_, auton_state_machine);
@@ -383,7 +390,7 @@ public:
 			} else {
 				drive_forward = new DriveForward(drive_controller, elevator_,
 						intake_, auton_state_machine);
-				drive_forward->GenerateForward(false);
+				drive_forward->GenerateForward(false); //backward because starting on side
 			}
 		}
 
@@ -397,7 +404,7 @@ public:
 		} else {
 			drive_forward = new DriveForward(drive_controller, elevator_,
 					intake_, auton_state_machine);
-			drive_forward->GenerateForward(false);
+			drive_forward->GenerateForward(false); // risky, assuming start backward
 		}
 
 	}
@@ -412,6 +419,7 @@ public:
 		} else if (scaleSwitchState) {
 			scale_side->RunStateMachineScaleSwitch(&raise_to_scale_backwards,
 					&raise_to_switch, &get_cube_ground);
+			std::cout << "the right auton state machine" << std::endl;
 		} else if (scaleScaleState) {
 			scale_side->RunStateMachineScaleScale(&raise_to_scale_backwards,
 					&get_cube_ground);
