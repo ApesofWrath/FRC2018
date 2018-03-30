@@ -56,6 +56,8 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch,
 	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
 			wheelbase_width);
 
+	SmartDashboard::PutString("first", "yayeet");
+
 	int i;
 	for (i = 0; i < 1500; i++) {
 
@@ -134,6 +136,8 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale,
 
 	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
 			wheelbase_width);
+
+	SmartDashboard::PutString("second", "yayeet");
 
 	for (int i = (scale_traj_len); i < 1500; i++) { //starting from the next point, right after the pathfinder trajectory ends
 
@@ -235,6 +239,8 @@ void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spl
 		}
 
 	}
+
+	SmartDashboard::PutString("third", "yayeet");
 
 	free(trajectory); //need to free malloc'd elements
 	free(leftTrajectory);

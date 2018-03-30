@@ -107,12 +107,12 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 	case INIT_STATE:
 
 		SmartDashboard::PutString("STATE", "INIT");
-		if (intake->GetAngularPosition() > 1.7) { //depends on arm being already initialized from auton //this height is from the safety for the elevator in intake's setvoltage()
-			elevator->elevator_state = elevator->UP_STATE_E_H; //there is the safety for the elevator to not go down if the arm is too high (in setvoltagelevator), but that safety will basically just kill the elevator.
-			//since the elevator will be slowly going down, the arm will not be able to go down for the elevator to actually go down. //will need to manually down if this happens
-		} else {
+//		if (intake->GetAngularPosition() > 1.7) { //depends on arm being already initialized from auton //this height is from the safety for the elevator in intake's setvoltage()
+//			elevator->elevator_state = elevator->UP_STATE_E_H; //there is the safety for the elevator to not go down if the arm is too high (in setvoltagelevator), but that safety will basically just kill the elevator.
+//			//since the elevator will be slowly going down, the arm will not be able to go down for the elevator to actually go down. //will need to manually down if this happens
+//		} else {
 			elevator->elevator_state = elevator->DOWN_STATE_E_H;
-		}
+	//	}
 		intake->intake_arm_state = intake->UP_STATE_H;
 		//elevator->elevator_state = elevator->INIT_STATE_E_H;
 		//intake->intake_arm_state = intake->INIT_STATE_H;
