@@ -1062,6 +1062,7 @@ void DriveControllerMother::SetRefs(std::vector<std::vector<double>> profile) {
 	auton_profile = profile;
 	set_profile = true; //cannot re-enable to restart profile
 	row_index = 0;
+	zeroing_counter = 0;
 
 }
 
@@ -1147,18 +1148,21 @@ void DriveControllerMother::RunAutonDrive() {
 		drive_ref.at(i) = auton_profile.at(row_index).at(i); //from SetRef()
 	}
 
+	SmartDashboard::PutNumber("zeroing length", zeroing_index.size());
+
 	for (int i = 0; i < zeroing_index.size(); i++) {
 		if (row_index == zeroing_index.at(i)) {
-			is_zero = true;
+			ZeroAll(true);
+			std::cout << "Zero at: " << row_index << std::endl;
 		} else {
-			is_zero = false;
+			AutonDrive();
 		}
 	}
-	if (is_zero) { //zeroing indeces set in generateprofiler()'s
-		ZeroAll(true); //sets drive to 0.0
-	} else {
-		AutonDrive(); //send each row to auton drive before getting the next row
-	}
+//	if (is_zero) { //zeroing indeces set in generateprofiler()'s
+//		ZeroAll(true); //sets drive to 0.0
+//	} else {
+//		AutonDrive(); //send each row to auton drive before getting the next row
+//	}
 	if (continue_profile && row_index < auton_profile.size()) { //autonprofilesize is always 1500 //THIS CANNOT BE INSIDE THE ELSE BUT WHY? TODO: figure out
 		row_index++;
 	}
