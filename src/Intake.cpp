@@ -63,7 +63,7 @@ const double ZERO_CURRENT = 4.0; //3.0;
 
 const double PCL_WHEELS = 30.0; //peak current limit
 const double CCL_WHEELS = 10.0; //continuous current limit
-const double PCD_WHEELS = 200.0; //peak current duration
+const double PCD_WHEELS = 10.0; //peak current duration
 
 const int INTAKE_SLEEP_TIME = 0;
 const double INTAKE_WAIT_TIME = 0.01; //sec
@@ -326,7 +326,7 @@ Intake::Intake(PowerDistributionPanel *pdp,
 
 }
 
-void Intake::EnableCurrentLimits() {
+void Intake::EnableCurrentLimits() { //more strict
 
 	talonIntake1->EnableCurrentLimit(true);
 	talonIntake2->EnableCurrentLimit(true);
@@ -336,6 +336,19 @@ void Intake::EnableCurrentLimits() {
 	talonIntake2->ConfigContinuousCurrentLimit(CCL_WHEELS, 0);
 	talonIntake1->ConfigPeakCurrentDuration(PCD_WHEELS, 0);
 	talonIntake2->ConfigPeakCurrentDuration(PCD_WHEELS, 0);
+
+}
+
+void Intake::EnableIntakingCurrentLimits() { //less strict
+
+	talonIntake1->EnableCurrentLimit(true);
+	talonIntake2->EnableCurrentLimit(true);
+	talonIntake1->ConfigPeakCurrentLimit(40, 0);
+	talonIntake2->ConfigPeakCurrentLimit(40, 0);
+	talonIntake1->ConfigContinuousCurrentLimit(30, 0);
+	talonIntake2->ConfigContinuousCurrentLimit(30, 0);
+	talonIntake1->ConfigPeakCurrentDuration(10, 0);
+	talonIntake2->ConfigPeakCurrentDuration(10, 0);
 
 }
 
@@ -662,7 +675,6 @@ void Intake::IntakeArmStateMachine() {
 		break;
 	}
 
-
 }
 
 void Intake::IntakeWheelStateMachine() {
@@ -681,7 +693,7 @@ void Intake::IntakeWheelStateMachine() {
 	case IN_STATE:
 		SmartDashboard::PutString("IW", "IN");
 		if (last_intake_wheel_state != IN_STATE) {
-			DisableCurrentLimits(); //need to keep intaking fast, even when we already have the cube for 25 counts
+			EnableIntakingCurrentLimits(); //need to keep intaking fast, even when we already have the cube for 25 counts
 		}
 		In();
 		last_intake_wheel_state = IN_STATE;
@@ -830,10 +842,10 @@ bool Intake::ReleasedCube(int shot_type) { //forward scale or backwards scale. i
 
 	//std::cout << "corr val: " << (corr_val_now_r - last_corr_val_r) << std::endl;
 
-	if (//((last_corr_val_l > corr_val_now_l || last_corr_val_r > corr_val_now_r)) //if the arrays match close enough (corr_val_now_r > OUTTAKE_CORR_VALUE
+	if ( //((last_corr_val_l > corr_val_now_l || last_corr_val_r > corr_val_now_r)) //if the arrays match close enough (corr_val_now_r > OUTTAKE_CORR_VALUE
 	//|| corr_val_now_l > OUTTAKE_CORR_VALUE)
 	///&&
-		 (time_counter > TIME_LIMIT)) {
+	(time_counter > TIME_LIMIT)) {
 		//	std::cout << "last corr val: " << last_corr_val_r << std::endl;
 //		for (int i = 0; i < (sample_window_outtake - 1); i++) {
 //			currents_outtake_r[i] = 0.0;

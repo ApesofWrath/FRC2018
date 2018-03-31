@@ -77,6 +77,7 @@ public:
 	double FindMaximum(alglib::real_1d_array corr);
 
 	void EnableCurrentLimits();
+	void EnableIntakingCurrentLimits();
 	void DisableCurrentLimits();
 
 	void In();

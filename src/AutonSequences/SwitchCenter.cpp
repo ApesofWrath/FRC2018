@@ -213,7 +213,7 @@ void SwitchCenter::GetAddedSwitch(bool left) {
 		full_refs_sw.at(i).at(5) = ((double) sr.velocity);
 
 		if (i >= (switch_len + added_move_to_switch_len + added_get_switch_len)) { //still have more in the 1500 allotted points
-			PlaceAddedSwitch(left);
+			BackUp(left);
 			zeroing_indeces.push_back(switch_len + added_get_switch_len + added_get_switch_len);
 			break;
 		}
@@ -271,9 +271,9 @@ void SwitchCenter::BackUp(bool left) {
 		full_refs_sw.at(i).at(4) = -1.0 * ((double) sl.velocity);
 		full_refs_sw.at(i).at(5) = -1.0 * ((double) sr.velocity);
 
-		if (i >= (switch_len + added_move_to_switch_len + added_get_switch_len)) { //still have more in the 1500 allotted points
+		if (i >= (switch_len + added_move_to_switch_len + added_get_switch_len + added_back_up_len)) { //still have more in the 1500 allotted points
 			PlaceAddedSwitch(left);
-			zeroing_indeces.push_back(switch_len + added_get_switch_len + added_get_switch_len);
+			zeroing_indeces.push_back(switch_len + added_get_switch_len + added_get_switch_len + added_back_up_len);
 			break;
 		}
 
@@ -325,10 +325,10 @@ void SwitchCenter::PlaceAddedSwitch(bool left) { //TODO: backwards refs
 	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
 			wheelbase_width);
 
-	for (int i = (switch_len + added_get_switch_len); i < 1500; i++) { //starting from the next point, right after the pathfinder trajectory ends
+	for (int i = (switch_len + added_move_to_switch_len + added_get_switch_len + added_back_up_len); i < 1500; i++) { //starting from the next point, right after the pathfinder trajectory ends
 
-		Segment sl = leftTrajectory[i - (switch_len + added_get_switch_len)]; //start at beginning of new profile
-		Segment sr = rightTrajectory[i - (switch_len + added_get_switch_len)];
+		Segment sl = leftTrajectory[i - (switch_len + added_move_to_switch_len + added_get_switch_len + added_back_up_len)]; //start at beginning of new profile
+		Segment sr = rightTrajectory[i - (switch_len + added_move_to_switch_len + added_get_switch_len + added_back_up_len)];
 
 		full_refs_sw.at(i).at(0) = ((double) sl.heading); //positive
 		full_refs_sw.at(i).at(1) = ((double) sl.position);
@@ -337,7 +337,7 @@ void SwitchCenter::PlaceAddedSwitch(bool left) { //TODO: backwards refs
 		full_refs_sw.at(i).at(4) = ((double) sl.velocity);
 		full_refs_sw.at(i).at(5) = ((double) sr.velocity);
 
-		if (i >= (switch_len + added_get_switch_len + added_score_switch_len)) { //still have more in the 1500 allotted points
+		if (i >= (switch_len + added_move_to_switch_len + added_get_switch_len + added_back_up_len + added_score_switch_len)) { //still have more in the 1500 allotted points
 			full_refs_sw.at(i).at(0) = full_refs_sw.at(i - 1).at(0); //i - 1 will always be the last sensible value sinwe it waswades
 			full_refs_sw.at(i).at(1) = full_refs_sw.at(i - 1).at(1);
 			full_refs_sw.at(i).at(2) = full_refs_sw.at(i - 1).at(2);

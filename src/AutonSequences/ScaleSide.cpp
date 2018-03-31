@@ -145,18 +145,18 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale,
 		full_refs_sc.at(i).at(5) = ((double) sr.velocity);
 
 		if (i >= (scale_traj_len + added_switch_len)) { //still have more points left after placing on scale backwards and placing switch
-			//	if (added_scale) { //should not have been here
-			zeroing_indeces.push_back(scale_traj_len + added_switch_len);
-			GenerateAddedScale(left_added_scale);
-			break; //generateAddedScale will finish off the 1500 points itself
-			//	} else {
-//				full_refs_sc.at(i).at(0) = full_refs_sc.at(i - 1).at(0); //i - 1 will always be the last sensible value since it cascades
-//				full_refs_sc.at(i).at(1) = full_refs_sc.at(i - 1).at(1);
-//				full_refs_sc.at(i).at(2) = full_refs_sc.at(i - 1).at(2);
-//				full_refs_sc.at(i).at(3) = full_refs_sc.at(i - 1).at(3);
-//				full_refs_sc.at(i).at(4) = full_refs_sc.at(i - 1).at(4);
-//				full_refs_sc.at(i).at(5) = full_refs_sc.at(i - 1).at(5);
-//			}
+			if (added_scale) {
+				zeroing_indeces.push_back(scale_traj_len + added_switch_len);
+				GenerateAddedScale(left_added_scale);
+				break; //generateAddedScale will finish off the 1500 points itself
+			} else {
+				full_refs_sc.at(i).at(0) = full_refs_sc.at(i - 1).at(0); //i - 1 will always be the last sensible value since it cascades
+				full_refs_sc.at(i).at(1) = full_refs_sc.at(i - 1).at(1);
+				full_refs_sc.at(i).at(2) = full_refs_sc.at(i - 1).at(2);
+				full_refs_sc.at(i).at(3) = full_refs_sc.at(i - 1).at(3);
+				full_refs_sc.at(i).at(4) = full_refs_sc.at(i - 1).at(4);
+				full_refs_sc.at(i).at(5) = full_refs_sc.at(i - 1).at(5);
+			}
 
 		}
 
@@ -265,8 +265,8 @@ void ScaleSide::RunStateMachineScaleSwitch(bool *place_scale_backwards,
 					&& auton_state_machine->state_a
 							== auton_state_machine->GET_CUBE_GROUND_STATE_A_H)
 			|| auton_state_machine->shoot_counter == 2
-			|| (drive_index >= (scale_traj_len + added_switch_len) && auton_state_machine->shoot_counter
-					== 1)) { //for shooting first cube, for waiting for elev/arm to come back down to get ready to get the second cube... a possibly redundant case, for getting the second cube
+			|| (drive_index >= (scale_traj_len + added_switch_len)
+					&& auton_state_machine->shoot_counter == 1)) { //for shooting first cube, for waiting for elev/arm to come back down to get ready to get the second cube... a possibly redundant case, for getting the second cube
 		drive_controller->StopProfile(true);
 	} else {
 		drive_controller->StopProfile(false);

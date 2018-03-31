@@ -56,10 +56,10 @@ public:
 	const int RAISE_TO_SCALE = 1;
 	const int RAISE_TO_SCALE_BACKWARDS = 12;
 
-	const int INTAKE_SPIN_IN = 10; //not enough buttons for these three
-	const int INTAKE_SPIN_OUT = 1; //throttle
+	const int INTAKE_SPIN_IN = 99; //throttle
+	const int INTAKE_SPIN_OUT = 10;
 	const int INTAKE_SPIN_STOP = 99;
-	const int INTAKE_SPIN_SLOW = 8; //back to what it should be
+	const int INTAKE_SPIN_SLOW = 8; //the override for fast scale/backwardScale, also manual outtake slow
 
 	const int INTAKE_ARM_UP = 8;
 	const int INTAKE_ARM_MID = 2;
@@ -339,12 +339,12 @@ public:
 				scale_side->GenerateScale(false, false, false, false, false);
 				scaleOnlyState = true;
 
-			} else if ((positionSelected == center)
-					|| (positionSelected == right && leftScale)
-					|| (positionSelected == left && !leftScale)) {
+			} else {
 				drive_forward = new DriveForward(drive_controller, elevator_, //can't just set autoSelected to driveForward because code only goes through if-ifelse once
 						intake_, auton_state_machine);
+				std::cout << "object created" << std::endl;
 				drive_forward->GenerateForward(false);
+				std::cout << "pathfinder profile made" << std::endl;
 			}
 		}
 
@@ -428,6 +428,8 @@ public:
 		} else if (switchCenterTwoState) {
 			switch_center->RunStateMachineTwo(&raise_to_switch,
 					&get_cube_ground);
+		} else {
+
 		}
 
 	}
@@ -443,22 +445,22 @@ public:
 
 	void TeleopPeriodic() {
 
-//		SmartDashboard::PutNumber("Left 1",
-//				drive_controller->canTalonLeft1->GetOutputCurrent());
-//		SmartDashboard::PutNumber("Left 2",
-//				drive_controller->canTalonLeft2->GetOutputCurrent());
-//		SmartDashboard::PutNumber("Left 3",
-//				drive_controller->canTalonLeft3->GetOutputCurrent());
-//		SmartDashboard::PutNumber("Left 4",
-//				drive_controller->canTalonLeft4->GetOutputCurrent());
-//		SmartDashboard::PutNumber("Right 1",
-//				drive_controller->canTalonRight1->GetOutputCurrent());
-//		SmartDashboard::PutNumber("Right 2",
-//				drive_controller->canTalonRight2->GetOutputCurrent());
-//		SmartDashboard::PutNumber("Right 3",
-//				drive_controller->canTalonRight3->GetOutputCurrent());
-//		SmartDashboard::PutNumber("Right 4",
-//				drive_controller->canTalonRight4->GetOutputCurrent());
+		SmartDashboard::PutNumber("Left 1",
+				drive_controller->canTalonLeft1->GetOutputCurrent());
+		SmartDashboard::PutNumber("Left 2",
+				drive_controller->canTalonLeft2->GetOutputCurrent());
+		SmartDashboard::PutNumber("Left 3",
+				drive_controller->canTalonLeft3->GetOutputCurrent());
+		SmartDashboard::PutNumber("Left 4",
+				drive_controller->canTalonLeft4->GetOutputCurrent());
+		SmartDashboard::PutNumber("Right 1",
+				drive_controller->canTalonRight1->GetOutputCurrent());
+		SmartDashboard::PutNumber("Right 2",
+				drive_controller->canTalonRight2->GetOutputCurrent());
+		SmartDashboard::PutNumber("Right 3",
+				drive_controller->canTalonRight3->GetOutputCurrent());
+		SmartDashboard::PutNumber("Right 4",
+				drive_controller->canTalonRight4->GetOutputCurrent());
 
 #if !STATEMACHINE
 		intake_->ManualArm(joyOp);

@@ -367,32 +367,32 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 	canTalonRight3->EnableCurrentLimit(true);
 	canTalonRight4->EnableCurrentLimit(true);
 
-	canTalonLeft1->ConfigPeakCurrentLimit(50, 0); //50
-	canTalonLeft2->ConfigPeakCurrentLimit(50, 0);
-	canTalonLeft3->ConfigPeakCurrentLimit(50, 0);
-	canTalonLeft4->ConfigPeakCurrentLimit(50, 0);
-	canTalonRight1->ConfigPeakCurrentLimit(50, 0);
-	canTalonRight2->ConfigPeakCurrentLimit(50, 0);
-	canTalonRight3->ConfigPeakCurrentLimit(50, 0);
-	canTalonRight4->ConfigPeakCurrentLimit(50, 0);
+	canTalonLeft1->ConfigPeakCurrentLimit(40, 0); //40
+	canTalonLeft2->ConfigPeakCurrentLimit(40, 0);
+	canTalonLeft3->ConfigPeakCurrentLimit(40, 0);
+	canTalonLeft4->ConfigPeakCurrentLimit(40, 0);
+	canTalonRight1->ConfigPeakCurrentLimit(40, 0);
+	canTalonRight2->ConfigPeakCurrentLimit(40, 0);
+	canTalonRight3->ConfigPeakCurrentLimit(40, 0);
+	canTalonRight4->ConfigPeakCurrentLimit(40, 0);
 
-	canTalonLeft1->ConfigContinuousCurrentLimit(35, 0);
-	canTalonLeft2->ConfigContinuousCurrentLimit(35, 0); //335
-	canTalonLeft3->ConfigContinuousCurrentLimit(35, 0);
-	canTalonLeft4->ConfigContinuousCurrentLimit(35, 0);
-	canTalonRight1->ConfigContinuousCurrentLimit(35, 0);
-	canTalonRight2->ConfigContinuousCurrentLimit(35, 0);
-	canTalonRight3->ConfigContinuousCurrentLimit(35, 0);
-	canTalonRight4->ConfigContinuousCurrentLimit(35, 0);
+	canTalonLeft1->ConfigContinuousCurrentLimit(30, 0);
+	canTalonLeft2->ConfigContinuousCurrentLimit(30, 0); //330
+	canTalonLeft3->ConfigContinuousCurrentLimit(30, 0);
+	canTalonLeft4->ConfigContinuousCurrentLimit(30, 0);
+	canTalonRight1->ConfigContinuousCurrentLimit(30, 0);
+	canTalonRight2->ConfigContinuousCurrentLimit(30, 0);
+	canTalonRight3->ConfigContinuousCurrentLimit(30, 0);
+	canTalonRight4->ConfigContinuousCurrentLimit(30, 0);
 
-	canTalonLeft1->ConfigPeakCurrentDuration(200, 0);
-	canTalonLeft2->ConfigPeakCurrentDuration(200, 0); //200
-	canTalonLeft3->ConfigPeakCurrentDuration(200, 0);
-	canTalonLeft4->ConfigPeakCurrentDuration(200, 0);
-	canTalonRight1->ConfigPeakCurrentDuration(200, 0);
-	canTalonRight2->ConfigPeakCurrentDuration(200, 0);
-	canTalonRight3->ConfigPeakCurrentDuration(200, 0);
-	canTalonRight4->ConfigPeakCurrentDuration(200, 0);
+	canTalonLeft1->ConfigPeakCurrentDuration(10, 0);
+	canTalonLeft2->ConfigPeakCurrentDuration(10, 0); //10
+	canTalonLeft3->ConfigPeakCurrentDuration(10, 0);
+	canTalonLeft4->ConfigPeakCurrentDuration(10, 0);
+	canTalonRight1->ConfigPeakCurrentDuration(10, 0);
+	canTalonRight2->ConfigPeakCurrentDuration(10, 0);
+	canTalonRight3->ConfigPeakCurrentDuration(10, 0);
+	canTalonRight4->ConfigPeakCurrentDuration(10, 0);
 
 	canTalonLeft1->ConfigOpenloopRamp(0.15, 0); //TODO: adjust this as needed
 	canTalonLeft2->ConfigOpenloopRamp(0.15, 0);
@@ -1142,7 +1142,7 @@ void DriveControllerMother::RunAutonDrive() {
 	} else {
 		AutonDrive(); //send each row to auton drive before getting the next row
 	}
-	if (continue_profile && row_index < auton_profile.size()) { //autonprofilesize is always 1500
+	if (continue_profile && row_index < auton_profile.size()) { //autonprofilesize is always 1500 //THIS CANNOT BE INSIDE THE ELSE BUT WHY?
 		row_index++;
 	}
 
