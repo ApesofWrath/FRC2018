@@ -45,6 +45,8 @@ public:
 
 	int row_index = 0;
 
+	int zeroing_counter = 0;
+
 	std::vector<int> zeroing_index;
 
 	//needs the CAN IDs of all the talons and whether or not this is a west coast or HDrive train, input -1 if no kicker (or really whatever you want since it wont be used)

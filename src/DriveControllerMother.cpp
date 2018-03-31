@@ -967,15 +967,29 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 
 void DriveControllerMother::ZeroAll(bool stop_motors) {
 
-	SmartDashboard::PutNumber("it zeroed.", 10);
-
 	if (stop_motors) {
 		StopAll();
 	}
 
+//	for(int i = 0; i < 7; i++) {
+//		if(canTalonLeft1->GetSelectedSensorPosition(0) == 0) {
+//			break;
+//		}
+//	//std::this_thread::sleep_for(std::chrono::milliseconds(2)); may need to wait
+//	}
+
 	ZeroI();
 	ZeroEncs();
 	ZeroYaw();
+
+	zeroing_counter++;
+
+	//	for(int i = 0; i < 7; i++) {
+	//		if(canTalonLeft1->GetSelectedSensorPosition(0) == 0) {
+	//			break;
+	//		}
+	//	//std::this_thread::sleep_for(std::chrono::milliseconds(2)); may need to wait
+	//	}
 }
 
 //will stop all driven motors in the drive controller
@@ -1122,7 +1136,8 @@ void DriveControllerMother::RunAutonDrive() {
 
 	//SmartDashboard::PutNumber("auton profile size", auton_profile.size());
 
-	SmartDashboard::PutNumber("enc.", canTalonLeft1->GetSelectedSensorPosition(0));
+	SmartDashboard::PutNumber("enc.",
+			canTalonLeft1->GetSelectedSensorPosition(0));
 	SmartDashboard::PutNumber("yaw zeroed", ahrs->GetYaw());
 
 	//put in profile //was finishing the for loop before we got a profile
@@ -1131,7 +1146,7 @@ void DriveControllerMother::RunAutonDrive() {
 	}
 
 	for (int i = 0; i < zeroing_index.size(); i++) {
-		if(row_index == zeroing_index.at(i)) {
+		if (row_index == zeroing_index.at(i)) {
 			is_zero = true;
 		} else {
 			is_zero = false;
@@ -1142,14 +1157,15 @@ void DriveControllerMother::RunAutonDrive() {
 	} else {
 		AutonDrive(); //send each row to auton drive before getting the next row
 	}
-	if (continue_profile && row_index < auton_profile.size()) { //autonprofilesize is always 1500 //THIS CANNOT BE INSIDE THE ELSE BUT WHY?
+	if (continue_profile && row_index < auton_profile.size()) { //autonprofilesize is always 1500 //THIS CANNOT BE INSIDE THE ELSE BUT WHY? TODO: figure out
 		row_index++;
 	}
 
 	SmartDashboard::PutNumber("row index", row_index);
 }
 
-void DriveControllerMother::RunTeleopDrive(Joystick *JoyThrottle, Joystick *JoyWheel, bool is_heading) {
+void DriveControllerMother::RunTeleopDrive(Joystick *JoyThrottle,
+		Joystick *JoyWheel, bool is_heading) {
 
 	if (is_heading) {
 		RotationController(JoyWheel);

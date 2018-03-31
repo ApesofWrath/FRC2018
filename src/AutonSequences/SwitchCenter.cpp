@@ -5,22 +5,18 @@
  *      Author: DriversStation
  */
 
-//Center Switch
 #include <AutonSequences/SwitchCenter.h>
 
-int switch_len = 0; //first place switch, we start auton with a cube in
+int switch_len = 0;
+
 int added_move_to_switch_len = 0;
 int added_get_switch_len = 0;
 int added_back_up_len = 0;
 int added_score_switch_len = 0;
 
-Timer *timerPauseSwitch = new Timer();
-
 std::vector<std::vector<double> > full_refs_sw(1500, std::vector<double>(6)); //initalizes each index value to 0
 
-void SwitchCenter::GenerateSwitch(bool left, bool added_switch) { //left center right //left is positive for x and for angle
-
-	//Auton thread started in auton constructor
+void SwitchCenter::GenerateSwitch(bool left, bool added_switch) {
 
 	int POINT_LENGTH = 3;
 
@@ -30,14 +26,14 @@ void SwitchCenter::GenerateSwitch(bool left, bool added_switch) { //left center 
 
 	//feet
 	if (left) {
-		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
-		p2 = {6.0, 4.0, d2r(20.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
-		p3 = {9.5, 5.0, d2r(0)}; //cannot just move in Y axis because of spline math
+		p1 = {0.0, 0.0, 0.0};
+		p2 = {6.0, 4.0, d2r(20.0)};
+		p3 = {9.5, 5.0, d2r(0)};
 	}
 	else {
-		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
-		p2 = {6.0, -3.0, d2r(-20.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
-		p3 = {9.5, -4.0, d2r(0)}; //cannot just move in Y axis because of spline math //CENTER STARTS CLOSER TO THE RIGHT //3.5
+		p1 = {0.0, 0.0, 0.0};
+		p2 = {6.0, -3.0, d2r(-20.0)};
+		p3 = {9.5, -4.0, d2r(0)}; //cannot just move in Y axis because of spline math //CENTER STARTS CLOSER TO THE RIGHT
 	}
 
 	points[0] = p1;
@@ -46,7 +42,7 @@ void SwitchCenter::GenerateSwitch(bool left, bool added_switch) { //left center 
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, TODO:jerk time_step_auton
+	PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 4.0, 100000.0, &candidate);
 
 	length = candidate.length;
 	switch_len = length;
@@ -59,16 +55,16 @@ void SwitchCenter::GenerateSwitch(bool left, bool added_switch) { //left center 
 
 	double wheelbase_width = 2.1;
 
-	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
+	pathfinder_modify_tank(trajectory, switch_len, leftTrajectory, rightTrajectory,
 			wheelbase_width);
 
 	int l;
-	for (l = 0; l < 1500; l++) { ////yaw pos, left pos, right pos, yaw vel, left vel, right vel
+	for (l = 0; l < 1500; l++) { //first profile starts from 0
 
 		Segment sl = leftTrajectory[l];
 		Segment sr = rightTrajectory[l];
 
-		full_refs_sw.at(l).at(0) = ((double) sl.heading);
+		full_refs_sw.at(l).at(0) = ((double) sl.heading); //forward
 		full_refs_sw.at(l).at(1) = ((double) sl.position);
 		full_refs_sw.at(l).at(2) = ((double) sr.position);
 		full_refs_sw.at(l).at(3) = (0.0);
@@ -77,9 +73,9 @@ void SwitchCenter::GenerateSwitch(bool left, bool added_switch) { //left center 
 
 		if (l >= switch_len) {
 			if (added_switch) {
-				MoveToAddedSwitch(left);
 				zeroing_indeces.push_back(switch_len);
-				break; //TODO: make sure there are breaks
+				MoveToAddedSwitch(left);
+				break;
 			} else {
 				full_refs_sw.at(l).at(0) = full_refs_sw.at(l - 1).at(0);
 				full_refs_sw.at(l).at(1) = full_refs_sw.at(l - 1).at(1);
@@ -110,13 +106,13 @@ void SwitchCenter::MoveToAddedSwitch(bool left) { //must zero profile, need to n
 
 	//feet
 	if (left) {
-		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
-		p2 = {-6.0, -4.0, d2r(-20.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
-		p3 = {-7.5, -5.0, d2r(-0)}; //cannot just move in Y axis because of spline math
+		p1 = {0.0, 0.0, 0.0}; //reverse and goes back to a little in front of starting position
+		p2 = {-6.0, -4.0, d2r(-20.0)};
+		p3 = {-7.5, -5.0, d2r(-0)};
 	} else {
-		p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
-		p2 = {-6.0, 3.0, d2r(20.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
-		p3 = {-7.5, 4.0, d2r(0)}; //cannot just move in Y axis because of spline math //CENTER STARTS CLOSER TO THE RIGHT //3.5
+		p1 = {0.0, 0.0, 0.0};
+		p2 = {-6.0, 3.0, d2r(20.0)};
+		p3 = {-7.5, 4.0, d2r(0)}; //CENTER STARTS CLOSER TO THE RIGHT
 	}
 
 	points[0] = p1;
@@ -125,7 +121,7 @@ void SwitchCenter::MoveToAddedSwitch(bool left) { //must zero profile, need to n
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk //profile speed must equal drive thread time step //TODO:make time step global
+	PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk //profile speed must equal drive thread time step
 
 	length = candidate.length;
 	added_move_to_switch_len = length;
@@ -141,21 +137,21 @@ void SwitchCenter::MoveToAddedSwitch(bool left) { //must zero profile, need to n
 	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
 			wheelbase_width);
 
-	for (int i = (switch_len); i < 1500; i++) { //starting from the next point, right after the pathfinder trajectory ends
+	for (int i = switch_len; i < 1500; i++) { //starting from the last ref
 
-		Segment sl = leftTrajectory[i - (switch_len)]; //start at beginning of new profile
-		Segment sr = rightTrajectory[i - (switch_len)];
+		Segment sl = leftTrajectory[i - switch_len]; //start at beginning of new profile
+		Segment sr = rightTrajectory[i - switch_len];
 
-		full_refs_sw.at(i).at(0) = ((double) sl.heading) - PI;
+		full_refs_sw.at(i).at(0) = ((double) sl.heading) - PI; //reversed
 		full_refs_sw.at(i).at(1) = -1.0 * ((double) sl.position);
 		full_refs_sw.at(i).at(2) = -1.0 * ((double) sr.position);
 		full_refs_sw.at(i).at(3) = (0.0);
 		full_refs_sw.at(i).at(4) = -1.0 * ((double) sl.velocity);
 		full_refs_sw.at(i).at(5) = -1.0 * ((double) sr.velocity);
 
-		if (i >= (switch_len + added_move_to_switch_len)) { //still have more in the 1500 allotted points
-			GetAddedSwitch(left);
+		if (i >= (switch_len + added_move_to_switch_len)) {
 			zeroing_indeces.push_back(switch_len + added_move_to_switch_len);
+			GetAddedSwitch(left);
 			break;
 		}
 
@@ -167,7 +163,7 @@ void SwitchCenter::MoveToAddedSwitch(bool left) { //must zero profile, need to n
 
 }
 
-void SwitchCenter::GetAddedSwitch(bool left) {
+void SwitchCenter::GetAddedSwitch(bool left) { //only needs the param to send to the 'place' profile
 
 	int POINT_LENGTH = 2;
 
@@ -176,15 +172,15 @@ void SwitchCenter::GetAddedSwitch(bool left) {
 	Waypoint p1, p2;
 
 	//feet
-	p1 = {0.0, 0.0, 0.0}; //starting position may not be allowed to be 0,0,0 // Y, X, YAW
-	p2 = {2.0, 0.2, d2r(0.0)}; //3.0, 10.0, d2r(90)}; //-3.25 //9.0
+	p1 = {0.0, 0.0, 0.0};
+	p2 = {2.0, 0.2, d2r(0.0)};
 
 	points[0] = p1;
 	points[1] = p2;
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk //profile speed must equal drive thread time step //TODO:make time step global
+	PATHFINDER_SAMPLES_FAST, 0.02, 6.0, 3.0, 100000.0, &candidate); //max vel, acc, jerk //profile speed must equal drive thread time step
 
 	length = candidate.length;
 	added_get_switch_len = length;
@@ -200,7 +196,7 @@ void SwitchCenter::GetAddedSwitch(bool left) {
 	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
 			wheelbase_width);
 
-	for (int i = (switch_len + added_move_to_switch_len); i < 1500; i++) { //starting from the next point, right after the pathfinder trajectory ends
+	for (int i = (switch_len + added_move_to_switch_len); i < 1500; i++) { //starting from the next ref
 
 		Segment sl = leftTrajectory[i - (switch_len + added_move_to_switch_len)]; //start at beginning of new profile
 		Segment sr = rightTrajectory[i - (switch_len + added_move_to_switch_len)];
@@ -212,9 +208,9 @@ void SwitchCenter::GetAddedSwitch(bool left) {
 		full_refs_sw.at(i).at(4) = ((double) sl.velocity);
 		full_refs_sw.at(i).at(5) = ((double) sr.velocity);
 
-		if (i >= (switch_len + added_move_to_switch_len + added_get_switch_len)) { //still have more in the 1500 allotted points
-			BackUp(left);
+		if (i >= (switch_len + added_move_to_switch_len + added_get_switch_len)) {
 			zeroing_indeces.push_back(switch_len + added_get_switch_len + added_get_switch_len);
+			BackUp(left);
 			break;
 		}
 
@@ -243,7 +239,7 @@ void SwitchCenter::BackUp(bool left) {
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk //profile speed must equal drive thread time step //TODO:make time step global
+	PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk //profile speed must equal drive thread time step
 
 	length = candidate.length;
 	added_back_up_len = length;
@@ -259,21 +255,21 @@ void SwitchCenter::BackUp(bool left) {
 	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
 			wheelbase_width);
 
-	for (int i = (switch_len + added_move_to_switch_len + added_get_switch_len); i < 1500; i++) { //starting from the next point, right after the pathfinder trajectory ends
+	for (int i = (switch_len + added_move_to_switch_len + added_get_switch_len); i < 1500; i++) { //starting from the next ref
 
 		Segment sl = leftTrajectory[i - (switch_len + added_move_to_switch_len + added_get_switch_len)]; //start at beginning of new profile
 		Segment sr = rightTrajectory[i - (switch_len + added_move_to_switch_len + added_get_switch_len)];
 
-		full_refs_sw.at(i).at(0) = ((double) sl.heading) - PI;
+		full_refs_sw.at(i).at(0) = ((double) sl.heading) - PI; //reversed
 		full_refs_sw.at(i).at(1) = -1.0 * ((double) sl.position);
 		full_refs_sw.at(i).at(2) = -1.0 * ((double) sr.position);
 		full_refs_sw.at(i).at(3) = (0.0);
 		full_refs_sw.at(i).at(4) = -1.0 * ((double) sl.velocity);
 		full_refs_sw.at(i).at(5) = -1.0 * ((double) sr.velocity);
 
-		if (i >= (switch_len + added_move_to_switch_len + added_get_switch_len + added_back_up_len)) { //still have more in the 1500 allotted points
-			PlaceAddedSwitch(left);
+		if (i >= (switch_len + added_move_to_switch_len + added_get_switch_len + added_back_up_len)) {
 			zeroing_indeces.push_back(switch_len + added_get_switch_len + added_get_switch_len + added_back_up_len);
+			PlaceAddedSwitch(left);
 			break;
 		}
 
@@ -283,32 +279,34 @@ void SwitchCenter::BackUp(bool left) {
 	free(leftTrajectory);
 	free(rightTrajectory);
 
-
 }
 
-void SwitchCenter::PlaceAddedSwitch(bool left) { //TODO: backwards refs
+void SwitchCenter::PlaceAddedSwitch(bool left) {
 
-	int POINT_LENGTH = 2;
+	int POINT_LENGTH = 3;
 
 	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
 
-	Waypoint p1, p2;
+	Waypoint p1, p2, p3;
 
 	//feet
-	if (left) { //FIX
+	if (left) {
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {2.0, -1.0, d2r(50.0)};
+		p2 = {6.0, 3.0, d2r(20.0)};
+		p3 = {7.0, 4.0, d2r(0)};
 	} else {
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {1.0, 2.0, d2r(0.0)};
+		p2 = {6.0, -2.0, d2r(-20.0)};
+		p3 = {7.0, -3.0, d2r(0)}; //cannot just move in Y axis because of spline math //CENTER STARTS CLOSER TO THE RIGHT
 	}
 
 	points[0] = p1;
 	points[1] = p2;
+	points[2] = p3;
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk //profile speed must equal drive thread time step //TODO:make time step global
+	PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 4.0, 100000.0, &candidate); //max vel, acc, jerk //profile speed must equal drive thread time step
 
 	length = candidate.length;
 	added_score_switch_len = length;
@@ -337,7 +335,7 @@ void SwitchCenter::PlaceAddedSwitch(bool left) { //TODO: backwards refs
 		full_refs_sw.at(i).at(4) = ((double) sl.velocity);
 		full_refs_sw.at(i).at(5) = ((double) sr.velocity);
 
-		if (i >= (switch_len + added_move_to_switch_len + added_get_switch_len + added_back_up_len + added_score_switch_len)) { //still have more in the 1500 allotted points
+		if (i >= (switch_len + added_move_to_switch_len + added_get_switch_len + added_back_up_len + added_score_switch_len)) {
 			full_refs_sw.at(i).at(0) = full_refs_sw.at(i - 1).at(0); //i - 1 will always be the last sensible value sinwe it waswades
 			full_refs_sw.at(i).at(1) = full_refs_sw.at(i - 1).at(1);
 			full_refs_sw.at(i).at(2) = full_refs_sw.at(i - 1).at(2);
@@ -349,10 +347,12 @@ void SwitchCenter::PlaceAddedSwitch(bool left) { //TODO: backwards refs
 	}
 
 	SmartDashboard::PutNumber("all together",
-			switch_len + added_get_switch_len + added_score_switch_len);
-	SmartDashboard::PutNumber("just the first", switch_len);
-	SmartDashboard::PutNumber("just the middle", added_get_switch_len);
-	SmartDashboard::PutNumber("just the last", added_score_switch_len);
+			switch_len + added_get_switch_len + added_back_up_len + added_score_switch_len + added_move_to_switch_len);
+	SmartDashboard::PutNumber("the first", switch_len);
+	SmartDashboard::PutNumber("the second", added_move_to_switch_len);
+	SmartDashboard::PutNumber("the third", added_get_switch_len);
+	SmartDashboard::PutNumber("the fourth", added_back_up_len);
+	SmartDashboard::PutNumber("the fifth", added_score_switch_len);
 
 	free(trajectory);
 	free(leftTrajectory);
@@ -361,6 +361,8 @@ void SwitchCenter::PlaceAddedSwitch(bool left) { //TODO: backwards refs
 }
 
 void SwitchCenter::RunStateMachine(bool *place_switch) {
+
+	//don't need to start/stop drive. last ref cascades
 
 	//start being true at end of drive profile, stop being true once start shooting
 	if (drive_controller->GetDriveIndex() >= switch_len
@@ -375,24 +377,23 @@ void SwitchCenter::RunStateMachine(bool *place_switch) {
 void SwitchCenter::RunStateMachineTwo(bool *place_switch,
 		bool *get_cube_ground) { //TODO: have the drive wait until postintakestate configuration is there //add in changes in scale-switch
 
-	int drive_index = drive_controller->GetDriveIndex();
+	//may not have time to zero between profiles
+	//assuming driving slow to get the cube is good enough. won't pause the drive to get a cube
 
-	if (auton_state_machine->state_a
-			== auton_state_machine->PLACE_SWITCH_STATE_A_H
-			|| (auton_state_machine->shoot_counter == 1
-					&& elevator_->GetElevatorPosition() > 0.3)
-			|| auton_state_machine->shoot_counter == 2
-			|| (drive_index >= (switch_len + added_get_switch_len)
-					&& auton_state_machine->shoot_counter == 1)) { //will stop until releases cube
+	int drive_index = drive_controller->GetDriveIndex(); //just call it once and use that for the rest of the loop
+
+	if ((drive_index >= (switch_len + added_move_to_switch_len + added_get_switch_len + added_back_up_len + added_score_switch_len)
+					&& auton_state_machine->shoot_counter == 1) || (drive_index >= switch_len
+							&& auton_state_machine->shoot_counter == 0)) { //will stop once drive is in position, will resume immediately after shooting cube
 		drive_controller->StopProfile(true);
 	} else {
 		drive_controller->StopProfile(false);
 	}
 
-	if ((drive_controller->GetDriveIndex() >= switch_len
+	if ((drive_index >= switch_len
 			&& auton_state_machine->shoot_counter == 0)
-			|| (drive_controller->GetDriveIndex()
-					>= (switch_len + added_get_switch_len
+			|| (drive_index
+					>= (switch_len + added_move_to_switch_len + added_get_switch_len + added_back_up_len
 							+ added_score_switch_len)
 					&& auton_state_machine->shoot_counter == 1)) {
 		*place_switch = true;
@@ -400,14 +401,13 @@ void SwitchCenter::RunStateMachineTwo(bool *place_switch,
 		*place_switch = false;
 	}
 
-	if (auton_state_machine->shoot_counter == 1
-			&& drive_controller->GetDriveIndex()
-					>= ((switch_len + added_get_switch_len) * 0.9)) {
+	if (
+	//(auton_state_machine->shoot_counter == 1 //relies on making it in the same/soonest loop, before wfb state
+//			&&
+	drive_index > ((switch_len + added_move_to_switch_len) * 0.9) && drive_index < (switch_len + added_move_to_switch_len + added_get_switch_len + added_back_up_len)) {
 		*get_cube_ground = true;
 	} else {
 		*get_cube_ground = false;
 	}
-
-	//may need if arm is low enough and in get cube ground, stop the drive
 
 }

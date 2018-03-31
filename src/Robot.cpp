@@ -275,21 +275,20 @@ public:
 		//Switch only - Drive Forward
 		if (autoSelected == cubeSwitch) { //TODO: replace this logic with a direct chooser
 			if (positionSelected == left && leftSwitch) {
-				switch_side = new SwitchSide(drive_controller, elevator_,
-						intake_, auton_state_machine);
-				switch_side->GenerateSwitchSide(leftSwitch, false);
-				switchCenterOneState = true;
+//				switch_side = new SwitchSide(drive_controller, elevator_,
+//						intake_, auton_state_machine);
+//				switch_side->GenerateSwitchSide(leftSwitch, false);
+//				switchCenterOneState = true;
 
 			} else if (positionSelected == right && !leftSwitch) {
-				switch_side = new SwitchSide(drive_controller, elevator_,
-						intake_, auton_state_machine);
-				switch_side->GenerateSwitchSide(leftSwitch, false); //leftswitch is false
-				switchCenterOneState = true;
+//				switch_side = new SwitchSide(drive_controller, elevator_,
+//						intake_, auton_state_machine);
+//				switch_side->GenerateSwitchSide(leftSwitch, false); //leftswitch is false
+//				switchCenterOneState = true;
 
 			} else if (positionSelected == center) {
 				switch_center = new SwitchCenter(drive_controller, elevator_,
 						intake_, auton_state_machine);
-				//	std::cout << "here" << std::endl;
 				switch_center->GenerateSwitch(leftSwitch, false);
 				switchCenterOneState = true;
 			} else {
@@ -299,7 +298,7 @@ public:
 			}
 
 			//Switch switch
-		} else if (autoSelected == cubeSwitchSwitch) { //TODO: replace this logic with a direct chooser
+		} else if (autoSelected == cubeSwitchSwitch) {
 			if (positionSelected == left && leftSwitch) {
 //				switch_side = new SwitchSide(drive_controller, elevator_,
 //						intake_, auton_state_machine);
@@ -314,10 +313,8 @@ public:
 //				switchCenterState = true;
 
 			} else if (positionSelected == center) {
-				//std::cout << "the right one" << std::endl;
 				switch_center = new SwitchCenter(drive_controller, elevator_,
 						intake_, auton_state_machine);
-				//std::cout << "the right 2" << std::endl;
 				switch_center->GenerateSwitch(leftSwitch, true);
 				switchCenterTwoState = true;
 			} else {
@@ -342,9 +339,7 @@ public:
 			} else {
 				drive_forward = new DriveForward(drive_controller, elevator_, //can't just set autoSelected to driveForward because code only goes through if-ifelse once
 						intake_, auton_state_machine);
-				std::cout << "object created" << std::endl;
 				drive_forward->GenerateForward(false);
-				std::cout << "pathfinder profile made" << std::endl;
 			}
 		}
 
@@ -356,13 +351,8 @@ public:
 
 			if (positionSelected == left) {
 				if (leftScale && leftSwitch) { //scale and switch
-					SmartDashboard::PutString("AUTO SELEC", "Left ScSw");
-
-					//this should have happened
 					scale_side->GenerateScale(true, true, true, false, false);
 					scaleSwitchState = true;
-
-
 				} else if (leftScale && !leftSwitch) { //only scale
 					scale_side->GenerateScale(true, false, false, false, false);
 					scaleOnlyState = true;
@@ -417,7 +407,6 @@ public:
 		} else if (scaleSwitchState) {
 			scale_side->RunStateMachineScaleSwitch(&raise_to_scale_backwards,
 					&raise_to_switch, &get_cube_ground);
-			std::cout << "the right auton state machine" << std::endl;
 		} else if (scaleScaleState) {
 			scale_side->RunStateMachineScaleScale(&raise_to_scale_backwards,
 					&get_cube_ground);
@@ -435,6 +424,8 @@ public:
 	}
 
 	void TeleopInit() {
+
+		SmartDashboard::PutNumber("ZEROING COUNTER", drive_controller->zeroing_counter);
 
 		compressor_->SetClosedLoopControl(true);
 		//teleop_state_machine->Initialize(); //only initialize in auton state machine
