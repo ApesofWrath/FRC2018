@@ -209,7 +209,7 @@ void SwitchCenter::GetAddedSwitch(bool left) { //only needs the param to send to
 		full_refs_sw.at(i).at(5) = ((double) sr.velocity);
 
 		if (i >= (switch_len + added_move_to_switch_len + added_get_switch_len)) {
-			zeroing_indeces.push_back(switch_len + added_get_switch_len + added_get_switch_len);
+			zeroing_indeces.push_back(switch_len + added_move_to_switch_len + added_get_switch_len);
 			BackUp(left);
 			break;
 		}
@@ -268,7 +268,7 @@ void SwitchCenter::BackUp(bool left) {
 		full_refs_sw.at(i).at(5) = -1.0 * ((double) sr.velocity);
 
 		if (i >= (switch_len + added_move_to_switch_len + added_get_switch_len + added_back_up_len)) {
-			zeroing_indeces.push_back(switch_len + added_get_switch_len + added_get_switch_len + added_back_up_len);
+			zeroing_indeces.push_back(switch_len + added_move_to_switch_len + added_get_switch_len + added_back_up_len);
 			PlaceAddedSwitch(left);
 			break;
 		}
@@ -386,6 +386,7 @@ void SwitchCenter::RunStateMachineTwo(bool *place_switch,
 					&& auton_state_machine->shoot_counter == 1) || (drive_index >= switch_len
 							&& auton_state_machine->shoot_counter == 0)) { //will stop once drive is in position, will resume immediately after shooting cube
 		drive_controller->StopProfile(true);
+		std::cout << "stopped" << std::endl;
 	} else {
 		drive_controller->StopProfile(false);
 	}
@@ -409,5 +410,10 @@ void SwitchCenter::RunStateMachineTwo(bool *place_switch,
 	} else {
 		*get_cube_ground = false;
 	}
+
+	SmartDashboard::PutNumber("zero 1", zeroing_indeces.at(0));
+	SmartDashboard::PutNumber("zero 2", zeroing_indeces.at(1));
+	SmartDashboard::PutNumber("zero 3", zeroing_indeces.at(2));
+	SmartDashboard::PutNumber("zero 4", zeroing_indeces.at(3));
 
 }

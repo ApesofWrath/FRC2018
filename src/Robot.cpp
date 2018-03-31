@@ -315,6 +315,7 @@ public:
 			} else if (positionSelected == center) {
 				switch_center = new SwitchCenter(drive_controller, elevator_,
 						intake_, auton_state_machine);
+				SmartDashboard::PutString("the right selection", "yep");
 				switch_center->GenerateSwitch(leftSwitch, true);
 				switchCenterTwoState = true;
 			} else {
@@ -417,6 +418,7 @@ public:
 		} else if (switchCenterTwoState) {
 			switch_center->RunStateMachineTwo(&raise_to_switch,
 					&get_cube_ground);
+			SmartDashboard::PutString("the state machine", "yep");
 		} else {
 
 		}

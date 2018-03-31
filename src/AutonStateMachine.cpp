@@ -126,7 +126,7 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 		intake_a->intake_arm_state = intake_a->UP_STATE_H;
 		intake_a->intake_wheel_state = intake_a->STOP_WHEEL_STATE_H;
 
-		if(last_state_a == PLACE_SWITCH_STATE_A || last_state_a == PLACE_SCALE_STATE_A) {
+		if(last_state_a == PLACE_SWITCH_STATE_A || last_state_a == PLACE_SCALE_STATE_A) { //after place scale backwards, does not go to this state
 			state_a = WAIT_FOR_BUTTON_STATE_A;
 		} else if (raise_to_switch && last_state_a != PLACE_SWITCH_STATE_A) {
 			state_a = PLACE_SWITCH_STATE_A;

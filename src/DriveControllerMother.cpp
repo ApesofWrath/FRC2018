@@ -971,12 +971,12 @@ void DriveControllerMother::ZeroAll(bool stop_motors) {
 		StopAll();
 	}
 
-//	for(int i = 0; i < 7; i++) {
-//		if(canTalonLeft1->GetSelectedSensorPosition(0) == 0) {
-//			break;
-//		}
-//	//std::this_thread::sleep_for(std::chrono::milliseconds(2)); may need to wait
-//	}
+	for (int i = 0; i < 7; i++) {
+		if (canTalonLeft1->GetSelectedSensorVelocity(0) == 0) {
+			break;
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(2));
+	}
 
 	ZeroI();
 	ZeroEncs();
@@ -984,12 +984,14 @@ void DriveControllerMother::ZeroAll(bool stop_motors) {
 
 	zeroing_counter++;
 
-	//	for(int i = 0; i < 7; i++) {
-	//		if(canTalonLeft1->GetSelectedSensorPosition(0) == 0) {
-	//			break;
-	//		}
-	//	//std::this_thread::sleep_for(std::chrono::milliseconds(2)); may need to wait
-	//	}
+	for (int i = 0; i < 7; i++) {
+		if (canTalonLeft1->GetSelectedSensorPosition(0) == 0) {
+			break;
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(2));
+	}
+
+
 }
 
 //will stop all driven motors in the drive controller
