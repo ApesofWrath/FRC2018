@@ -11,7 +11,7 @@
 
 #define PI 3.14159265
 
-#define CORNELIUS 1
+#define CORNELIUS 0
 
 #if CORNELIUS
 double ff_percent_i = 0.6;
@@ -381,8 +381,8 @@ void Intake::In() {
 
 void Intake::Out() {
 
-	talonIntake1->Set(ControlMode::PercentOutput, 0.85); // 1.0
-	talonIntake2->Set(ControlMode::PercentOutput, -0.85); // -1.0
+	talonIntake1->Set(ControlMode::PercentOutput, 0.95); // 1.0
+	talonIntake2->Set(ControlMode::PercentOutput, -0.95); // -1.0
 
 }
 

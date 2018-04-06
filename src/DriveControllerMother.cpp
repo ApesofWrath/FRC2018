@@ -1152,17 +1152,16 @@ void DriveControllerMother::RunAutonDrive() {
 
 	for (int i = 0; i < zeroing_index.size(); i++) {
 		if (row_index == zeroing_index.at(i)) {
-			ZeroAll(true);
-			std::cout << "Zero at: " << row_index << std::endl;
+			is_zero = true;
 		} else {
-			AutonDrive();
+			is_zero = false;
 		}
 	}
-//	if (is_zero) { //zeroing indeces set in generateprofiler()'s
-//		ZeroAll(true); //sets drive to 0.0
-//	} else {
-//		AutonDrive(); //send each row to auton drive before getting the next row
-//	}
+	if (is_zero) { //zeroing indeces set in generateprofiler()'s
+		ZeroAll(true); //sets drive to 0.0
+	} else {
+		AutonDrive(); //send each row to auton drive before getting the next row
+	}
 	if (continue_profile && row_index < auton_profile.size()) { //autonprofilesize is always 1500 //THIS CANNOT BE INSIDE THE ELSE BUT WHY? TODO: figure out
 		row_index++;
 	}

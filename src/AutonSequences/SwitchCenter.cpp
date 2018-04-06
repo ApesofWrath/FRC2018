@@ -346,13 +346,13 @@ void SwitchCenter::PlaceAddedSwitch(bool left) {
 
 	}
 
-	SmartDashboard::PutNumber("all together",
-			switch_len + added_get_switch_len + added_back_up_len + added_score_switch_len + added_move_to_switch_len);
-	SmartDashboard::PutNumber("the first", switch_len);
-	SmartDashboard::PutNumber("the second", added_move_to_switch_len);
-	SmartDashboard::PutNumber("the third", added_get_switch_len);
-	SmartDashboard::PutNumber("the fourth", added_back_up_len);
-	SmartDashboard::PutNumber("the fifth", added_score_switch_len);
+//	SmartDashboard::PutNumber("all together",
+//			switch_len + added_get_switch_len + added_back_up_len + added_score_switch_len + added_move_to_switch_len);
+//	SmartDashboard::PutNumber("the first", switch_len);
+//	SmartDashboard::PutNumber("the second", added_move_to_switch_len);
+//	SmartDashboard::PutNumber("the third", added_get_switch_len);
+//	SmartDashboard::PutNumber("the fourth", added_back_up_len);
+//	SmartDashboard::PutNumber("the fifth", added_score_switch_len);
 
 	free(trajectory);
 	free(leftTrajectory);

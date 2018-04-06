@@ -132,7 +132,7 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 			state_a = PLACE_SWITCH_STATE_A;
 		} else if (raise_to_scale && last_state_a != PLACE_SCALE_STATE_A) { //came from placing
 			state_a = PLACE_SCALE_STATE_A;
-		} //
+		}
 		last_state_a = POST_INTAKE_SWITCH_STATE_A;
 		//can always go back to wait for button state
 		break;
@@ -196,14 +196,17 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 
 		SmartDashboard::PutString("STATE", "SCALE BACKWARDS");
 
-		if (elevator_a->GetElevatorPosition() >= .85) { //move to the flippy angle when safe
+		double el_pos = elevator_a->GetElevatorPosition();
+		double arm_pos = intake_a->GetAngularPosition();
+
+		if (el_pos >= .85) { //move to the flippy angle when safe
 			intake_a->intake_arm_state = intake_a->SWITCH_BACK_SHOT_STATE_H;
-		} else if (elevator_a->GetElevatorPosition() < .85) { //move to normal up angle if not safe to go all the way to flippy angle
+		} else if (el_pos < .85) { //move to normal up angle if not safe to go all the way to flippy angle
 			intake_a->intake_arm_state = intake_a->UP_STATE_H;
 		}
 		elevator_a->elevator_state = elevator_a->UP_STATE_E_H;
-		if (elevator_a->GetElevatorPosition() >= 0.82
-				&& intake_a->GetAngularPosition() > 1.9 && shoot_cube) { //shoot if the height of the elevator and the angle of the arm is good enough //WAS 1.98
+		if (el_pos >= 0.82
+				&& arm_pos > 1.9 && shoot_cube) { //shoot if the height of the elevator and the angle of the arm is good enough //WAS 1.98
 			intake_a->intake_wheel_state = intake_a->OUT_STATE_H;
 			//std::cout << "intake out " << std::endl;
 			if (intake_a->ReleasedCube(intake_a->BACK)) {

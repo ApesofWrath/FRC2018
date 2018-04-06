@@ -129,23 +129,25 @@ public:
 
 	frc::SendableChooser<std::string> autonChooser;
 
-	const std::string sideDriveForward = "Side Drive Forward";
-	const std::string centerDriveForward = "Center Drive Forward";
-	const std::string leftCubeSwitch = "Left Switch";
-	const std::string rightCubeSwitch = "Right Switch";
-	const std::string centerCubeSwitch = "Center Switch";
-	const std::string centerCubeSwitchSwitch = "Center Switch-Switch";
-	const std::string leftCubeScale = "Left Scale";
-	const std::string rightCubeScale = "Right Scale";
-	const std::string leftScaleSwitch = "Left Scale-Switch";
-	const std::string rightScaleSwitch = "Right Scale-Switch";
+	const std::string sideDriveForward = "S DriveForward";
+	const std::string centerDriveForward = "C DriveForward";
+	const std::string leftCubeSwitch = "L Switch";
+	const std::string rightCubeSwitch = "R Switch";
+	const std::string centerCubeSwitch = "C Switch";
+	const std::string centerCubeSwitchSwitch = "C 2-Switch";
+	const std::string leftCubeScale = "L Scale";
+	const std::string rightCubeScale = "R Scale";
+	const std::string leftCubeScaleScale = "L Scale-Scale";
+	const std::string rightCubeScaleScale = "R Scale-Scale";
+	const std::string leftScaleSwitch = "L Scale-Switch";
+	const std::string rightScaleSwitch = "R Scale-Switch";
 	const std::string doNothing = "Do Nothing";
 
 	bool leftSwitch, leftScale;
 
 	bool switchCenterOneState, scaleScaleState, scaleSwitchState,
 			scaleOnlyState, switchSideState, switchSwitchState,
-			switchCenterTwoState;
+			switchCenterTwoState, scaleTwoState;
 
 	std::string autoSelected;
 
@@ -186,6 +188,8 @@ public:
 		autonChooser.AddObject(rightCubeSwitch, rightCubeSwitch);
 		autonChooser.AddObject(leftCubeScale, leftCubeScale);
 		autonChooser.AddObject(rightCubeScale, rightCubeScale);
+		autonChooser.AddObject(leftCubeScaleScale, leftCubeScaleScale);
+		autonChooser.AddObject(rightCubeScaleScale, rightCubeScaleScale);
 		autonChooser.AddObject(leftScaleSwitch, leftScaleSwitch);
 		autonChooser.AddObject(rightScaleSwitch, rightScaleSwitch);
 		autonChooser.AddObject(centerCubeSwitchSwitch, centerCubeSwitchSwitch);
@@ -303,6 +307,7 @@ public:
 		} else if (autoSelected == centerCubeSwitchSwitch) {
 			switch_center = new SwitchCenter(drive_controller, elevator_,
 					intake_, auton_state_machine);
+			std::cout << "HERE HERE" << std::endl;
 			switch_center->GenerateSwitch(leftSwitch, true);
 			switchCenterTwoState = true;
 
@@ -324,6 +329,29 @@ public:
 						auton_state_machine);
 				scale_side->GenerateScale(false, false, false, false, false);
 				scaleOnlyState = true;
+			} else {
+				drive_forward = new DriveForward(drive_controller, elevator_,
+						intake_, auton_state_machine);
+				drive_forward->GenerateForward(false); //assuming will start forward for side switch
+			}
+		} else if (autoSelected == leftCubeScaleScale) {
+			if (leftScale) {
+				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
+						auton_state_machine);
+				scale_side->GenerateScale(true, false, false, true, true);
+				scaleTwoState = true;
+			} else {
+				drive_forward = new DriveForward(drive_controller, elevator_,
+						intake_, auton_state_machine);
+				drive_forward->GenerateForward(false); //assuming will start forward for side switch
+			}
+
+		} else if (autoSelected == rightCubeScaleScale) {
+			if (!leftScale) {
+				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
+						auton_state_machine);
+				scale_side->GenerateScale(false, false, false, true, false);
+				scaleTwoState = true;
 			} else {
 				drive_forward = new DriveForward(drive_controller, elevator_,
 						intake_, auton_state_machine);
@@ -391,24 +419,30 @@ public:
 		//				drive_controller->canTalonLeft4->GetOutputCurrent());
 		SmartDashboard::PutNumber("Right 1", drive_controller->GetRightVel());
 
-		//drive thread, auton state machine thread
-
 		if (scaleOnlyState) {
 			scale_side->RunStateMachineScaleOnly(&raise_to_scale_backwards,
 					&get_cube_ground);
+
 		} else if (scaleSwitchState) {
 			scale_side->RunStateMachineScaleSwitch(&raise_to_scale_backwards,
 					&raise_to_switch, &get_cube_ground);
+
 		} else if (scaleScaleState) {
 			scale_side->RunStateMachineScaleScale(&raise_to_scale_backwards,
 					&get_cube_ground);
+
 		} else if (switchCenterOneState) {
 			switch_center->RunStateMachine(&raise_to_switch);
+
 		} else if (switchSideState) {
 			switch_side->RunStateMachineSide(&raise_to_switch);
+
 		} else if (switchCenterTwoState) {
 			switch_center->RunStateMachineTwo(&raise_to_switch,
 					&get_cube_ground);
+
+		} else if (scaleTwoState) {
+			scale_side->RunStateMachineScaleScale(&raise_to_scale_backwards, &get_cube_ground);
 		}
 
 	}

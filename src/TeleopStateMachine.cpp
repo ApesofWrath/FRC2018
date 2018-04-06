@@ -179,7 +179,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		last_state = GET_CUBE_STATION_STATE;
 		break;
 
-	case POST_INTAKE_SWITCH_STATE: //does not have the intermediate height for the arm. do not use this for after scale
+	case POST_INTAKE_SWITCH_STATE: //does not have the intermediate height for the arm. do not use this for after scale //scale-scale ends in this state
 
 		SmartDashboard::PutString("STATE", "POST INTAKE SWITCH");
 
@@ -188,7 +188,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 
 		if (state_elevator && is_intake_low_enough) { //last_state == PLACE_SCALE_BACKWARDS_STATE - don't need this in the check since it will only be true the first time //higher elevator heights will trigger the safety and zero the elevator, bringing it down too early
 			elevator->elevator_state = elevator->DOWN_STATE_E_H;
-			//intake->intake_arm_state = intake->UP_STATE_H;
+			//intake->intake_arm_state = intake->UP_STATE_H; //TODO: why is this commented out
 		}
 		if (state_intake_arm) {
 			intake->intake_arm_state = intake->UP_STATE_H; //have to change up angle because we don't GO to safe angle
