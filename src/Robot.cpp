@@ -56,10 +56,10 @@ public:
 	const int RAISE_TO_SCALE = 1;
 	const int RAISE_TO_SCALE_BACKWARDS = 12;
 
-	const int INTAKE_SPIN_IN = 99; //throttle
-	const int INTAKE_SPIN_OUT = 10;
+	const int INTAKE_SPIN_IN = 10; //not enough buttons for these three
+	const int INTAKE_SPIN_OUT = 1; //throttle
 	const int INTAKE_SPIN_STOP = 99;
-	const int INTAKE_SPIN_SLOW = 8; //the override for fast scale/backwardScale, also manual outtake slow
+	const int INTAKE_SPIN_SLOW = 8; //back to what it should be
 
 	const int INTAKE_ARM_UP = 8;
 	const int INTAKE_ARM_MID = 2;
@@ -128,18 +128,18 @@ public:
 	SwitchSide *switch_side;
 
 	frc::SendableChooser<std::string> autonChooser;
-	frc::SendableChooser<std::string> positionChooser;
 
-	const std::string driveForward = "Drive Forward";
-	const std::string cubeSwitch = "Switch";
-	const std::string cubeSwitchSwitch = "Switch Switch";
-	const std::string cubeScale = "Scale";
-	const std::string scaleSwit = "Scale & Switch";
+	const std::string sideDriveForward = "Side Drive Forward";
+	const std::string centerDriveForward = "Center Drive Forward";
+	const std::string leftCubeSwitch = "Left Switch";
+	const std::string rightCubeSwitch = "Right Switch";
+	const std::string centerCubeSwitch = "Center Switch";
+	const std::string centerCubeSwitchSwitch = "Center Switch-Switch";
+	const std::string leftCubeScale = "Left Scale";
+	const std::string rightCubeScale = "Right Scale";
+	const std::string leftScaleSwitch = "Left Scale-Switch";
+	const std::string rightScaleSwitch = "Right Scale-Switch";
 	const std::string doNothing = "Do Nothing";
-
-	const std::string center = "Center";
-	const std::string left = "Left";
-	const std::string right = "Right";
 
 	bool leftSwitch, leftScale;
 
@@ -179,19 +179,19 @@ public:
 		joyWheel = new Joystick(JOY_WHEEL);
 		joyOp = new Joystick(JOY_OP);
 
-		autonChooser.AddDefault(driveForward, driveForward);
-		autonChooser.AddObject(cubeSwitch, cubeSwitch);
-		autonChooser.AddObject(cubeScale, cubeScale);
-		autonChooser.AddObject(scaleSwit, scaleSwit);
-		autonChooser.AddObject(cubeSwitchSwitch, cubeSwitchSwitch);
+		autonChooser.AddDefault(centerDriveForward, centerDriveForward);
+		autonChooser.AddObject(sideDriveForward, sideDriveForward);
+		autonChooser.AddObject(centerCubeSwitch, centerCubeSwitch);
+		autonChooser.AddObject(leftCubeSwitch, leftCubeSwitch);
+		autonChooser.AddObject(rightCubeSwitch, rightCubeSwitch);
+		autonChooser.AddObject(leftCubeScale, leftCubeScale);
+		autonChooser.AddObject(rightCubeScale, rightCubeScale);
+		autonChooser.AddObject(leftScaleSwitch, leftScaleSwitch);
+		autonChooser.AddObject(rightScaleSwitch, rightScaleSwitch);
+		autonChooser.AddObject(centerCubeSwitchSwitch, centerCubeSwitchSwitch);
 		autonChooser.AddObject(doNothing, doNothing);
 
-		positionChooser.AddDefault(center, center);
-		positionChooser.AddObject(left, left);
-		positionChooser.AddObject(right, right);
-
 		frc::SmartDashboard::PutData("Auto Modes", &autonChooser);
-		frc::SmartDashboard::PutData("Position", &positionChooser);
 
 #if TESTING
 		//starting threads in robot init so that they only are created once
@@ -252,7 +252,6 @@ public:
 		} //will stop checking after 15 counts, but does not necessarily mean data has been received
 
 		autoSelected = autonChooser.GetSelected();
-		positionSelected = positionChooser.GetSelected();
 
 		if (gameData.length() > 0) {
 			if (gameData[0] == 'L') {
@@ -266,127 +265,110 @@ public:
 				leftScale = false;
 			}
 		} else { //still have not received FMS data
-			autoSelected = driveForward; //regardless of auton chooser
+			autoSelected = centerDriveForward; //regardless of auton chooser //TODO: risky
 		}
-
 
 		/////////////////////////////////////////////////////////////////////////
 
-		//Switch only - Drive Forward
-		if (autoSelected == cubeSwitch) { //TODO: replace this logic with a direct chooser
-			if (positionSelected == left && leftSwitch) {
+		if (autoSelected == centerCubeSwitch) {
+			switch_center = new SwitchCenter(drive_controller, elevator_,
+					intake_, auton_state_machine);
+			switch_center->GenerateSwitch(leftSwitch, false);
+			switchCenterOneState = true;
+
+		} else if (autoSelected == leftCubeSwitch) {
+			if (leftSwitch) {
 //				switch_side = new SwitchSide(drive_controller, elevator_,
 //						intake_, auton_state_machine);
 //				switch_side->GenerateSwitchSide(leftSwitch, false);
-//				switchCenterOneState = true;
-
-			} else if (positionSelected == right && !leftSwitch) {
-//				switch_side = new SwitchSide(drive_controller, elevator_,
-//						intake_, auton_state_machine);
-//				switch_side->GenerateSwitchSide(leftSwitch, false); //leftswitch is false
-//				switchCenterOneState = true;
-
-			} else if (positionSelected == center) {
-				switch_center = new SwitchCenter(drive_controller, elevator_,
-						intake_, auton_state_machine);
-				switch_center->GenerateSwitch(leftSwitch, false);
-				switchCenterOneState = true;
+//				switchOneSideState = true;
 			} else {
 				drive_forward = new DriveForward(drive_controller, elevator_,
 						intake_, auton_state_machine);
-				drive_forward->GenerateForward(true);
+				drive_forward->GenerateForward(true); //assuming will start forward for side switch
 			}
 
-			//Switch switch
-		} else if (autoSelected == cubeSwitchSwitch) {
-			if (positionSelected == left && leftSwitch) {
-//				switch_side = new SwitchSide(drive_controller, elevator_,
-//						intake_, auton_state_machine);
-//				switch_side->GenerateSwitchSide(leftSwitch, true);
-//				switchCenterState = true;
-
-			} else if (positionSelected == right && !leftSwitch) {
-//				switch_center = new SwitchSide(drive_controller, elevator_,
-//						intake_, auton_state_machine);
-//				std::cout << "the right one" << std::endl;
-//				switch_center->GenerateSwitch(leftSwitch, true);
-//				switchCenterState = true;
-
-			} else if (positionSelected == center) {
-				switch_center = new SwitchCenter(drive_controller, elevator_,
-						intake_, auton_state_machine);
-				SmartDashboard::PutString("the right selection", "yep");
-				switch_center->GenerateSwitch(leftSwitch, true);
-				switchCenterTwoState = true;
+		} else if (autoSelected == rightCubeSwitch) {
+			if (!leftSwitch) {
+//				switch_side = new SwitchSide(drive_controller, elevator_, intake_,
+//						auton_state_machine);
+//				switch_side->GenerateSwitchSide(leftSwitch, false);
+//				switchOneSideState = true;
 			} else {
 				drive_forward = new DriveForward(drive_controller, elevator_,
 						intake_, auton_state_machine);
-				drive_forward->GenerateForward(true);
+				drive_forward->GenerateForward(true); //assuming will start forward for side switch
 			}
 
-		} else if (autoSelected == cubeScale) { //can only scale if scale is on our side
-			scale_side = new ScaleSide(drive_controller, elevator_, intake_,
-					auton_state_machine);
+		} else if (autoSelected == centerCubeSwitchSwitch) {
+			switch_center = new SwitchCenter(drive_controller, elevator_,
+					intake_, auton_state_machine);
+			switch_center->GenerateSwitch(leftSwitch, true);
+			switchCenterTwoState = true;
 
-			if (positionSelected == left && leftScale) {
+		} else if (autoSelected == leftCubeScale) {
+			if (leftScale) {
+				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
+						auton_state_machine);
 				scale_side->GenerateScale(true, false, false, false, false);
 				scaleOnlyState = true;
+			} else {
+				drive_forward = new DriveForward(drive_controller, elevator_,
+						intake_, auton_state_machine);
+				drive_forward->GenerateForward(false); //assuming will start forward for side switch
+			}
 
-			} else if (positionSelected == right && !leftScale) {
-				std::cout << "here in right scale" << std::endl;
+		} else if (autoSelected == rightCubeScale) {
+			if (!leftScale) {
+				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
+						auton_state_machine);
 				scale_side->GenerateScale(false, false, false, false, false);
 				scaleOnlyState = true;
-
 			} else {
-				drive_forward = new DriveForward(drive_controller, elevator_, //can't just set autoSelected to driveForward because code only goes through if-ifelse once
+				drive_forward = new DriveForward(drive_controller, elevator_,
+						intake_, auton_state_machine);
+				drive_forward->GenerateForward(false); //assuming will start forward for side switch
+			}
+
+		} else if (autoSelected == leftScaleSwitch) { //if only scale is on our side, will do scale only, likewise switch
+			scale_side = new ScaleSide(drive_controller, elevator_, intake_,
+					auton_state_machine);
+			if (leftScale && leftSwitch) { //scale and switch
+				scale_side->GenerateScale(true, true, true, false, false);
+				scaleSwitchState = true; //scale state machine works for both scale and scale+switch
+			} else if (leftScale && !leftSwitch) { //only scale
+				scale_side->GenerateScale(true, false, false, false, false);
+				scaleOnlyState = true;
+			} else { //if only have switch or nothing
+				drive_forward = new DriveForward(drive_controller, elevator_,
 						intake_, auton_state_machine);
 				drive_forward->GenerateForward(false);
 			}
-		}
 
-		//Scale and switch - Switch only or Scale only - Drive Forward
-		else if (autoSelected == scaleSwit) { //if only scale is on our side, will do scale only, likewise switch
-
+		} else if (autoSelected == rightScaleSwitch) { //if only scale is on our side, will do scale only, likewise switch
 			scale_side = new ScaleSide(drive_controller, elevator_, intake_,
 					auton_state_machine);
-
-			if (positionSelected == left) {
-				if (leftScale && leftSwitch) { //scale and switch
-					scale_side->GenerateScale(true, true, true, false, false);
-					scaleSwitchState = true;
-				} else if (leftScale && !leftSwitch) { //only scale
-					scale_side->GenerateScale(true, false, false, false, false);
-					scaleOnlyState = true;
-				} else { //if only have switch or nothing
-					drive_forward = new DriveForward(drive_controller,
-							elevator_, intake_, auton_state_machine);
-					drive_forward->GenerateForward(false);
-				}
-
-			} else if (positionSelected == right) {
-				if (!leftScale && !leftSwitch) {
-					scale_side->GenerateScale(false, true, false, false, false);
-					scaleSwitchState = true;
-				} else if (!leftScale && leftSwitch) { //have the scale ONLY
-					scale_side->GenerateScale(false, false, false, false, false);
-					scaleOnlyState = true;
-				}  else { //if only have switch or nothing
-					drive_forward = new DriveForward(drive_controller,
-							elevator_, intake_, auton_state_machine);
-					drive_forward->GenerateForward(false);
-				}
-
-			} else {
+			if (!leftScale && !leftSwitch) { //scale and switch
+				scale_side->GenerateScale(false, true, false, false, false);
+				scaleSwitchState = true; //scale state machine works for both scale and scale+switch
+			} else if (!leftScale && leftSwitch) { //only scale
+				scale_side->GenerateScale(false, false, false, false, false);
+				scaleOnlyState = true;
+			} else { //if only have switch or nothing
 				drive_forward = new DriveForward(drive_controller, elevator_,
 						intake_, auton_state_machine);
-				drive_forward->GenerateForward(false); //backward because starting on side
+				drive_forward->GenerateForward(false);
 			}
-		}
 
-		else if (autoSelected == driveForward && positionSelected == center) { //depends on starting robot backwards when on side, and forwards when in middle
+		} else if (autoSelected == centerDriveForward) { //depends on starting robot backwards when on side, and forwards when in middle
 			drive_forward = new DriveForward(drive_controller, elevator_,
 					intake_, auton_state_machine);
 			drive_forward->GenerateForward(true);
+
+		} else if (autoSelected == sideDriveForward) { //depends on starting robot backwards when on side, and forwards when in middle
+			drive_forward = new DriveForward(drive_controller, elevator_,
+					intake_, auton_state_machine);
+			drive_forward->GenerateForward(false);
 
 		} else if (autoSelected == doNothing) {
 
@@ -399,6 +381,15 @@ public:
 	}
 
 	void AutonomousPeriodic() {
+
+		SmartDashboard::PutNumber("Left 1", drive_controller->GetLeftVel());
+		//		SmartDashboard::PutNumber("Left 2",
+		//				drive_controller->canTalonLeft2->GetOutputCurrent());
+		//		SmartDashboard::PutNumber("Left 3",
+		//				drive_controller->canTalonLeft3->GetOutputCurrent());
+		//		SmartDashboard::PutNumber("Left 4",
+		//				drive_controller->canTalonLeft4->GetOutputCurrent());
+		SmartDashboard::PutNumber("Right 1", drive_controller->GetRightVel());
 
 		//drive thread, auton state machine thread
 
@@ -418,16 +409,11 @@ public:
 		} else if (switchCenterTwoState) {
 			switch_center->RunStateMachineTwo(&raise_to_switch,
 					&get_cube_ground);
-			SmartDashboard::PutString("the state machine", "yep");
-		} else {
-
 		}
 
 	}
 
 	void TeleopInit() {
-
-		SmartDashboard::PutNumber("ZEROING COUNTER", drive_controller->zeroing_counter);
 
 		compressor_->SetClosedLoopControl(true);
 		//teleop_state_machine->Initialize(); //only initialize in auton state machine
@@ -438,22 +424,20 @@ public:
 
 	void TeleopPeriodic() {
 
-		SmartDashboard::PutNumber("Left 1",
-				drive_controller->canTalonLeft1->GetOutputCurrent());
-		SmartDashboard::PutNumber("Left 2",
-				drive_controller->canTalonLeft2->GetOutputCurrent());
-		SmartDashboard::PutNumber("Left 3",
-				drive_controller->canTalonLeft3->GetOutputCurrent());
-		SmartDashboard::PutNumber("Left 4",
-				drive_controller->canTalonLeft4->GetOutputCurrent());
-		SmartDashboard::PutNumber("Right 1",
-				drive_controller->canTalonRight1->GetOutputCurrent());
-		SmartDashboard::PutNumber("Right 2",
-				drive_controller->canTalonRight2->GetOutputCurrent());
-		SmartDashboard::PutNumber("Right 3",
-				drive_controller->canTalonRight3->GetOutputCurrent());
-		SmartDashboard::PutNumber("Right 4",
-				drive_controller->canTalonRight4->GetOutputCurrent());
+		SmartDashboard::PutNumber("Left 1", drive_controller->GetLeftVel());
+//		SmartDashboard::PutNumber("Left 2",
+//				drive_controller->canTalonLeft2->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Left 3",
+//				drive_controller->canTalonLeft3->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Left 4",
+//				drive_controller->canTalonLeft4->GetOutputCurrent());
+		SmartDashboard::PutNumber("Right 1", drive_controller->GetRightVel());
+//		SmartDashboard::PutNumber("Right 2",
+//				drive_controller->canTalonRight2->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Right 3",
+//				drive_controller->canTalonRight3->GetOutputCurrent());
+//		SmartDashboard::PutNumber("Right 4",
+//				drive_controller->canTalonRight4->GetOutputCurrent());
 
 #if !STATEMACHINE
 		intake_->ManualArm(joyOp);
