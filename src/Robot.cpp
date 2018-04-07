@@ -51,7 +51,7 @@ public:
 
 	const int GET_CUBE_GROUND = 14;
 	const int GET_CUBE_STATION = 4;
-	const int POST_INTAKE = 5;
+	//const int POST_INTAKE = 5; //taken for middle shot
 	const int RAISE_TO_SWITCH = 6;
 	const int RAISE_TO_SCALE = 1;
 	const int RAISE_TO_SCALE_BACKWARDS = 12;
@@ -60,6 +60,7 @@ public:
 	const int INTAKE_SPIN_OUT = 1; //throttle
 	const int INTAKE_SPIN_STOP = 99;
 	const int INTAKE_SPIN_SLOW = 8; //back to what it should be
+	const int INTAKE_SPIN_MED = 5;
 
 	const int INTAKE_ARM_UP = 8;
 	const int INTAKE_ARM_MID = 2;
@@ -99,7 +100,7 @@ public:
 
 #endif
 
-	bool wait_for_button, intake_spin_in, intake_spin_out, intake_spin_slow,
+	bool wait_for_button, intake_spin_in, intake_spin_out, intake_spin_slow, intake_spin_med,
 			intake_spin_stop, get_cube_ground, get_cube_station, post_intake,
 			raise_to_switch, raise_to_scale, intake_arm_up, intake_arm_mid,
 			intake_arm_down, elevator_up, elevator_mid, elevator_down,
@@ -201,7 +202,7 @@ public:
 		//starting threads in robot init so that they only are created once
 		task_manager->StartThread(
 				&wait_for_button, //both auton and teleop state machines
-				&intake_spin_in, &intake_spin_out, &intake_spin_slow,
+				&intake_spin_in, &intake_spin_out, &intake_spin_slow, &intake_spin_med,
 				&intake_spin_stop, &get_cube_ground, &get_cube_station,
 				&post_intake, &raise_to_switch, &raise_to_scale, &intake_arm_up,
 				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
@@ -362,6 +363,7 @@ public:
 			scale_side = new ScaleSide(drive_controller, elevator_, intake_,
 					auton_state_machine);
 			if (leftScale && leftSwitch) { //scale and switch
+				SmartDashboard::PutNumber("auto selected", 1);
 				scale_side->GenerateScale(true, true, true, false, false);
 				scaleSwitchState = true; //scale state machine works for both scale and scale+switch
 			} else if (leftScale && !leftSwitch) { //only scale
@@ -487,7 +489,7 @@ public:
 		get_cube_ground = joyOp->GetRawButton(GET_CUBE_GROUND);
 		get_cube_station = joyOp->GetRawButton(GET_CUBE_STATION);
 
-		post_intake = joyOp->GetRawButton(POST_INTAKE);
+		//post_intake = joyOp->GetRawButton(POST_INTAKE); //taken for medium shot
 		raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
 		raise_to_scale = joyOp->GetRawButton(RAISE_TO_SCALE);
 		raise_to_scale_backwards = joyOp->GetRawButton(
@@ -496,6 +498,7 @@ public:
 		intake_spin_in = joyThrottle->GetRawButton(INTAKE_SPIN_IN);
 		intake_spin_out = joyThrottle->GetRawButton(INTAKE_SPIN_OUT);
 		intake_spin_slow = joyThrottle->GetRawButton(INTAKE_SPIN_SLOW);
+		intake_spin_med = joyOp->GetRawButton(INTAKE_SPIN_MED);
 		//intake_spin_stop = joyThrottle->GetRawButton(INTAKE_SPIN_STOP);
 
 		intake_arm_up = joyOp->GetRawButton(INTAKE_ARM_UP);

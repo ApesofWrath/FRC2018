@@ -82,6 +82,8 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch,
 		}
 	}
 
+	SmartDashboard::PutNumber("1st ZERO", zeroing_indeces.at(0));
+
 	drive_controller->SetZeroingIndex(zeroing_indeces);
 	drive_controller->SetRefs(full_refs_sc);
 
@@ -240,14 +242,21 @@ void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spl
 }
 
 //1-scale, 1-switch
-void ScaleSide::RunStateMachineScaleSwitch(bool *place_scale_backwards, //state machine works but does not drive forward after it gets a cube
+void ScaleSide::RunStateMachineScaleSwitch(bool *place_scale_backwards, //state machine works but does not drive forward after it gets a cube - that's right
 		bool *place_switch, bool *get_cube_ground) { //switch and post-intake
 
 //no other state machine booleans needed, all other ones will stay false
 
-	std::cout << "scale switch state machine" << std::endl;
-
 	int drive_index = drive_controller->GetDriveIndex();
+
+	SmartDashboard::PutNumber("total indeces", //went through whole profile without shooting the second cube
+			added_switch_len + scale_traj_len);
+	SmartDashboard::PutNumber("1", scale_traj_len);
+	SmartDashboard::PutNumber("2", added_switch_len);
+	//SmartDashboard::PutNumber("3", added_scale_len);
+	SmartDashboard::PutNumber("index", drive_index); //maybe can't call getindex more than onc
+
+	std::cout << "scale switch state machine" << std::endl;
 
 	//added check for state to stop profile
 	if (((drive_index >= scale_traj_len
@@ -256,7 +265,7 @@ void ScaleSide::RunStateMachineScaleSwitch(bool *place_scale_backwards, //state 
 			&& auton_state_machine->shoot_counter == 1))
 			|| auton_state_machine->state_a
 					== auton_state_machine->POST_INTAKE_SCALE_STATE_A_H
-			|| (intake_->GetAngularPosition() <= 0.3
+			|| (intake_->GetAngularPosition() <= 0.3 //TODO: why is this here
 					&& auton_state_machine->state_a
 							== auton_state_machine->GET_CUBE_GROUND_STATE_A_H)
 			|| auton_state_machine->shoot_counter == 2
@@ -266,9 +275,6 @@ void ScaleSide::RunStateMachineScaleSwitch(bool *place_scale_backwards, //state 
 	} else {
 		drive_controller->StopProfile(false);
 	}
-
-//	SmartDashboard::PutNumber("shoot counter", auton_state_machine->shoot_counter);
-//	SmartDashboard::PutBoolean("place switch", *place_switch);
 
 	if (drive_index >= ((scale_traj_len + added_switch_len) / 1.5) //start placing once close enough to switch
 	&& auton_state_machine->shoot_counter == 1) {
@@ -288,9 +294,9 @@ void ScaleSide::RunStateMachineScaleSwitch(bool *place_scale_backwards, //state 
 			}
 		} else {
 			*place_scale_backwards = false;
-			if (auton_state_machine->shoot_counter == 2) {
-				*get_cube_ground = false;
-			}
+		}
+		if (auton_state_machine->shoot_counter == 2) {
+			*get_cube_ground = false;
 		}
 	}
 
@@ -331,39 +337,44 @@ void ScaleSide::RunStateMachineScaleScale(bool *place_scale_backwards, //state m
 
 	int drive_index = drive_controller->GetDriveIndex();
 
-	SmartDashboard::PutNumber("total indeces", //went through whole profile without shooting the second cube
+	SmartDashboard::PutNumber("total indeces.", //went through whole profile without shooting the second cube
 			added_switch_len + scale_traj_len + added_scale_len);
-	SmartDashboard::PutNumber("1", scale_traj_len);
-	SmartDashboard::PutNumber("2", added_switch_len);
-	SmartDashboard::PutNumber("3", added_scale_len);
-	SmartDashboard::PutNumber("index", drive_index); //maybe can't call getindex more than onc
+	SmartDashboard::PutNumber("1.", scale_traj_len);
+	SmartDashboard::PutNumber("2.", added_switch_len);
+	SmartDashboard::PutNumber("3.", added_scale_len);
+	SmartDashboard::PutNumber("index..", drive_index);
 
 //no other state machine booleans needed, all other ones will stay false
 
 	if ((drive_index >= scale_traj_len
 			&& auton_state_machine->shoot_counter == 0)
-			|| drive_index
-					>= (scale_traj_len + added_switch_len + added_scale_len)
+			|| (elevator_->GetElevatorPosition() > 0.3 //elevator going down
+					&& auton_state_machine->shoot_counter == 1) //when shoot counter is 0, will be going up to shoot first cube and will not stop drive. once shot first cube and everything is coming down, will stop drive. once everything is coming back up, will stop drive
 			|| auton_state_machine->state_a
-					== auton_state_machine->POST_INTAKE_SCALE_STATE_A_H) { //second case should not be needed, but just there //scale cube, was driving
+					== auton_state_machine->POST_INTAKE_SCALE_STATE_A_H || auton_state_machine->shoot_counter == 2 || (drive_index >= (scale_traj_len + added_switch_len + added_scale_len) && auton_state_machine->shoot_counter == 1)) { //second case should not be needed, but just there //scale cube, was driving
 		drive_controller->StopProfile(true);
 	} else {
 		drive_controller->StopProfile(false);
 	}
 
-	if (drive_index >= (scale_traj_len / 3)) { //start moving superstructure halfway
+	if (drive_index >= (scale_traj_len / 3)) { //start moving superstructure
+
 		if (auton_state_machine->shoot_counter == 0 || ((drive_index //if have not shot before, if at end of the total profile and there is that addded profile
 		>= (scale_traj_len + added_switch_len + added_scale_len) //will need to divide by 2
 		) && auton_state_machine->shoot_counter == 1)) {
+
 			*place_scale_backwards = true; //needs to go back to being false
+
 			if (std::abs(drive_controller->GetLeftVel()) < 0.5) {
 				auton_state_machine->shoot_cube = true;
 			} else {
 				auton_state_machine->shoot_cube = false; //will start that slow, and need to reset to false during middle ofprofile
 			}
+
 		} else {
 			*place_scale_backwards = false; //have shot the first one, but drive has not gotten to the position to shoot the second one
 		}
+
 		if (auton_state_machine->shoot_counter == 1) { //if we have shot twice, then don't get more cubes
 			*get_cube_ground = true;
 		} else {

@@ -48,7 +48,7 @@ TeleopStateMachine::TeleopStateMachine(Elevator *elevator_, Intake *intake_,
 }
 
 void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
-		bool intake_spin_out, bool intake_spin_slow, bool intake_spin_stop,
+		bool intake_spin_out, bool intake_spin_slow, bool intake_spin_med, bool intake_spin_stop,
 		bool get_cube_ground, bool get_cube_station, bool post_intake,
 		bool raise_to_switch, bool raise_to_scale, bool intake_arm_up,
 		bool intake_arm_mid, bool intake_arm_down, bool elevator_up,
@@ -58,8 +58,8 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		state = WAIT_FOR_BUTTON_STATE;
 	}
 
-	//intake wheels -- intake_spin_slow CANNOT make state_intake_wheel false or else when shooting forward/backward scale will not outtake cube //TODO: fix this
-	if (intake_spin_out) {
+	//intake wheels -- intake_spin_slow CANNOT make state_intake_wheel false or else when shooting forward/backward scale will not outtake cube, which is why there is a med and slow. med is operator's, slow is driver's
+	if (intake_spin_out) { //driver's slow button can only change the shoot strength when actually in one of the shooting states
 		state_intake_wheel = false;
 		intake->intake_wheel_state = intake->OUT_STATE_H;
 	} else if (intake_spin_in) {
@@ -68,6 +68,9 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 	} else if (intake_spin_stop) {
 		state_intake_wheel = false;
 		intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
+	} else if (intake_spin_med) {
+		state_intake_wheel = false;
+		intake->intake_wheel_state = intake->SLOW_SCALE_STATE_H; //stronger than slow
 	} else {
 		state_intake_wheel = true;
 	}

@@ -176,6 +176,8 @@ double l_last_error_vel = 0;
 double r_last_error_vel = 0;
 double kick_last_error_vel = 0;
 
+int zero_counter = 0;
+
 double max_y_rpm, actual_max_y_rpm, max_yaw_rate;
 
 double k_p_right_vel, k_p_left_vel, k_p_yaw_vel, k_d_right_vel,
@@ -821,6 +823,13 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 //	std::cout << "yep " << target_rpm_right << "  " << target_rpm_left << "  " << targetYawRate  << "  " << tarVelLeft <<  "   " << tarVelRight << std::endl;
 //target rpm right, left
 
+//	if (canTalonRight1->GetSelectedSensorPosition(0) == -1.0 || canTalonLeft1->GetSelectedSensorPosition(0) == -1.0) { //if ever read -1.0 from encoders, don't drive for the rest of auton
+//		target_rpm_left = 0.0;
+//		target_rpm_right = 0.0;
+//		targetYawRate = 0.0;
+//		SmartDashboard::PutString("Encoders", "Out");
+//	}
+
 	Controller(0.0, 0.0, 0.0, targetYawRate, k_p_right_vel_au, k_p_left_vel_au,
 			0.0, k_p_yaw_au, k_d_yaw_au, k_d_left_vel_au, k_d_right_vel_au, 0.0,
 			target_rpm_left, target_rpm_right, 0.0);
@@ -971,26 +980,11 @@ void DriveControllerMother::ZeroAll(bool stop_motors) {
 		StopAll();
 	}
 
-	for (int i = 0; i < 7; i++) {
-		if (canTalonLeft1->GetSelectedSensorVelocity(0) == 0) {
-			break;
-		}
-		std::this_thread::sleep_for(std::chrono::milliseconds(2));
-	}
-
 	ZeroI();
 	ZeroEncs();
 	ZeroYaw();
 
 	zeroing_counter++;
-
-	for (int i = 0; i < 7; i++) {
-		if (canTalonLeft1->GetSelectedSensorPosition(0) == 0) {
-			break;
-		}
-		std::this_thread::sleep_for(std::chrono::milliseconds(2));
-	}
-
 
 }
 
@@ -1149,6 +1143,7 @@ void DriveControllerMother::RunAutonDrive() {
 	}
 
 	SmartDashboard::PutNumber("zeroing length", zeroing_index.size());
+	//SmartDashboard::PutNumber("1st ZERO", zeroing_index.at(0));
 
 	for (int i = 0; i < zeroing_index.size(); i++) {
 		if (row_index == zeroing_index.at(i)) {
@@ -1157,13 +1152,17 @@ void DriveControllerMother::RunAutonDrive() {
 			is_zero = false;
 		}
 	}
-	if (is_zero) { //zeroing indeces set in generateprofiler()'s
+
+	if (is_zero && zero_counter < 10) { //zeroing indeces set in generateprofiler()'s
 		ZeroAll(true); //sets drive to 0.0
+		zero_counter++;
+		std::cout << "trying to zero" << std::endl;
 	} else {
+		zero_counter = 0;
 		AutonDrive(); //send each row to auton drive before getting the next row
-	}
-	if (continue_profile && row_index < auton_profile.size()) { //autonprofilesize is always 1500 //THIS CANNOT BE INSIDE THE ELSE BUT WHY? TODO: figure out
-		row_index++;
+		if (continue_profile && row_index < auton_profile.size()) { //autonprofilesize is always 1500 //THIS CANNOT BE INSIDE THE ELSE BUT WHY? TODO: figure out
+			row_index++;
+		}
 	}
 
 	SmartDashboard::PutNumber("row index", row_index);

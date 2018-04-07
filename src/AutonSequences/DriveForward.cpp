@@ -13,8 +13,6 @@ void DriveForward::GenerateForward(bool forward) {
 
 	//Auton state machine thread started in Auton constructor
 
-	std::cout << "]]]]]" << std::endl;
-
 	int POINT_LENGTH = 2;
 
 	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
@@ -38,17 +36,11 @@ void DriveForward::GenerateForward(bool forward) {
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
 	PATHFINDER_SAMPLES_FAST, 0.02, 19.0, 10.0, 100000.0, &candidate); //max vel, acc, jerk //profile speed must equal drive thread time step
 
-	std::cout << "****" << std::endl;
-
 	int length = candidate.length;
-
-	std::cout << "len " << length << std::endl;
 
 	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));
 
 	pathfinder_generate(&candidate, trajectory);
-
-	std::cout << "%%%%" << std::endl;
 
 	Segment *leftTrajectory = (Segment*) malloc(sizeof(Segment) * length);
 	Segment *rightTrajectory = (Segment*) malloc(sizeof(Segment) * length);
@@ -89,10 +81,7 @@ void DriveForward::GenerateForward(bool forward) {
 		}
 	}
 
-	std::cout << "set refs" << std::endl;
 	drive_controller->SetRefs(full_refs_df);
-
-	//drive_controller->SetZeroingIndex({0});
 
 	free(trajectory);
 	free(leftTrajectory);
