@@ -132,6 +132,8 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 			state_a = PLACE_SWITCH_STATE_A;
 		} else if (raise_to_scale && last_state_a != PLACE_SCALE_STATE_A) { //came from placing
 			state_a = PLACE_SCALE_STATE_A;
+		} else if (raise_to_scale_backwards && last_state_a != PLACE_SCALE_BACKWARDS_STATE_A) { //came from placing
+			state_a = PLACE_SCALE_BACKWARDS_STATE_A;
 		}
 		last_state_a = POST_INTAKE_SWITCH_STATE_A;
 		//can always go back to wait for button state

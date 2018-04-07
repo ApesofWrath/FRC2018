@@ -64,7 +64,7 @@ void TaskManager::ThreadWrapper(TaskManager *task_manager,
 
 		threadTimer->Reset();
 
-		if (frc::RobotState::IsEnabled() && frc::RobotState::IsAutonomous()) { //this is always running, even during auton init
+		if (frc::RobotState::IsEnabled() && frc::RobotState::IsAutonomous() && drive_controller->set_profile) { //this is always running, even during auton init
 
 			intake_t->Rotate();
 			elevator_t->Move();

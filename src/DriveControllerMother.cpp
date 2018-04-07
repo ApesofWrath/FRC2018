@@ -176,7 +176,10 @@ double l_last_error_vel = 0;
 double r_last_error_vel = 0;
 double kick_last_error_vel = 0;
 
+int next_zero_index = 0;
+
 int zero_counter = 0;
+int zero_wait_counter = 0;
 
 double max_y_rpm, actual_max_y_rpm, max_yaw_rate;
 
@@ -1131,13 +1134,10 @@ std::vector<std::vector<double> > DriveControllerMother::GetAutonProfile() {
 
 void DriveControllerMother::RunAutonDrive() {
 
-	//SmartDashboard::PutNumber("auton profile size", auton_profile.size());
-
 	SmartDashboard::PutNumber("enc.",
 			canTalonLeft1->GetSelectedSensorPosition(0));
 	SmartDashboard::PutNumber("yaw zeroed", ahrs->GetYaw());
 
-	//put in profile //was finishing the for loop before we got a profile
 	for (int i = 0; i < auton_profile[0].size(); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs
 		drive_ref.at(i) = auton_profile.at(row_index).at(i); //from SetRef()
 	}
@@ -1145,25 +1145,41 @@ void DriveControllerMother::RunAutonDrive() {
 	SmartDashboard::PutNumber("zeroing length", zeroing_index.size());
 	//SmartDashboard::PutNumber("1st ZERO", zeroing_index.at(0));
 
-	for (int i = 0; i < zeroing_index.size(); i++) {
-		if (row_index == zeroing_index.at(i)) {
-			is_zero = true;
-		} else {
-			is_zero = false;
-		}
-	}
+	next_zero_index = zeroing_index.at(zero_counter);
 
-	if (is_zero && zero_counter < 10) { //zeroing indeces set in generateprofiler()'s
-		ZeroAll(true); //sets drive to 0.0
-		zero_counter++;
-		std::cout << "trying to zero" << std::endl;
+	//for (int i = 0; i < zeroing_index.size(); i++) { //can't have for loop through this vector
+	if (row_index == next_zero_index) {
+		StopAll(); //maybe add counts after stop and before zero
+		if (zero_wait_counter < 10) { //zeroing indeces set in generateprofiler()'s
+			ZeroAll(true); //sets drive to 0.0
+			zero_wait_counter++;
+			std::cout << "trying to zero" << std::endl;
+		} else {
+			if(zero_counter < (zeroing_index.size() - 1)) {
+				zero_counter++;
+			}
+			row_index++;
+		}
 	} else {
-		zero_counter = 0;
+		zero_wait_counter = 0;
 		AutonDrive(); //send each row to auton drive before getting the next row
 		if (continue_profile && row_index < auton_profile.size()) { //autonprofilesize is always 1500 //THIS CANNOT BE INSIDE THE ELSE BUT WHY? TODO: figure out
 			row_index++;
 		}
 	}
+	//}
+
+//	if (is_zero && zero_counter < 10) { //zeroing indeces set in generateprofiler()'s
+//		ZeroAll(true); //sets drive to 0.0
+//		zero_counter++;
+//		std::cout << "trying to zero" << std::endl;
+//	} else {
+//		zero_counter = 0;
+//		AutonDrive(); //send each row to auton drive before getting the next row
+//		if (continue_profile && row_index < auton_profile.size()) { //autonprofilesize is always 1500 //THIS CANNOT BE INSIDE THE ELSE BUT WHY? TODO: figure out
+//			row_index++;
+//		}
+//	}
 
 	SmartDashboard::PutNumber("row index", row_index);
 }
