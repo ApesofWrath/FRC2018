@@ -20,7 +20,7 @@ double SLOW_SPEED = 0.25;
 //down angle 0.02
 #else
 double ff_percent_i = 0.6;
-double offset_angle = 1.60; //raising this will make the arm positions be higher
+double offset_angle = 1.65; //raising this will make the arm positions be higher
 double SLOW_SPEED = 0.4;
 #endif
 
@@ -534,6 +534,12 @@ void Intake::SetVoltageIntake(double voltage_i) {
 	if (voltage_safety) {
 		SmartDashboard::PutString("INTAKE SAFETY", "stall");
 		voltage_i = 0.0;
+	}
+
+	if (ang_pos < .1 && voltage_i < 1.5){
+
+		voltage_i = 0.0;
+
 	}
 
 	voltage_i /= 12.0; //scale from -1 to 1 for the talon

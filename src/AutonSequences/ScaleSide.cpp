@@ -106,11 +106,11 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale,
 //feet
 	if (left_switch) {
 		p1 = {0.0, 0.0, 0.0}; //Y, X, yaw
-		p2 = {5.65, 2.35, d2r(10.0)};
+		p2 = {4.65, 2.35, d2r(15.0)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {4.65, -2.25, d2r(-45.0)};
+		p2 = {5.65, 2.35, d2r(10.0)};
 	}
 
 	points[0] = p1;
@@ -183,7 +183,7 @@ void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spl
 //feet
 	if (left) {
 		p1 = {0.0, 0.0, 0.0}; //Y, X, yaw //just reversed all of these points
-		p2 = {-4.25, -1.25, d2r(-60.0)};
+		p2 = {-4.65, -2.35, d2r(-15.0)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};

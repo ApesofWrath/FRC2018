@@ -28,7 +28,7 @@ void SwitchCenter::GenerateSwitch(bool left, bool added_switch) {
 	if (left) {
 		p1 = {0.0, 0.0, 0.0};
 		p2 = {6.0, 4.0, d2r(20.0)};
-		p3 = {9.5, 5.0, d2r(0)};
+		p3 = {9.5, 5.0, d2r(-5)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -107,8 +107,8 @@ void SwitchCenter::MoveToAddedSwitch(bool left) { //must zero profile, need to n
 	//feet
 	if (left) {
 		p1 = {0.0, 0.0, 0.0}; //reverse and goes back to a little in front of starting position
-		p2 = {-6.0, -4.0, d2r(-20.0)};
-		p3 = {-7.5, -5.0, d2r(-0)};
+		p2 = {-3.5, -4.0, d2r(20.0)};
+		p3 = {-9.5, -5.0, d2r(-5.0)};
 	} else {
 		p1 = {0.0, 0.0, 0.0};
 		p2 = {-6.0, 3.0, d2r(20.0)};
@@ -292,8 +292,8 @@ void SwitchCenter::PlaceAddedSwitch(bool left) {
 	//feet
 	if (left) {
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {6.0, 3.0, d2r(20.0)};
-		p3 = {7.0, 4.0, d2r(0)};
+		p2 = {6.0, 4.0, d2r(20.0)};
+		p3 = {9.5, 5.0, d2r(-5.0)};
 	} else {
 		p1 = {0.0, 0.0, 0.0};
 		p2 = {6.0, -2.0, d2r(-20.0)};
@@ -402,18 +402,15 @@ void SwitchCenter::RunStateMachineTwo(bool *place_switch,
 		*place_switch = false;
 	}
 
-	if (
-	//(auton_state_machine->shoot_counter == 1 //relies on making it in the same/soonest loop, before wfb state
-//			&&
-	drive_index > ((switch_len + added_move_to_switch_len) * 0.9) && drive_index < (switch_len + added_move_to_switch_len + added_get_switch_len + added_back_up_len)) {
+	if (drive_index > ((switch_len + added_move_to_switch_len) * 0.9) && drive_index < (switch_len + added_move_to_switch_len + added_get_switch_len + added_back_up_len)) {
 		*get_cube_ground = true;
 	} else {
 		*get_cube_ground = false;
 	}
 
-	SmartDashboard::PutNumber("zero 1", zeroing_indeces.at(0));
-	SmartDashboard::PutNumber("zero 2", zeroing_indeces.at(1));
-	SmartDashboard::PutNumber("zero 3", zeroing_indeces.at(2));
-	SmartDashboard::PutNumber("zero 4", zeroing_indeces.at(3));
+//	SmartDashboard::PutNumber("zero 1", zeroing_indeces.at(0));
+//	SmartDashboard::PutNumber("zero 2", zeroing_indeces.at(1));
+//	SmartDashboard::PutNumber("zero 3", zeroing_indeces.at(2));
+//	SmartDashboard::PutNumber("zero 4", zeroing_indeces.at(3));
 
 }
