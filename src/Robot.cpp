@@ -319,9 +319,13 @@ public:
 				scale_side->GenerateScale(true, false, false, false, false);
 				scaleOnlyState = true;
 			} else {
-				drive_forward = new DriveForward(drive_controller, elevator_,
-						intake_, auton_state_machine);
-				drive_forward->GenerateForward(false); //assuming will start forward for side switch
+//				drive_forward = new DriveForward(drive_controller, elevator_,
+//						intake_, auton_state_machine);
+//				drive_forward->GenerateForward(false); //assuming will start forward for side switch
+				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
+										auton_state_machine);
+				scale_side->GenerateCrossedScale(true, false, false, false, false);
+				scaleOnlyState = true;
 			}
 
 		} else if (autoSelected == rightCubeScale) {

@@ -13,7 +13,7 @@ int added_scale_len = 0;
 
 std::vector<std::vector<double> > full_refs_sc(1500, std::vector<double>(6)); //initalizes each index value to 0, depends on only needing 1500 points: one every 10 ms, should only be using 300 since actually using a 50 ms time step, but we may change the time step
 
-void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch,
+void ScaleSide::GenerateScale(bool left_start, bool switch_, bool left_switch,
 		bool added_scale, bool left_added_scale) { //true, true, true, false, false //direction on the switch needs to be accurate, but switch_ can be false //**switch_ and added_scale refer to if we want the second cube we get to be for scale or switch
 
 	int POINT_LENGTH = 2;
@@ -23,7 +23,7 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch,
 	Waypoint p1, p2;
 
 	//feet
-	if (left_scale) {
+	if (left_start) {
 		p1 = {0.0, 0.0, 0.0};
 		p2 = {-22.5, 6.5, d2r(-35.0)}; //yaw is still from the robot's perspective
 	}
@@ -82,7 +82,88 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch,
 		}
 	}
 
-	SmartDashboard::PutNumber("1st ZERO", zeroing_indeces.at(0));
+	drive_controller->SetZeroingIndex(zeroing_indeces);
+	drive_controller->SetRefs(full_refs_sc);
+
+	free(trajectory);
+	free(leftTrajectory);
+	free(rightTrajectory);
+}
+
+void ScaleSide::GenerateCrossedScale(bool left_start, bool switch_,
+		bool left_switch, bool added_scale, bool left_added_scale) {
+
+	int POINT_LENGTH = 3;
+
+	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
+
+	Waypoint p1, p2, p3;// p4;
+
+	//feet
+	if (left_start) {
+		p1 = {0.0, 0.0, 0.0};
+		p2 = {-15.5, -3.0, d2r(-35.0)}; //yaw is still from the robot's perspective
+		p3 = {-18.5, 1.0, d2r(-90.0)};
+	//	p4 = {-18.5, 10.0, d2r(-90.0)};
+	}
+	else {
+		p1 = {0.0, 0.0, 0.0};
+		p2 = {-22.5, -6.5, d2r(35.0)};
+	}
+
+	points[0] = p1;
+	points[1] = p2;
+	points[2] = p3;
+	//points[3] = p4;
+
+	TrajectoryCandidate candidate;
+	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
+	PATHFINDER_SAMPLES_FAST, 0.02, 17.0, 6.0, 100000.0, &candidate); //had to be slowed down
+
+	length = candidate.length;
+	scale_traj_len = length;
+	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));
+
+	pathfinder_generate(&candidate, trajectory);
+
+	Segment *leftTrajectory = (Segment*) malloc(sizeof(Segment) * length);
+	Segment *rightTrajectory = (Segment*) malloc(sizeof(Segment) * length);
+
+	double wheelbase_width = 2.1;
+
+	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
+			wheelbase_width);
+
+	int i;
+	for (i = 0; i < 1500; i++) {
+
+		Segment sl = leftTrajectory[i];
+		Segment sr = rightTrajectory[i];
+
+		full_refs_sc.at(i).at(0) = ((double) sl.heading) - PI; //profile tries to turn robot around and go straight, in order to go backwards
+		full_refs_sc.at(i).at(1) = -1.0 * ((double) sl.position); //pathfinder does not give negative references
+		full_refs_sc.at(i).at(2) = -1.0 * ((double) sr.position);
+		full_refs_sc.at(i).at(3) = (0.0);
+		full_refs_sc.at(i).at(4) = -1.0 * ((double) sl.velocity);
+		full_refs_sc.at(i).at(5) = -1.0 * ((double) sr.velocity);
+
+		if (i >= length) { //still have more in the 1500 allotted points, finished putting in the points to get to the place backwards position
+			if (switch_ || added_scale) {
+				zeroing_indeces.push_back(scale_traj_len);
+				GenerateAddedSwitch(left_switch, added_scale, left_added_scale); //this function will finish off 1500 points //added scale goes through switch first //true, true, true
+				break;
+			} else { //fill the rest with the last point to just stay there
+				full_refs_sc.at(i).at(0) = full_refs_sc.at(i - 1).at(0); //l - 1 will always be the last sensible value since it cascades through the vector
+				full_refs_sc.at(i).at(1) = full_refs_sc.at(i - 1).at(1);
+				full_refs_sc.at(i).at(2) = full_refs_sc.at(i - 1).at(2);
+				full_refs_sc.at(i).at(3) = full_refs_sc.at(i - 1).at(3);
+				full_refs_sc.at(i).at(4) = full_refs_sc.at(i - 1).at(4);
+				full_refs_sc.at(i).at(5) = full_refs_sc.at(i - 1).at(5);
+			}
+		}
+	}
+
+	//SmartDashboard::PutNumber("1st ZERO", zeroing_indeces.at(0));
 
 	drive_controller->SetZeroingIndex(zeroing_indeces);
 	drive_controller->SetRefs(full_refs_sc);
@@ -90,6 +171,7 @@ void ScaleSide::GenerateScale(bool left_scale, bool switch_, bool left_switch,
 	free(trajectory);
 	free(leftTrajectory);
 	free(rightTrajectory);
+
 }
 
 void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale,
@@ -106,7 +188,7 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale,
 //feet
 	if (left_switch) {
 		p1 = {0.0, 0.0, 0.0}; //Y, X, yaw
-		p2 = {4.65, 2.35, d2r(15.0)};
+		p2 = {5.65, 2.35, d2r(10.0)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -349,9 +431,13 @@ void ScaleSide::RunStateMachineScaleScale(bool *place_scale_backwards, //state m
 	if ((drive_index >= scale_traj_len
 			&& auton_state_machine->shoot_counter == 0)
 			|| (elevator_->GetElevatorPosition() > 0.3 //elevator going down
-					&& auton_state_machine->shoot_counter == 1) //when shoot counter is 0, will be going up to shoot first cube and will not stop drive. once shot first cube and everything is coming down, will stop drive. once everything is coming back up, will stop drive
+			&& auton_state_machine->shoot_counter == 1) //when shoot counter is 0, will be going up to shoot first cube and will not stop drive. once shot first cube and everything is coming down, will stop drive. once everything is coming back up, will stop drive
 			|| auton_state_machine->state_a
-					== auton_state_machine->POST_INTAKE_SCALE_STATE_A_H || auton_state_machine->shoot_counter == 2 || (drive_index >= (scale_traj_len + added_switch_len + added_scale_len) && auton_state_machine->shoot_counter == 1)) { //second case should not be needed, but just there //scale cube, was driving
+					== auton_state_machine->POST_INTAKE_SCALE_STATE_A_H
+			|| auton_state_machine->shoot_counter == 2
+			|| (drive_index
+					>= (scale_traj_len + added_switch_len + added_scale_len)
+					&& auton_state_machine->shoot_counter == 1)) { //second case should not be needed, but just there //scale cube, was driving
 		drive_controller->StopProfile(true);
 	} else {
 		drive_controller->StopProfile(false);

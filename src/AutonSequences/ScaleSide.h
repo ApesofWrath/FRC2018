@@ -18,7 +18,8 @@ public:
 
 	}
 
-	void GenerateScale(bool left_scale, bool switch_, bool left_switch, bool added_scale, bool left_added_scale);
+	void GenerateScale(bool left_start, bool switch_, bool left_switch, bool added_scale, bool left_added_scale);
+	void GenerateCrossedScale(bool left_start, bool switch_, bool left_switch, bool added_scale, bool left_added_scale);
 
 	void GenerateAddedSwitch(bool left_switch, bool added_scale, bool added_switch); //used for 2nd scale
 	void GenerateAddedScale(bool left);

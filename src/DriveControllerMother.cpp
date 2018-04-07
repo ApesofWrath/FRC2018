@@ -1145,7 +1145,9 @@ void DriveControllerMother::RunAutonDrive() {
 	SmartDashboard::PutNumber("zeroing length", zeroing_index.size());
 	//SmartDashboard::PutNumber("1st ZERO", zeroing_index.at(0));
 
-	next_zero_index = zeroing_index.at(zero_counter);
+	if (zeroing_index.size() > 0){
+		next_zero_index = zeroing_index.at(zero_counter);
+	}
 
 	//for (int i = 0; i < zeroing_index.size(); i++) { //can't have for loop through this vector
 	if (row_index == next_zero_index) {
