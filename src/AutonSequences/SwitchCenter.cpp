@@ -346,13 +346,13 @@ void SwitchCenter::PlaceAddedSwitch(bool left) {
 
 	}
 
-//	SmartDashboard::PutNumber("all together",
-//			switch_len + added_get_switch_len + added_back_up_len + added_score_switch_len + added_move_to_switch_len);
-//	SmartDashboard::PutNumber("the first", switch_len);
-//	SmartDashboard::PutNumber("the second", added_move_to_switch_len);
-//	SmartDashboard::PutNumber("the third", added_get_switch_len);
-//	SmartDashboard::PutNumber("the fourth", added_back_up_len);
-//	SmartDashboard::PutNumber("the fifth", added_score_switch_len);
+	SmartDashboard::PutNumber("all together",
+			switch_len + added_get_switch_len + added_back_up_len + added_score_switch_len + added_move_to_switch_len);
+	SmartDashboard::PutNumber("the first", switch_len);
+	SmartDashboard::PutNumber("the second", added_move_to_switch_len);
+	SmartDashboard::PutNumber("the third", added_get_switch_len);
+	SmartDashboard::PutNumber("the fourth", added_back_up_len);
+	SmartDashboard::PutNumber("the fifth", added_score_switch_len);
 
 	free(trajectory);
 	free(leftTrajectory);
@@ -386,7 +386,7 @@ void SwitchCenter::RunStateMachineTwo(bool *place_switch,
 					&& auton_state_machine->shoot_counter == 1) || (drive_index >= switch_len
 							&& auton_state_machine->shoot_counter == 0)) { //will stop once drive is in position, will resume immediately after shooting cube
 		drive_controller->StopProfile(true);
-		std::cout << "stopped" << std::endl;
+		//std::cout << "stopped" << std::endl;
 	} else {
 		drive_controller->StopProfile(false);
 	}
