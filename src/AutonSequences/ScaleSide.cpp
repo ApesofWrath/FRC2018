@@ -10,8 +10,8 @@
 int scale_traj_len = 0;
 int added_switch_len = 0;
 int added_scale_len = 0;
-
 int crossed_scale_len = 0;
+int first_traj_len = 0;
 
 std::vector<std::vector<double> > full_refs_sc(1500, std::vector<double>(6)); //initalizes each index value to 0, depends on only needing 1500 points: one every 10 ms, should only be using 300 since actually using a 50 ms time step, but we may change the time step
 
@@ -43,6 +43,7 @@ void ScaleSide::GenerateScale(bool left_start, bool switch_, bool left_switch,
 
 	length = candidate.length;
 	scale_traj_len = length;
+	first_traj_len = scale_traj_len;
 	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));
 
 	pathfinder_generate(&candidate, trajectory);
@@ -104,11 +105,11 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 	//feet
 	if (left_start) { //will do the right scale
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {-14.0, -1.5, d2r(-15.0)};
-		p3 = {-17.5, 15.5, d2r(-90.0)};
-		p4 = {-17.0, 18.5, d2r(-90.0)};
-		p5 = {-18.5, 20.5, d2r(-45.0)};
-		p6 = {-20.0, 21.5, d2r(0.0)};
+		p2 = {-12.0, -1.5, d2r(-15.0)};
+		p3 = {-15.5, 15.5, d2r(-90.0)};
+		p4 = {-15.5, 17.5, d2r(-90.0)};
+		p5 = {-16.5, 20.5, d2r(-45.0)};
+		p6 = {-18.0, 21.5, d2r(0.0)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -123,11 +124,12 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 	points[5] = p6;
 
 	TrajectoryCandidate candidate;
-	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
+	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_QUINTIC,
 	PATHFINDER_SAMPLES_FAST, 0.02, 17.0, 6.0, 100000.0, &candidate); //had to be slowed down
 
 	length = candidate.length;
 	crossed_scale_len = length;
+	first_traj_len = crossed_scale_len;
 	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));
 
 	pathfinder_generate(&candidate, trajectory);
@@ -198,7 +200,7 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale,
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {5.65, 2.35, d2r(10.0)};
+		p2 = {5.65, -2.35, d2r(-10.0)};
 	}
 
 	points[0] = p1;
@@ -222,10 +224,10 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale,
 	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
 			wheelbase_width);
 
-	for (int i = (scale_traj_len); i < 1500; i++) { //starting from the next point, right after the pathfinder trajectory ends
+	for (int i = (first_traj_len); i < 1500; i++) { //starting from the next point, right after the pathfinder trajectory ends
 
-		Segment sl = leftTrajectory[i - (scale_traj_len)]; //starting from the first point in the new trajectory
-		Segment sr = rightTrajectory[i - (scale_traj_len)];
+		Segment sl = leftTrajectory[i - (first_traj_len)]; //starting from the first point in the new trajectory
+		Segment sr = rightTrajectory[i - (first_traj_len)];
 
 		full_refs_sc.at(i).at(0) = ((double) sl.heading); //regular forward, no need to reverse
 		full_refs_sc.at(i).at(1) = ((double) sl.position);
@@ -234,9 +236,9 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale,
 		full_refs_sc.at(i).at(4) = ((double) sl.velocity);
 		full_refs_sc.at(i).at(5) = ((double) sr.velocity);
 
-		if (i >= (scale_traj_len + added_switch_len)) { //still have more points left after placing on scale backwards and placing switch
+		if (i >= (first_traj_len + added_switch_len)) { //still have more points left after placing on scale backwards and placing switch
 			if (added_scale) {
-				zeroing_indeces.push_back(scale_traj_len + added_switch_len);
+				zeroing_indeces.push_back(first_traj_len + added_switch_len);
 				GenerateAddedScale(left_added_scale);
 				break; //generateAddedScale will finish off the 1500 points itself
 			} else {
@@ -299,10 +301,10 @@ void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spl
 	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
 			wheelbase_width);
 
-	for (int i = (scale_traj_len + added_switch_len); i < 1500; i++) { //starting from the next point, right after the pathfinder trajectory ends
+	for (int i = (first_traj_len + added_switch_len); i < 1500; i++) { //starting from the next point, right after the pathfinder trajectory ends
 
-		Segment sl = leftTrajectory[i - (scale_traj_len + added_switch_len)]; //starting from the first point in the new trajectory
-		Segment sr = rightTrajectory[i - (scale_traj_len + added_switch_len)];
+		Segment sl = leftTrajectory[i - (first_traj_len + added_switch_len)]; //starting from the first point in the new trajectory
+		Segment sr = rightTrajectory[i - (first_traj_len + added_switch_len)];
 
 		full_refs_sc.at(i).at(0) = ((double) sl.heading) - PI; //need to reverse
 		full_refs_sc.at(i).at(1) = -1.0 * ((double) sl.position);
@@ -311,7 +313,7 @@ void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spl
 		full_refs_sc.at(i).at(4) = -1.0 * ((double) sl.velocity);
 		full_refs_sc.at(i).at(5) = -1.0 * ((double) sr.velocity);
 
-		if (i >= (scale_traj_len + added_switch_len + added_scale_len)) { //still have more points left after placing on scale backwards twice
+		if (i >= (first_traj_len + added_switch_len + added_scale_len)) { //still have more points left after placing on scale backwards twice
 			full_refs_sc.at(i).at(0) = full_refs_sc.at(i - 1).at(0); //i - 1 will always be the last sensible value since it cascades
 			full_refs_sc.at(i).at(1) = full_refs_sc.at(i - 1).at(1);
 			full_refs_sc.at(i).at(2) = full_refs_sc.at(i - 1).at(2);
@@ -328,6 +330,8 @@ void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spl
 	free(rightTrajectory);
 
 }
+
+//TODO: change state machines for first_traj_len if needed
 
 //1-scale, 1-switch
 void ScaleSide::RunStateMachineScaleSwitch(bool *place_scale_backwards, //state machine works but does not drive forward after it gets a cube - that's right
