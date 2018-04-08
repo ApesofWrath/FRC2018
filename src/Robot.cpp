@@ -100,11 +100,11 @@ public:
 
 #endif
 
-	bool wait_for_button, intake_spin_in, intake_spin_out, intake_spin_slow, intake_spin_med,
-			intake_spin_stop, get_cube_ground, get_cube_station, post_intake,
-			raise_to_switch, raise_to_scale, intake_arm_up, intake_arm_mid,
-			intake_arm_down, elevator_up, elevator_mid, elevator_down,
-			raise_to_scale_backwards; //BOTH state machines
+	bool wait_for_button, intake_spin_in, intake_spin_out, intake_spin_slow,
+			intake_spin_med, intake_spin_stop, get_cube_ground,
+			get_cube_station, post_intake, raise_to_switch, raise_to_scale,
+			intake_arm_up, intake_arm_mid, intake_arm_down, elevator_up,
+			elevator_mid, elevator_down, raise_to_scale_backwards; //BOTH state machines
 
 	bool is_heading, is_vision, is_fc; //drive
 	bool is_auto_shift;
@@ -130,6 +130,7 @@ public:
 
 	frc::SendableChooser<std::string> autonChooser;
 
+	//first letter indicates starting position: Left, Right, Center, Side (Left or Right)
 	const std::string sideDriveForward = "S DriveForward";
 	const std::string centerDriveForward = "C DriveForward";
 	const std::string leftCubeSwitch = "L Switch";
@@ -202,12 +203,12 @@ public:
 		//starting threads in robot init so that they only are created once
 		task_manager->StartThread(
 				&wait_for_button, //both auton and teleop state machines
-				&intake_spin_in, &intake_spin_out, &intake_spin_slow, &intake_spin_med,
-				&intake_spin_stop, &get_cube_ground, &get_cube_station,
-				&post_intake, &raise_to_switch, &raise_to_scale, &intake_arm_up,
-				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
-				&elevator_down, &raise_to_scale_backwards, joyThrottle,
-				joyWheel, &is_heading);
+				&intake_spin_in, &intake_spin_out, &intake_spin_slow,
+				&intake_spin_med, &intake_spin_stop, &get_cube_ground,
+				&get_cube_station, &post_intake, &raise_to_switch,
+				&raise_to_scale, &intake_arm_up, &intake_arm_mid,
+				&intake_arm_down, &elevator_up, &elevator_mid, &elevator_down,
+				&raise_to_scale_backwards, joyThrottle, joyWheel, &is_heading);
 
 #else
 		intake_->StartIntakeThread(); //controllers
@@ -308,7 +309,6 @@ public:
 		} else if (autoSelected == centerCubeSwitchSwitch) {
 			switch_center = new SwitchCenter(drive_controller, elevator_,
 					intake_, auton_state_machine);
-			std::cout << "HERE HERE" << std::endl;
 			switch_center->GenerateSwitch(leftSwitch, true);
 			switchCenterTwoState = true;
 
@@ -323,8 +323,9 @@ public:
 //						intake_, auton_state_machine);
 //				drive_forward->GenerateForward(false); //assuming will start forward for side switch
 				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
-										auton_state_machine);
-				scale_side->GenerateCrossedScale(true, false, false, false, false);
+						auton_state_machine);
+				scale_side->GenerateCrossedScale(true, false, false, false,
+						false);
 				scaleSideOnlyState = true;
 			}
 
@@ -335,9 +336,14 @@ public:
 				scale_side->GenerateScale(false, false, false, false, false);
 				scaleOnlyState = true;
 			} else {
-				drive_forward = new DriveForward(drive_controller, elevator_,
-						intake_, auton_state_machine);
-				drive_forward->GenerateForward(false); //assuming will start forward for side switch
+//				drive_forward = new DriveForward(drive_controller, elevator_,
+//						intake_, auton_state_machine);
+//				drive_forward->GenerateForward(false); //assuming will start forward for side switch
+				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
+						auton_state_machine);
+				scale_side->GenerateCrossedScale(false, false, false, false, //bool left_start, bool switch_, bool left_switch, bool added_scale, bool left_added_scale
+						false);
+				scaleSideOnlyState = true;
 			}
 		} else if (autoSelected == leftCubeScaleScale) {
 			if (leftScale) {
@@ -448,10 +454,11 @@ public:
 					&get_cube_ground);
 
 		} else if (scaleTwoState) {
-			scale_side->RunStateMachineScaleScale(&raise_to_scale_backwards, &get_cube_ground);
+			scale_side->RunStateMachineScaleScale(&raise_to_scale_backwards,
+					&get_cube_ground);
 		} else if (scaleSideOnlyState) {
 			scale_side->RunStateMachineScaleSideOnly(&raise_to_scale_backwards,
-								&get_cube_ground);
+					&get_cube_ground);
 		}
 
 	}

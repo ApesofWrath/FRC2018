@@ -92,7 +92,7 @@ void ScaleSide::GenerateScale(bool left_start, bool switch_, bool left_switch,
 	free(rightTrajectory);
 }
 
-void ScaleSide::GenerateCrossedScale(bool left_start, bool switch_,
+void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 		bool left_switch, bool added_scale, bool left_added_scale) {
 
 	int POINT_LENGTH = 6;
@@ -102,13 +102,13 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool switch_,
 	Waypoint p1, p2, p3, p4, p5, p6;
 
 	//feet
-	if (left_start) {
+	if (left_start) { //will do the right scale
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {-14.0, -2.0, d2r(-15.0)}; //yaw is still from the robot's perspective
-		p3 = {-17.0, 9.5, d2r(-90.0)};
-		p4 = {-18.0, 18.0, d2r(-90.0)}; //2.5, 0
-		p5 = {-21.5, 19.5, d2r(0.0)};  //left 1 foot ,forward 1
-		p5 = {-22.7, 20.5, d2r(0.0)};  //left 1 foot ,forward 1
+		p2 = {-14.0, -1.5, d2r(-15.0)};
+		p3 = {-17.5, 15.5, d2r(-90.0)};
+		p4 = {-17.0, 18.5, d2r(-90.0)};
+		p5 = {-18.5, 20.5, d2r(-45.0)};
+		p6 = {-20.0, 21.5, d2r(0.0)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -154,8 +154,8 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool switch_,
 		full_refs_sc.at(i).at(5) = -1.0 * ((double) sr.velocity);
 
 		if (i >= length) { //still have more in the 1500 allotted points, finished putting in the points to get to the place backwards position
-			if (switch_ || added_scale) {
-				zeroing_indeces.push_back(scale_traj_len);
+			if (added_switch || added_scale) {
+				zeroing_indeces.push_back(crossed_scale_len); //note that will need for opposite scale
 				GenerateAddedSwitch(left_switch, added_scale, left_added_scale); //this function will finish off 1500 points //added scale goes through switch first //true, true, true
 				break;
 			} else { //fill the rest with the last point to just stay there
@@ -480,7 +480,7 @@ void ScaleSide::RunStateMachineScaleSideOnly(bool *place_scale_backwards, bool *
 
 	int drive_index = drive_controller->GetDriveIndex();
 //crossed scale len
-	if (drive_index >= (200)) { //start moving superstructure on the way
+	if (drive_index >= (300)) { //start moving superstructure on the way
 		if (drive_index >= crossed_scale_len) { //drive profile refs should stay at the last index, at the scale position, anyway, but just for clarity
 			drive_controller->StopProfile(true);
 		} //no else
@@ -498,6 +498,55 @@ void ScaleSide::RunStateMachineScaleSideOnly(bool *place_scale_backwards, bool *
 //			*get_cube_ground = true; //may change this
 //		}
 	}
+
+}
+
+void ScaleSide::RunStateMachineCrossedScaleScale(bool *place_scale_backwards, bool *get_cube_ground) {
+
+	int drive_index = drive_controller->GetDriveIndex();
+
+//no other state machine booleans needed, all other ones will stay false
+
+	if ((drive_index >= crossed_scale_len
+			&& auton_state_machine->shoot_counter == 0)
+			|| (elevator_->GetElevatorPosition() > 0.3 //elevator going down
+			&& auton_state_machine->shoot_counter == 1) //when shoot counter is 0, will be going up to shoot first cube and will not stop drive. once shot first cube and everything is coming down, will stop drive. once everything is coming back up, will stop drive
+			|| auton_state_machine->state_a
+					== auton_state_machine->POST_INTAKE_SCALE_STATE_A_H
+			|| auton_state_machine->shoot_counter == 2
+			|| (drive_index
+					>= (crossed_scale_len + added_switch_len + added_scale_len)
+					&& auton_state_machine->shoot_counter == 1)) { //second case should not be needed, but just there //scale cube, was driving
+		drive_controller->StopProfile(true);
+	} else {
+		drive_controller->StopProfile(false);
+	}
+
+	if (drive_index >= (crossed_scale_len * 0.8)) { //start moving superstructure
+
+		if (auton_state_machine->shoot_counter == 0 || ((drive_index //if have not shot before, if at end of the total profile and there is that addded profile
+		>= (crossed_scale_len + added_switch_len + added_scale_len) //will need to divide by 2
+		) && auton_state_machine->shoot_counter == 1)) {
+
+			*place_scale_backwards = true; //needs to go back to being false
+
+			if (std::abs(drive_controller->GetLeftVel()) < 0.5) {
+				auton_state_machine->shoot_cube = true;
+			} else {
+				auton_state_machine->shoot_cube = false; //will start that slow, and need to reset to false during middle ofprofile
+			}
+
+		} else {
+			*place_scale_backwards = false; //have shot the first one, but drive has not gotten to the position to shoot the second one
+		}
+
+		if (auton_state_machine->shoot_counter == 1) { //if we have shot twice, then don't get more cubes
+			*get_cube_ground = true;
+		} else {
+			*get_cube_ground = false;
+		}
+	}
+
 
 }
 
