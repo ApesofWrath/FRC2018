@@ -11,6 +11,8 @@ int scale_traj_len = 0;
 int added_switch_len = 0;
 int added_scale_len = 0;
 
+int crossed_scale_len = 0;
+
 std::vector<std::vector<double> > full_refs_sc(1500, std::vector<double>(6)); //initalizes each index value to 0, depends on only needing 1500 points: one every 10 ms, should only be using 300 since actually using a 50 ms time step, but we may change the time step
 
 void ScaleSide::GenerateScale(bool left_start, bool switch_, bool left_switch,
@@ -93,18 +95,20 @@ void ScaleSide::GenerateScale(bool left_start, bool switch_, bool left_switch,
 void ScaleSide::GenerateCrossedScale(bool left_start, bool switch_,
 		bool left_switch, bool added_scale, bool left_added_scale) {
 
-	int POINT_LENGTH = 3;
+	int POINT_LENGTH = 6;
 
 	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
 
-	Waypoint p1, p2, p3;// p4;
+	Waypoint p1, p2, p3, p4, p5, p6;
 
 	//feet
 	if (left_start) {
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {-15.5, -3.0, d2r(-35.0)}; //yaw is still from the robot's perspective
-		p3 = {-18.5, 1.0, d2r(-90.0)};
-	//	p4 = {-18.5, 10.0, d2r(-90.0)};
+		p2 = {-14.0, -2.0, d2r(-15.0)}; //yaw is still from the robot's perspective
+		p3 = {-17.0, 9.5, d2r(-90.0)};
+		p4 = {-18.0, 18.0, d2r(-90.0)}; //2.5, 0
+		p5 = {-21.5, 19.5, d2r(0.0)};  //left 1 foot ,forward 1
+		p5 = {-22.7, 20.5, d2r(0.0)};  //left 1 foot ,forward 1
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -114,14 +118,16 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool switch_,
 	points[0] = p1;
 	points[1] = p2;
 	points[2] = p3;
-	//points[3] = p4;
+	points[3] = p4;
+	points[4] = p5;
+	points[5] = p6;
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
 	PATHFINDER_SAMPLES_FAST, 0.02, 17.0, 6.0, 100000.0, &candidate); //had to be slowed down
 
 	length = candidate.length;
-	scale_traj_len = length;
+	crossed_scale_len = length;
 	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));
 
 	pathfinder_generate(&candidate, trajectory);
@@ -466,6 +472,31 @@ void ScaleSide::RunStateMachineScaleScale(bool *place_scale_backwards, //state m
 		} else {
 			*get_cube_ground = false;
 		}
+	}
+
+}
+
+void ScaleSide::RunStateMachineScaleSideOnly(bool *place_scale_backwards, bool *get_cube_ground) {
+
+	int drive_index = drive_controller->GetDriveIndex();
+//crossed scale len
+	if (drive_index >= (200)) { //start moving superstructure on the way
+		if (drive_index >= crossed_scale_len) { //drive profile refs should stay at the last index, at the scale position, anyway, but just for clarity
+			drive_controller->StopProfile(true);
+		} //no else
+		if (auton_state_machine->shoot_counter == 0) {
+			*place_scale_backwards = true; //needs to go back to being false so that after going through post_intake and staying in post_intake configuration, it stays in wfb_state
+			if (std::abs(drive_controller->GetLeftVel()) < 0.5) {
+				auton_state_machine->shoot_cube = true;
+			} else {
+				auton_state_machine->shoot_cube = false; //will start that slow, and need to reset to false during middle ofprofile
+			}
+		} else {
+			*place_scale_backwards = false;
+		}
+//		if (intake_->ReleasedCube()) {
+//			*get_cube_ground = true; //may change this
+//		}
 	}
 
 }

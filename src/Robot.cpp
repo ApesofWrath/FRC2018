@@ -148,7 +148,7 @@ public:
 
 	bool switchCenterOneState, scaleScaleState, scaleSwitchState,
 			scaleOnlyState, switchSideState, switchSwitchState,
-			switchCenterTwoState, scaleTwoState;
+			switchCenterTwoState, scaleTwoState, scaleSideOnlyState;
 
 	std::string autoSelected;
 
@@ -325,7 +325,7 @@ public:
 				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
 										auton_state_machine);
 				scale_side->GenerateCrossedScale(true, false, false, false, false);
-				scaleOnlyState = true;
+				scaleSideOnlyState = true;
 			}
 
 		} else if (autoSelected == rightCubeScale) {
@@ -449,6 +449,9 @@ public:
 
 		} else if (scaleTwoState) {
 			scale_side->RunStateMachineScaleScale(&raise_to_scale_backwards, &get_cube_ground);
+		} else if (scaleSideOnlyState) {
+			scale_side->RunStateMachineScaleSideOnly(&raise_to_scale_backwards,
+								&get_cube_ground);
 		}
 
 	}

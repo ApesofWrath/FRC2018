@@ -27,6 +27,7 @@ public:
 	void RunStateMachineScaleSwitch(bool *place_scale_backwards, bool *place_switch, bool *get_cube_ground);
 	void RunStateMachineScaleScale(bool *place_scale_backwards, bool *get_cube_ground);
 	void RunStateMachineScaleOnly(bool *place_scale_backwards, bool *get_cube_ground);
+	void RunStateMachineScaleSideOnly(bool *place_scale_backwards, bool *get_cube_ground);
 
 	int length;
 

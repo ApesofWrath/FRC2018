@@ -91,7 +91,7 @@ const double K_D_YAW_AU_WC = 0.0; //0.085;
 
 const double K_P_RIGHT_DIS = 0.15; //0.085; //0.1;
 const double K_P_LEFT_DIS = 0.15; //0.085; // 0.1;
-const double K_P_YAW_DIS = 0.5; //1.5;
+const double K_P_YAW_DIS = 1.85; //1.5;
 const double K_P_KICKER_DIS = 0.280;
 
 const double K_I_RIGHT_DIS = 0.0;
@@ -732,7 +732,7 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	double tarVelLeft = drive_ref.at(4);
 	double tarVelRight = drive_ref.at(5);
 
-	SmartDashboard::PutNumber("tarVelLeft", tarVelLeft);
+	//SmartDashboard::PutNumber("tarVelLeft", tarVelLeft);
 
 	if (refYaw > PI) { //get negative half and positive half on circle
 		refYaw -= (2 * PI);
@@ -1145,7 +1145,7 @@ void DriveControllerMother::RunAutonDrive() {
 	SmartDashboard::PutNumber("zeroing length", zeroing_index.size());
 	//SmartDashboard::PutNumber("1st ZERO", zeroing_index.at(0));
 
-	if (zeroing_index.size() > 0){
+	if (zeroing_index.size() > 0) {
 		next_zero_index = zeroing_index.at(zero_counter);
 	}
 
