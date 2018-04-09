@@ -96,20 +96,28 @@ void ScaleSide::GenerateScale(bool left_start, bool switch_, bool left_switch,
 void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 		bool left_switch, bool added_scale, bool left_added_scale) {
 
-	int POINT_LENGTH = 6;
+	int POINT_LENGTH = 5;
 
 	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
 
-	Waypoint p1, p2, p3, p4, p5, p6;
+	Waypoint p1, p2, p3, p4, p5, p6, p7;
 
 	//feet
 	if (left_start) { //will do the right scale
-		p1 = {0.0, 0.0, 0.0};
-		p2 = {-12.0, -1.5, d2r(-15.0)};
-		p3 = {-15.5, 15.5, d2r(-90.0)};
-		p4 = {-15.5, 17.5, d2r(-90.0)};
-		p5 = {-16.5, 20.5, d2r(-45.0)};
-		p6 = {-18.0, 21.5, d2r(0.0)};
+		p1 = { 0.0, 0.0, 0.0 };
+		p2 = {-12.2, -2.0, d2r(-15.0)};
+		p3 = {-16.0, 15.5, d2r(-90.0)};
+		p4 = {-16.0, 16.2, d2r(-90.0)}; //18.2
+		p5 = {-18.5, 17.5, d2r(-35.0)}; //19.5, -45
+//		p6 = {-17.5, 21.0, d2r(-15.0)}; //17.5 //25
+//		//p7 = {-16.0, 21.0, d2r(0.0)}; //{-18.0, 19.0, d2r(-10.0
+//
+//		p1 = {0.0, 0.0, 0.0};
+//		p2 = {-12.0, -1.5, d2r(-25.0)}; //15
+//		p3 = {-13.0, 15.5, d2r(-90.0)};
+//		p4 = {-15.0, 17.5, d2r(-90.0)};
+//		p5 = {-16.5, 20.5, d2r(-45.0)};
+//		p6 = {-19.0, 19.5, d2r(0.0)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -121,10 +129,11 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 	points[2] = p3;
 	points[3] = p4;
 	points[4] = p5;
-	points[5] = p6;
+	//points[5] = p6;
+	//points[6] = p7;
 
 	TrajectoryCandidate candidate;
-	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_QUINTIC,
+	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
 	PATHFINDER_SAMPLES_FAST, 0.02, 17.0, 6.0, 100000.0, &candidate); //had to be slowed down
 
 	length = candidate.length;
@@ -480,7 +489,8 @@ void ScaleSide::RunStateMachineScaleScale(bool *place_scale_backwards, //state m
 
 }
 
-void ScaleSide::RunStateMachineScaleSideOnly(bool *place_scale_backwards, bool *get_cube_ground) {
+void ScaleSide::RunStateMachineScaleSideOnly(bool *place_scale_backwards,
+		bool *get_cube_ground) {
 
 	int drive_index = drive_controller->GetDriveIndex();
 //crossed scale len
@@ -505,7 +515,8 @@ void ScaleSide::RunStateMachineScaleSideOnly(bool *place_scale_backwards, bool *
 
 }
 
-void ScaleSide::RunStateMachineCrossedScaleScale(bool *place_scale_backwards, bool *get_cube_ground) {
+void ScaleSide::RunStateMachineCrossedScaleScale(bool *place_scale_backwards,
+		bool *get_cube_ground) {
 
 	int drive_index = drive_controller->GetDriveIndex();
 
@@ -550,7 +561,6 @@ void ScaleSide::RunStateMachineCrossedScaleScale(bool *place_scale_backwards, bo
 			*get_cube_ground = false;
 		}
 	}
-
 
 }
 
