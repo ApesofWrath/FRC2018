@@ -19,24 +19,26 @@ std::vector<std::vector<double> > full_refs_sc(1500, std::vector<double>(6)); //
 void ScaleSide::GenerateScale(bool left_start, bool switch_, bool left_switch,
 		bool added_scale, bool left_added_scale) { //true, true, true, false, false //direction on the switch needs to be accurate, but switch_ can be false //**switch_ and added_scale refer to if we want the second cube we get to be for scale or switch
 
-	int POINT_LENGTH = 2;
+	int POINT_LENGTH = 3;
 
 	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
 
-	Waypoint p1, p2;
+	Waypoint p1, p2, p3;
 
 	//feet
 	if (left_start) {
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {-22.5, 6.5, d2r(-35.0)}; //yaw is still from the robot's perspective
+		p2 = { -16.0, 0.0, d2r(0.0) };// {-22.5, 6.5, d2r(-35.0)}; //yaw is still from the robot's perspective
+		p3 = { -23.6, 1.5, d2r(-25.0) }; //2.85, 6, 20
 	}
 	else {
-		p1 = {0.0, 0.0, 0.0};
-		p2 = {-22.5, -6.5, d2r(35.0)};
+		p2 = { -16.0, 0.0, d2r(0.0) };// {-22.5, 6.5, d2r(-35.0)}; //yaw is still from the robot's perspective
+		p3 = { -23.6, -1.5, d2r(25.0) }; //2.85, 6, 20
 	}
 
 	points[0] = p1;
 	points[1] = p2;
+	points[2] = p3;
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
@@ -507,10 +509,11 @@ void ScaleSide::RunStateMachineScaleOnly(bool *place_scale_backwards,
 
 	int drive_index = drive_controller->GetDriveIndex();
 
-	if (drive_index >= (scale_traj_len / 3)) { //start moving superstructure on the way
-		if (drive_index >= scale_traj_len) { //drive profile refs should stay at the last index, at the scale position, anyway, but just for clarity
-			drive_controller->StopProfile(true);
-		} //no else
+	if (drive_index >= scale_traj_len) { //drive profile refs should stay at the last index, at the scale position, anyway, but just for clarity
+				drive_controller->StopProfile(true);
+	} //no else
+
+	if (drive_index >= (scale_traj_len)) { //start moving superstructure on the way
 		if (auton_state_machine->shoot_counter == 0) {
 			*place_scale_backwards = true; //needs to go back to being false so that after going through post_intake and staying in post_intake configuration, it stays in wfb_state
 			if (std::abs(drive_controller->GetLeftVel()) < 0.5) {
