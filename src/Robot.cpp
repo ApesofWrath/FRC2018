@@ -431,7 +431,7 @@ public:
 		//				drive_controller->canTalonLeft4->GetOutputCurrent());
 		SmartDashboard::PutNumber("Right 1", drive_controller->GetRightVel());
 
-		if (scaleOnlyState) {
+		if (scaleOnlyState) { //same side
 			scale_side->RunStateMachineScaleOnly(&raise_to_scale_backwards,
 					&get_cube_ground);
 
@@ -456,7 +456,7 @@ public:
 		} else if (scaleTwoState) {
 			scale_side->RunStateMachineScaleScale(&raise_to_scale_backwards,
 					&get_cube_ground);
-		} else if (scaleSideOnlyState) {
+		} else if (scaleSideOnlyState) { //opposite side
 			scale_side->RunStateMachineScaleSideOnly(&raise_to_scale_backwards,
 					&get_cube_ground);
 		}

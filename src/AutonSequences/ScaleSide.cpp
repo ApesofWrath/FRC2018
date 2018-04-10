@@ -10,6 +10,7 @@
 int scale_traj_len = 0;
 int added_switch_len = 0;
 int added_scale_len = 0;
+int added_crossed_scale_len = 0;
 int crossed_scale_len = 0;
 int first_traj_len = 0;
 
@@ -100,15 +101,15 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 
 	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
 
-	Waypoint p1, p2, p3, p4, p5, p6, p7;
+	Waypoint p1, p2, p3, p4, p5;//, p6, p7;
 
 	//feet
 	if (left_start) { //will do the right scale
 		p1 = { 0.0, 0.0, 0.0 };
-		p2 = {-12.2, -2.0, d2r(-15.0)};
-		p3 = {-16.0, 15.5, d2r(-90.0)};
-		p4 = {-16.0, 16.2, d2r(-90.0)}; //18.2
-		p5 = {-18.5, 17.5, d2r(-35.0)}; //19.5, -45
+		p2 = {-11.5, -2.0, d2r(-15.0)}; //have to pull back the y on this one too
+		p3 = {-15.5, 15.5, d2r(-90.0)}; //16
+		p4 = {-15.5, 16.2, d2r(-90.0)}; //18.2
+		p5 = {-18.5, 18.5, d2r(-35.0)}; //19.5, -45
 //		p6 = {-17.5, 21.0, d2r(-15.0)}; //17.5 //25
 //		//p7 = {-16.0, 21.0, d2r(0.0)}; //{-18.0, 19.0, d2r(-10.0
 //
@@ -117,7 +118,7 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 //		p3 = {-13.0, 15.5, d2r(-90.0)};
 //		p4 = {-15.0, 17.5, d2r(-90.0)};
 //		p5 = {-16.5, 20.5, d2r(-45.0)};
-//		p6 = {-19.0, 19.5, d2r(0.0)};
+//		p6 = {-19.0, 19.5, d2r(0.0)}; //20 deg 2.2 back, -0.1
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -134,7 +135,7 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.02, 17.0, 6.0, 100000.0, &candidate); //had to be slowed down
+	PATHFINDER_SAMPLES_FAST, 0.02, 14.0, 5.0, 10000000.0, &candidate); //had to be slowed down //17.0, 6.0
 
 	length = candidate.length;
 	crossed_scale_len = length;
@@ -165,18 +166,21 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 		full_refs_sc.at(i).at(5) = -1.0 * ((double) sr.velocity);
 
 		if (i >= length) { //still have more in the 1500 allotted points, finished putting in the points to get to the place backwards position
-			if (added_switch || added_scale) {
-				zeroing_indeces.push_back(crossed_scale_len); //note that will need for opposite scale
-				GenerateAddedSwitch(left_switch, added_scale, left_added_scale); //this function will finish off 1500 points //added scale goes through switch first //true, true, true
-				break;
-			} else { //fill the rest with the last point to just stay there
-				full_refs_sc.at(i).at(0) = full_refs_sc.at(i - 1).at(0); //l - 1 will always be the last sensible value since it cascades through the vector
-				full_refs_sc.at(i).at(1) = full_refs_sc.at(i - 1).at(1);
-				full_refs_sc.at(i).at(2) = full_refs_sc.at(i - 1).at(2);
-				full_refs_sc.at(i).at(3) = full_refs_sc.at(i - 1).at(3);
-				full_refs_sc.at(i).at(4) = full_refs_sc.at(i - 1).at(4);
-				full_refs_sc.at(i).at(5) = full_refs_sc.at(i - 1).at(5);
-			}
+//			if (added_switch || added_scale) {
+//				zeroing_indeces.push_back(crossed_scale_len); //note that will need for opposite scale
+//				GenerateAddedSwitch(left_switch, added_scale, left_added_scale); //this function will finish off 1500 points //added scale goes through switch first //true, true, true
+//				break;
+//			} else { //fill the rest with the last point to just stay there
+//				full_refs_sc.at(i).at(0) = full_refs_sc.at(i - 1).at(0); //l - 1 will always be the last sensible value since it cascades through the vector
+//				full_refs_sc.at(i).at(1) = full_refs_sc.at(i - 1).at(1);
+//				full_refs_sc.at(i).at(2) = full_refs_sc.at(i - 1).at(2);
+//				full_refs_sc.at(i).at(3) = full_refs_sc.at(i - 1).at(3);
+//				full_refs_sc.at(i).at(4) = full_refs_sc.at(i - 1).at(4);
+//				full_refs_sc.at(i).at(5) = full_refs_sc.at(i - 1).at(5);
+//			}
+			zeroing_indeces.push_back(crossed_scale_len);
+			GenerateShootCrossedScale(left_start, added_switch, left_switch, added_scale, left_added_scale);
+			break;
 		}
 	}
 
@@ -186,6 +190,81 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 	drive_controller->SetRefs(full_refs_sc);
 
 	free(trajectory);
+	free(leftTrajectory);
+	free(rightTrajectory);
+
+}
+
+void ScaleSide::GenerateShootCrossedScale(bool left_start, bool added_switch, bool left_switch, bool added_scale, bool left_added_scale) {
+
+	int POINT_LENGTH = 2;
+
+	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
+
+	Waypoint p1, p2;
+
+//feet
+	if (left_start) {
+		p1 = { 0.0, 0.0, 0.0 }; //Y, X, yaw
+		p2 = { -3.8, -1.0, d2r(50.0)};
+	}
+	else {
+		p1 = {0.0, 0.0, 0.0};
+		p2 = {5.65, -2.35, d2r(-10.0)};
+	}
+
+	points[0] = p1;
+	points[1] = p2;
+
+	TrajectoryCandidate candidate;
+	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC, //always using cubic, to not go around the points so much
+			PATHFINDER_SAMPLES_FAST, 0.02, 17.0, 8.0, 100000.0, &candidate);
+
+	length = candidate.length;
+	added_crossed_scale_len = length;
+	Segment *trajectory = (Segment*) malloc(length * sizeof(Segment));
+
+	pathfinder_generate(&candidate, trajectory);
+
+	Segment *leftTrajectory = (Segment*) malloc(sizeof(Segment) * length);
+	Segment *rightTrajectory = (Segment*) malloc(sizeof(Segment) * length);
+
+	double wheelbase_width = 2.1;
+
+	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
+			wheelbase_width);
+
+	for (int i = (first_traj_len); i < 1500; i++) { //starting from the next point, right after the pathfinder trajectory ends
+
+		Segment sl = leftTrajectory[i - (first_traj_len)]; //starting from the first point in the new trajectory
+		Segment sr = rightTrajectory[i - (first_traj_len)];
+
+		full_refs_sc.at(i).at(0) = ((double) sl.heading) - PI; //regular forward, no need to reverse
+		full_refs_sc.at(i).at(1) = -1.0 * ((double) sl.position);
+		full_refs_sc.at(i).at(2) = -1.0 * ((double) sr.position);
+		full_refs_sc.at(i).at(3) = (0.0);
+		full_refs_sc.at(i).at(4) = -1.0 * ((double) sl.velocity);
+		full_refs_sc.at(i).at(5) = -1.0 * ((double) sr.velocity);
+
+		if (i >= (first_traj_len + added_crossed_scale_len)) { //still have more points left after placing on scale backwards and placing switch
+			if (added_scale) { //BROKEN
+				zeroing_indeces.push_back(first_traj_len + added_crossed_scale_len);
+				GenerateAddedScale(left_added_scale);
+				break; //generateAddedScale will finish off the 1500 points itself
+			} else {
+				full_refs_sc.at(i).at(0) = full_refs_sc.at(i - 1).at(0); //i - 1 will always be the last sensible value since it cascades
+				full_refs_sc.at(i).at(1) = full_refs_sc.at(i - 1).at(1);
+				full_refs_sc.at(i).at(2) = full_refs_sc.at(i - 1).at(2);
+				full_refs_sc.at(i).at(3) = full_refs_sc.at(i - 1).at(3);
+				full_refs_sc.at(i).at(4) = full_refs_sc.at(i - 1).at(4);
+				full_refs_sc.at(i).at(5) = full_refs_sc.at(i - 1).at(5);
+			}
+
+		}
+
+	}
+
+	free(trajectory); //need to free malloc'd elements
 	free(leftTrajectory);
 	free(rightTrajectory);
 
@@ -403,7 +482,7 @@ void ScaleSide::RunStateMachineScaleSwitch(bool *place_scale_backwards, //state 
 
 }
 
-//1-scale
+//SAME SIDE SCALE
 void ScaleSide::RunStateMachineScaleOnly(bool *place_scale_backwards,
 		bool *get_cube_ground) { //arm/elev must go back down for the start of teleop, to not get caught on the scale
 
@@ -489,13 +568,14 @@ void ScaleSide::RunStateMachineScaleScale(bool *place_scale_backwards, //state m
 
 }
 
+//OPPOSITE SIDE SCALE
 void ScaleSide::RunStateMachineScaleSideOnly(bool *place_scale_backwards,
 		bool *get_cube_ground) {
 
 	int drive_index = drive_controller->GetDriveIndex();
 //crossed scale len
 	if (drive_index >= (300)) { //start moving superstructure on the way
-		if (drive_index >= crossed_scale_len) { //drive profile refs should stay at the last index, at the scale position, anyway, but just for clarity
+		if (drive_index >= (crossed_scale_len + added_crossed_scale_len)) { //drive profile refs should stay at the last index, at the scale position, anyway, but just for clarity
 			drive_controller->StopProfile(true);
 		} //no else
 		if (auton_state_machine->shoot_counter == 0) {
