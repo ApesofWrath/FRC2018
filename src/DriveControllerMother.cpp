@@ -91,7 +91,7 @@ const double K_D_YAW_AU_WC = 0.0; //0.085;
 
 const double K_P_RIGHT_DIS = 0.15; //0.085; //0.1;
 const double K_P_LEFT_DIS = 0.15; //0.085; // 0.1;
-const double K_P_YAW_DIS = 1.85; //1.5;
+const double K_P_YAW_DIS = 1.68; //1.5;
 const double K_P_KICKER_DIS = 0.280;
 
 const double K_I_RIGHT_DIS = 0.0;
@@ -757,7 +757,7 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	double l_dis = ((double) canTalonLeft1->GetSelectedSensorPosition(0)
 			/ 1205.0);
 
-//	SmartDashboard::PutNumber("actualLeftDis", l_dis);
+	SmartDashboard::PutNumber("actualLeftDis", l_dis);
 //	SmartDashboard::PutNumber("actualRightDis", r_dis);
 //	SmartDashboard::PutNumber("actualLeftVel", l_current);
 //	SmartDashboard::PutNumber("actualRightVel", r_current);
@@ -1170,7 +1170,7 @@ void DriveControllerMother::RunAutonDrive() {
 		}
 	}
 
-	SmartDashboard::PutNumber("row index", row_index);
+	SmartDashboard::PutNumber("ROW INDEX", row_index);
 }
 
 void DriveControllerMother::RunTeleopDrive(Joystick *JoyThrottle,

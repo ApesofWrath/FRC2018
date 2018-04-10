@@ -97,19 +97,30 @@ void ScaleSide::GenerateScale(bool left_start, bool switch_, bool left_switch,
 void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 		bool left_switch, bool added_scale, bool left_added_scale) {
 
-	int POINT_LENGTH = 5;
+	int POINT_LENGTH = 6;
 
 	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
 
-	Waypoint p1, p2, p3, p4, p5;//, p6, p7;
+	Waypoint p1, p2, p3, p4, p5, p6, p7;
 
 	//feet
 	if (left_start) { //will do the right scale
-		p1 = { 0.0, 0.0, 0.0 };
-		p2 = {-11.5, -2.0, d2r(-15.0)}; //have to pull back the y on this one too
-		p3 = {-15.5, 15.5, d2r(-90.0)}; //16
-		p4 = {-15.5, 16.2, d2r(-90.0)}; //18.2
-		p5 = {-18.5, 18.5, d2r(-35.0)}; //19.5, -45
+
+		p1 = {0.0, 0.0, 0.0};
+		p2 = {-15.3, 0.0, d2r(0.0)}; //have to pull back the y on this one too
+		p3 = {-17.0, 5.0, d2r(-90.0)}; //16
+		p4 = {-17.0, 17.0, d2r(-90.0)}; //18.2
+		p5 = {-17.0, 17.7, d2r(-90.0)}; //19.5, -45 //4 in forward
+		p6 = {-19.0, 19.0, d2r(0.0)}; //17.5 //25
+
+		//ours
+//		p1 = {0.0, 0.0, 0.0};
+//		p2 = {-11.5, -2.0, d2r(-15.0)}; //have to pull back the y on this one too
+//		p3 = {-15.5, 15.5, d2r(-90.0)}; //16
+//		p4 = {-15.5, 16.2, d2r(-90.0)}; //18.2
+//		p5 = {-18.5, 18.5, d2r(-35.0)}; //19.5, -45
+
+
 //		p6 = {-17.5, 21.0, d2r(-15.0)}; //17.5 //25
 //		//p7 = {-16.0, 21.0, d2r(0.0)}; //{-18.0, 19.0, d2r(-10.0
 //
@@ -130,7 +141,7 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 	points[2] = p3;
 	points[3] = p4;
 	points[4] = p5;
-	//points[5] = p6;
+	points[5] = p6;
 	//points[6] = p7;
 
 	TrajectoryCandidate candidate;
@@ -178,8 +189,12 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 //				full_refs_sc.at(i).at(4) = full_refs_sc.at(i - 1).at(4);
 //				full_refs_sc.at(i).at(5) = full_refs_sc.at(i - 1).at(5);
 //			}
+
+			SmartDashboard::PutNumber("Position Ref", full_refs_sc.at(i).at(1));
+			SmartDashboard::PutNumber("Profile Length", first_traj_len);
 			zeroing_indeces.push_back(crossed_scale_len);
-			GenerateShootCrossedScale(left_start, added_switch, left_switch, added_scale, left_added_scale);
+			GenerateShootCrossedScale(left_start, added_switch, left_switch,
+					added_scale, left_added_scale);
 			break;
 		}
 	}
@@ -195,18 +210,20 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 
 }
 
-void ScaleSide::GenerateShootCrossedScale(bool left_start, bool added_switch, bool left_switch, bool added_scale, bool left_added_scale) {
+void ScaleSide::GenerateShootCrossedScale(bool left_start, bool added_switch,
+		bool left_switch, bool added_scale, bool left_added_scale) {
 
-	int POINT_LENGTH = 2;
+	int POINT_LENGTH = 3;
 
 	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
 
-	Waypoint p1, p2;
+	Waypoint p1, p2, p3;
 
 //feet
 	if (left_start) {
-		p1 = { 0.0, 0.0, 0.0 }; //Y, X, yaw
-		p2 = { -3.0, -1.0, d2r(40.0)};
+		p1 = {0.0, 0.0, 0.0}; //Y, X, yaw
+		p2 = { -0.5, 0.0, 0.0}; 	//p2 = {-3.0, -1.0, d2r(40.0)};p2 = {-3.0, -1.0, d2r(40.0)};
+		p3 = { -1.0, 0.0, 0.0 };
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -215,6 +232,7 @@ void ScaleSide::GenerateShootCrossedScale(bool left_start, bool added_switch, bo
 
 	points[0] = p1;
 	points[1] = p2;
+	points[2] = p3;
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC, //always using cubic, to not go around the points so much
@@ -248,8 +266,9 @@ void ScaleSide::GenerateShootCrossedScale(bool left_start, bool added_switch, bo
 
 		if (i >= (first_traj_len + added_crossed_scale_len)) { //still have more points left after placing on scale backwards and placing switch
 			if (added_scale) { //BROKEN
-				zeroing_indeces.push_back(first_traj_len + added_crossed_scale_len);
-				GenerateAddedScale(left_added_scale);
+				zeroing_indeces.push_back(
+						first_traj_len + added_crossed_scale_len);
+				GenerateAddedSwitch(left_switch, added_scale, left_added_scale);
 				break; //generateAddedScale will finish off the 1500 points itself
 			} else {
 				full_refs_sc.at(i).at(0) = full_refs_sc.at(i - 1).at(0); //i - 1 will always be the last sensible value since it cascades
