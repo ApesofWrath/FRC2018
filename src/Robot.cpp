@@ -271,10 +271,11 @@ public:
 				leftScale = false;
 			}
 		} else { //still have not received FMS data
-			autoSelected = centerDriveForward; //regardless of auton chooser //TODO: risky
+			autoSelected = sideDriveForward; //regardless of auton chooser //centerDriveForward
 		}
 
-		/////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////
+		///////
 
 		if (autoSelected == centerCubeSwitch) {
 			switch_center = new SwitchCenter(drive_controller, elevator_,

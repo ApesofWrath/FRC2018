@@ -206,7 +206,7 @@ void ScaleSide::GenerateShootCrossedScale(bool left_start, bool added_switch, bo
 //feet
 	if (left_start) {
 		p1 = { 0.0, 0.0, 0.0 }; //Y, X, yaw
-		p2 = { -3.8, -1.0, d2r(50.0)};
+		p2 = { -3.0, -1.0, d2r(40.0)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
