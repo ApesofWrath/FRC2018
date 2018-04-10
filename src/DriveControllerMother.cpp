@@ -97,7 +97,7 @@ const double K_P_KICKER_DIS = 0.280;
 const double K_I_RIGHT_DIS = 0.0;
 const double K_I_LEFT_DIS = 0.0;
 const double K_I_KICKER_DIS = 0.0;
-const double K_I_YAW_DIS = 0.0;
+const double K_I_YAW_DIS = 0.001;
 
 const double K_D_RIGHT_DIS = 0.0;
 const double K_D_LEFT_DIS = 0.0;

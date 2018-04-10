@@ -107,10 +107,10 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 	if (left_start) { //will do the right scale
 
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {-15.3, 0.0, d2r(0.0)}; //have to pull back the y on this one too
-		p3 = {-17.0, 5.0, d2r(-90.0)}; //16
-		p4 = {-17.0, 17.0, d2r(-90.0)}; //18.2
-		p5 = {-17.0, 17.7, d2r(-90.0)}; //19.5, -45 //4 in forward
+		p2 = {-14.8, 0.0, d2r(0.0)}; //have to pull back the y on this one too
+		p3 = {-17.46, 4.0, d2r(-90.0)}; //shorter this x, tighter the turn
+		p4 = {-17.46, 17.0, d2r(-90.0)}; //18.2
+		p5 = {-17.46, 17.7, d2r(-90.0)}; //19.5, -45 //4 in forward
 		p6 = {-19.0, 19.0, d2r(0.0)}; //17.5 //25
 
 		//ours
@@ -223,7 +223,7 @@ void ScaleSide::GenerateShootCrossedScale(bool left_start, bool added_switch,
 	if (left_start) {
 		p1 = {0.0, 0.0, 0.0}; //Y, X, yaw
 		p2 = { -0.5, 0.0, 0.0}; 	//p2 = {-3.0, -1.0, d2r(40.0)};p2 = {-3.0, -1.0, d2r(40.0)};
-		p3 = { -1.0, 0.0, 0.0 };
+		p3 = { -2.3, 0.0, 0.0 };
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
