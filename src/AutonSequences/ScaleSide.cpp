@@ -75,7 +75,7 @@ void ScaleSide::GenerateScale(bool left_start, bool switch_, bool left_switch,
 		if (i >= length) { //still have more in the 1500 allotted points, finished putting in the points to get to the place backwards position
 			if (switch_ || added_scale) {
 				zeroing_indeces.push_back(scale_traj_len);
-				GenerateAddedSwitch(left_switch, added_scale, left_added_scale); //this function will finish off 1500 points //added scale goes through switch first //true, true, true
+				GenerateAddedSwitch(left_start, added_scale, left_added_scale); //this function will finish off 1500 points //added scale goes through switch first //true, true, true
 				break;
 			} else { //fill the rest with the last point to just stay there
 				full_refs_sc.at(i).at(0) = full_refs_sc.at(i - 1).at(0); //l - 1 will always be the last sensible value since it cascades through the vector
@@ -114,24 +114,6 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 		p4 = {-17.46, 17.0, d2r(-90.0)}; //18.2
 		p5 = {-17.46, 17.7, d2r(-90.0)}; //19.5, -45 //4 in forward
 		p6 = {-19.0, 19.0, d2r(0.0)}; //17.5 //25
-
-		//ours
-//		p1 = {0.0, 0.0, 0.0};
-//		p2 = {-11.5, -2.0, d2r(-15.0)}; //have to pull back the y on this one too
-//		p3 = {-15.5, 15.5, d2r(-90.0)}; //16
-//		p4 = {-15.5, 16.2, d2r(-90.0)}; //18.2
-//		p5 = {-18.5, 18.5, d2r(-35.0)}; //19.5, -45
-
-
-//		p6 = {-17.5, 21.0, d2r(-15.0)}; //17.5 //25
-//		//p7 = {-16.0, 21.0, d2r(0.0)}; //{-18.0, 19.0, d2r(-10.0
-//
-//		p1 = {0.0, 0.0, 0.0};
-//		p2 = {-12.0, -1.5, d2r(-25.0)}; //15
-//		p3 = {-13.0, 15.5, d2r(-90.0)};
-//		p4 = {-15.0, 17.5, d2r(-90.0)};
-//		p5 = {-16.5, 20.5, d2r(-45.0)};
-//		p6 = {-19.0, 19.5, d2r(0.0)}; //20 deg 2.2 back, -0.1
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -305,7 +287,7 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale,
 //feet
 	if (left_switch) {
 		p1 = {0.0, 0.0, 0.0}; //Y, X, yaw
-		p2 = {5.65, 2.35, d2r(10.0)};
+		p2 = {6.0, 2.77, d2r(20.0)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -317,7 +299,7 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale,
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC, //always using cubic, to not go around the points so much
-			PATHFINDER_SAMPLES_FAST, 0.02, 17.0, 8.0, 100000.0, &candidate); //TODO: update time step
+			PATHFINDER_SAMPLES_FAST, 0.02, 13.0, 6.0, 100000.0, &candidate); //TODO: update time step
 
 	length = candidate.length;
 	added_switch_len = length;
@@ -381,8 +363,8 @@ void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spl
 
 //feet
 	if (left) {
-		p1 = {0.0, 0.0, 0.0}; //Y, X, yaw //just reversed all of these points
-		p2 = {-4.65, -2.35, d2r(-15.0)};
+		p1 = {0.0, 0.0, 0.0}; //Y, X, yaw
+		p2 = {-6.0, -2.77, d2r(-20.0)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -457,7 +439,7 @@ void ScaleSide::RunStateMachineScaleSwitch(bool *place_scale_backwards, //state 
 	//SmartDashboard::PutNumber("3", added_scale_len);
 	SmartDashboard::PutNumber("index", drive_index); //maybe can't call getindex more than onc
 
-	std::cout << "scale switch state machine" << std::endl;
+//	std::cout << "scale switch state machine" << std::endl;
 
 	//added check for state to stop profile
 	if (((drive_index >= scale_traj_len
@@ -563,7 +545,7 @@ void ScaleSide::RunStateMachineScaleScale(bool *place_scale_backwards, //state m
 		drive_controller->StopProfile(false);
 	}
 
-	if (drive_index >= (scale_traj_len / 3)) { //start moving superstructure
+	if (drive_index >= (scale_traj_len / 1.5)) { //start moving superstructure
 
 		if (auton_state_machine->shoot_counter == 0 || ((drive_index //if have not shot before, if at end of the total profile and there is that addded profile
 		>= (scale_traj_len + added_switch_len + added_scale_len) //will need to divide by 2

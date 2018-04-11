@@ -1043,7 +1043,7 @@ double DriveControllerMother::GetRightVel() {
 //Zeros the accumulating I
 void DriveControllerMother::ZeroI() {
 
-	i_right = 0;
+	i_right = 0; //20,
 	i_left = 0;
 	i_yaw = 0;
 
@@ -1134,9 +1134,12 @@ std::vector<std::vector<double> > DriveControllerMother::GetAutonProfile() {
 
 void DriveControllerMother::RunAutonDrive() {
 
+	double left_enc = canTalonLeft1->GetSelectedSensorPosition(0);
+	double yaw_pos = ahrs->GetYaw();
+
 	SmartDashboard::PutNumber("enc.",
-			canTalonLeft1->GetSelectedSensorPosition(0));
-	SmartDashboard::PutNumber("yaw zeroed", ahrs->GetYaw());
+			left_enc);
+	SmartDashboard::PutNumber("yaw zeroed", yaw_pos);
 
 	for (int i = 0; i < auton_profile[0].size(); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs
 		drive_ref.at(i) = auton_profile.at(row_index).at(i); //from SetRef()
@@ -1149,14 +1152,17 @@ void DriveControllerMother::RunAutonDrive() {
 		next_zero_index = zeroing_index.at(zero_counter);
 	}
 
-	//for (int i = 0; i < zeroing_index.size(); i++) { //can't have for loop through this vector
-	if (row_index == next_zero_index) {
+	if (row_index == next_zero_index) { //canNOT be reading the last reference
 		StopAll(); //maybe add counts after stop and before zero
-		if (zero_wait_counter < 10) { //zeroing indeces set in generateprofiler()'s
+		if (zero_wait_counter < 50) { //zeroing indeces set in generateprofiler()'s
 			ZeroAll(true); //sets drive to 0.0
-			zero_wait_counter++;
-			std::cout << "trying to zero" << std::endl;
+			zero_wait_counter++; //if already zeroed, break? //6in toward me
+//			if(std::abs(left_enc) < 0.1 && std::abs(yaw_pos) < 0.1) {
+//				zero_wait_counter = 50; //hack to just break out of the counter 'loop'
+//			}
+			//std::cout << "trying to zero" << std::endl;
 		} else {
+			//ZeroAll(true);
 			if(zero_counter < (zeroing_index.size() - 1)) {
 				zero_counter++;
 			}
