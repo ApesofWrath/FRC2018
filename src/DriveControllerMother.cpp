@@ -985,7 +985,7 @@ void DriveControllerMother::ZeroAll(bool stop_motors) {
 
 	ZeroI();
 	ZeroEncs();
-	ZeroYaw();
+	//ZeroYaw();
 
 	zeroing_counter++;
 
@@ -1146,7 +1146,6 @@ void DriveControllerMother::RunAutonDrive() {
 	}
 
 	SmartDashboard::PutNumber("zeroing length", zeroing_index.size());
-	//SmartDashboard::PutNumber("1st ZERO", zeroing_index.at(0));
 
 	if (zeroing_index.size() > 0) {
 		next_zero_index = zeroing_index.at(zero_counter);
@@ -1155,7 +1154,7 @@ void DriveControllerMother::RunAutonDrive() {
 	if (row_index == next_zero_index) { //canNOT be reading the last reference
 		StopAll(); //maybe add counts after stop and before zero
 		if (zero_wait_counter < 50) { //zeroing indeces set in generateprofiler()'s
-			ZeroAll(true); //sets drive to 0.0
+			ZeroAll(true); //sets drive to 0.0 ZEROING NO LONGER INCLUDES ZEROING THE YAW/ENCODERS STILL NEED TO BE ZEROED
 			zero_wait_counter++; //if already zeroed, break? //6in toward me
 //			if(std::abs(left_enc) < 0.1 && std::abs(yaw_pos) < 0.1) {
 //				zero_wait_counter = 50; //hack to just break out of the counter 'loop'
@@ -1167,11 +1166,11 @@ void DriveControllerMother::RunAutonDrive() {
 				zero_counter++;
 			}
 			row_index++;
+			zero_wait_counter = 0;
 		}
 	} else {
-		zero_wait_counter = 0;
 		AutonDrive(); //send each row to auton drive before getting the next row
-		if (continue_profile && row_index < auton_profile.size()) { //autonprofilesize is always 1500 //THIS CANNOT BE INSIDE THE ELSE BUT WHY? TODO: figure out
+		if (continue_profile && row_index < auton_profile.size()) {
 			row_index++;
 		}
 	}

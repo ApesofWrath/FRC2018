@@ -220,7 +220,7 @@ void ScaleSide::GenerateShootCrossedScale(bool left_start, bool added_switch,
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC, //always using cubic, to not go around the points so much
-			PATHFINDER_SAMPLES_FAST, 0.02, 17.0, 8.0, 100000.0, &candidate);
+			PATHFINDER_SAMPLES_FAST, 0.02, 17.0, 6.0, 100000.0, &candidate);
 
 	length = candidate.length;
 	added_crossed_scale_len = length;
@@ -250,8 +250,7 @@ void ScaleSide::GenerateShootCrossedScale(bool left_start, bool added_switch,
 
 		if (i >= (first_traj_len + added_crossed_scale_len)) { //still have more points left after placing on scale backwards and placing switch
 			if (added_scale) { //BROKEN
-				zeroing_indeces.push_back(
-						first_traj_len + added_crossed_scale_len);
+				zeroing_indeces.push_back(first_traj_len + added_crossed_scale_len);
 				GenerateAddedSwitch(left_switch, added_scale, left_added_scale);
 				break; //generateAddedScale will finish off the 1500 points itself
 			} else {
@@ -286,8 +285,10 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale,
 
 //feet
 	if (left_switch) {
-		p1 = {0.0, 0.0, 0.0}; //Y, X, yaw
-		p2 = {6.0, 2.77, d2r(20.0)};
+		//p1 = {0.0, 0.0, 0.0}; //Y, X, yaw
+		//p2 = {6.0, 2.77, d2r(20.0)};
+		p1 = {-23.6, 1.5, d2r(-25.0)}; //Y, X, yaw
+		p2 = {-17.6, 1.77, d2r(35.0)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -299,7 +300,7 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale,
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC, //always using cubic, to not go around the points so much
-			PATHFINDER_SAMPLES_FAST, 0.02, 13.0, 6.0, 100000.0, &candidate); //TODO: update time step
+			PATHFINDER_SAMPLES_FAST, 0.02, 17.0, 6.0, 100000.0, &candidate); //TODO: update time step
 
 	length = candidate.length;
 	added_switch_len = length;
@@ -329,7 +330,7 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale,
 
 		if (i >= (first_traj_len + added_switch_len)) { //still have more points left after placing on scale backwards and placing switch
 			if (added_scale) {
-				zeroing_indeces.push_back(first_traj_len + added_switch_len);
+				zeroing_indeces.push_back(first_traj_len + added_switch_len); //TODO: check to see if this is how it works
 				GenerateAddedScale(left_added_scale);
 				break; //generateAddedScale will finish off the 1500 points itself
 			} else {
@@ -362,9 +363,11 @@ void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spl
 	Waypoint p1, p2;
 
 //feet
+
+	//WAYPOINTS ARE NO LONGER RELATIVE TO THE LAST POINT, THEY ARE CONTNUOUS
 	if (left) {
-		p1 = {0.0, 0.0, 0.0}; //Y, X, yaw
-		p2 = {-6.0, -2.77, d2r(-20.0)};
+		p1 = {-17.6, 2.27, d2r(45.0)}; //Y, X, yaw
+		p2 = {-23.6, 1.9, d2r(-30.0)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -376,7 +379,7 @@ void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spl
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC, //always using cubic, to not go around the points so much
-			PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 4.0, 100000.0, &candidate);
+			PATHFINDER_SAMPLES_FAST, 0.02, 16.0, 6.0, 100000.0, &candidate);
 
 	length = candidate.length;
 	added_scale_len = length;
