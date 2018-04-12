@@ -100,7 +100,7 @@ void ScaleSide::GenerateScale(bool left_start, bool switch_, bool left_switch,
 void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 		bool left_switch, bool added_scale, bool left_added_scale) {
 
-	int POINT_LENGTH = 6;
+	int POINT_LENGTH = 5;
 
 	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
 
@@ -110,11 +110,11 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 	if (left_start) { //will do the right scale
 
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {-14.8, 0.0, d2r(0.0)}; //have to pull back the y on this one too
-		p3 = {-17.46, 4.0, d2r(-90.0)}; //shorter this x, tighter the turn
-		p4 = {-17.46, 17.0, d2r(-90.0)}; //18.2
-		p5 = {-17.46, 17.7, d2r(-90.0)}; //19.5, -45 //4 in forward
-		p6 = {-19.0, 19.0, d2r(0.0)}; //17.5 //25
+		p2 = {-16.9, 0.0, d2r(0.0)}; //have to pull back the y on this one too + 2.3 //16.2
+		p3 = {-21.0, 4.0, d2r(-90.0)}; //shorter this x, tighter the turn
+		p4 = {-21.0, 17.0, d2r(-90.0)}; //18.2
+		p5 = {-23.0, 19.5, d2r(0.0)}; //19.5, -45 //4 in forward //17/7
+	//	p6 = {-19.0, 19.0, d2r(0.0)}; //17.5 //25
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -126,12 +126,12 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 	points[2] = p3;
 	points[3] = p4;
 	points[4] = p5;
-	points[5] = p6;
+	//points[5] = p6;
 	//points[6] = p7;
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.02, 14.0, 5.0, 10000000.0, &candidate); //had to be slowed down //17.0, 6.0
+	PATHFINDER_SAMPLES_FAST, 0.02, 17.0, 6.0, 10000000.0, &candidate); //had to be slowed down //17.0, 6.0
 
 	length = candidate.length;
 	crossed_scale_len = length;
@@ -195,6 +195,7 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 
 }
 
+//last little bit forward to shoot
 void ScaleSide::GenerateShootCrossedScale(bool left_start, bool added_switch,
 		bool left_switch, bool added_scale, bool left_added_scale) {
 
@@ -204,11 +205,11 @@ void ScaleSide::GenerateShootCrossedScale(bool left_start, bool added_switch,
 
 	Waypoint p1, p2, p3;
 
-//feet
+//feet//target heading
 	if (left_start) {
-		p1 = {-19.0, 19.0, d2r(0.0)}; //Y, X, yaw
-		p2 = { -19.5, 19.0, d2r(0.0)}; 	//p2 = {-3.0, -1.0, d2r(40.0)};p2 = {-3.0, -1.0, d2r(40.0)};
-		p3 = { -21.3, 19.0, d2r(-15.0)};
+		p1 = {-23.0, 19.5, d2r(0.0) }; //Y, X, yaw
+		p2 = {-23.5, 19.6, d2r(0.0)}; 	//p2 = {-3.0, -1.0, d2r(40.0)};p2 = {-3.0, -1.0, d2r(40.0)}; //19
+		p3 = { -24.0, 19.6, d2r(0.0)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -583,7 +584,7 @@ void ScaleSide::RunStateMachineScaleSideOnly(bool *place_scale_backwards,
 
 	int drive_index = drive_controller->GetDriveIndex();
 //crossed scale len
-	if (drive_index >= (300)) { //start moving superstructure on the way
+	if (drive_index >= (crossed_scale_len + added_crossed_scale_len)) { //start moving superstructure on the way //slowing down the profile will increase the number of points
 		if (drive_index >= (crossed_scale_len + added_crossed_scale_len)) { //drive profile refs should stay at the last index, at the scale position, anyway, but just for clarity
 			drive_controller->StopProfile(true);
 		} //no else

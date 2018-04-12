@@ -91,17 +91,18 @@ const double K_D_YAW_AU_WC = 0.0; //0.085;
 
 const double K_P_RIGHT_DIS = 0.15; //0.085; //0.1;
 const double K_P_LEFT_DIS = 0.15; //0.085; // 0.1;
-const double K_P_YAW_DIS = 1.68; //1.5;
+const double K_P_YAW_DIS = 3.0; //1.5;
 const double K_P_KICKER_DIS = 0.280;
 
 const double K_I_RIGHT_DIS = 0.0;
 const double K_I_LEFT_DIS = 0.0;
 const double K_I_KICKER_DIS = 0.0;
-const double K_I_YAW_DIS = 0.001;
+const double K_I_YAW_DIS = 0.1;//1;
 
 const double K_D_RIGHT_DIS = 0.0;
 const double K_D_LEFT_DIS = 0.0;
 const double K_D_KICKER_DIS = 0.0;
+const double K_D_YAW_DIS = 20.0; //pd controller on yaw
 
 // Drive Gains End
 
@@ -194,6 +195,8 @@ double k_p_kick_vel_au = 0.0;
 double k_d_left_vel_au = 0.0;
 double k_d_right_vel_au = 0.0;
 double k_d_kick_vel_au = 0.0;
+
+double D_YAW_DIS = 0.0;
 
 double k_p_yaw_heading_pos, k_d_vision_pos;
 
@@ -732,11 +735,11 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	double tarVelLeft = drive_ref.at(4);
 	double tarVelRight = drive_ref.at(5);
 
-	//SmartDashboard::PutNumber("tarVelLeft", tarVelLeft);
-
 	if (refYaw > PI) { //get negative half and positive half on circle
 		refYaw -= (2 * PI);
 	}
+
+	SmartDashboard::PutNumber("targetHeading", refYaw);
 
 //	SmartDashboard::PutNumber("refLeft", refLeft);
 //	SmartDashboard::PutNumber("refRight", refRight);
@@ -765,12 +768,14 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	double y_dis = -1.0 * ahrs->GetYaw() * (double) (PI / 180); //current theta (yaw) value
 
 //	SmartDashboard::PutNumber("Target Heading", refYaw);
-//	SmartDashboard::PutNumber("Actual Heading", y_dis);
+	SmartDashboard::PutNumber("Actual Heading", y_dis);
 
 	l_error_dis_au = refLeft - l_dis;
 	r_error_dis_au = refRight - r_dis;
 
 	y_error_dis_au = refYaw - y_dis;
+
+	SmartDashboard::PutNumber("Heading error", y_error_dis_au);
 
 	if (std::abs(tarVelLeft - tarVelRight) < .05 && (std::abs(r_current) < 10)
 			&& (std::abs(l_current) < 10)) { //initial jitter
@@ -797,11 +802,16 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 
 	P_YAW_DIS = K_P_YAW_DIS * y_error_dis_au; //position
 	I_YAW_DIS = K_I_YAW_DIS * i_yaw;
+	D_YAW_DIS = K_D_YAW_DIS * (y_error_dis_au - yaw_last_error);
+
+	SmartDashboard::PutNumber("P", P_YAW_DIS);
+	SmartDashboard::PutNumber("I", I_YAW_DIS);
+	SmartDashboard::PutNumber("D", D_YAW_DIS);
 
 	double total_right = P_RIGHT_DIS + I_RIGHT_DIS + D_RIGHT_DIS;
 	double total_left = P_LEFT_DIS + I_LEFT_DIS + D_LEFT_DIS;
 
-	double total_yaw = P_YAW_DIS + I_YAW_DIS;
+	double total_yaw = P_YAW_DIS + I_YAW_DIS + D_YAW_DIS;
 	double target_rpm_yaw_change = total_yaw * MAX_FPS;
 	double target_rpm_right = total_right * MAX_FPS; //max rpm* gear ratio
 	double target_rpm_left = total_left * MAX_FPS;
@@ -840,6 +850,7 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	l_last_error = l_error_dis_au;
 	r_last_error = r_error_dis_au;
 	kick_last_error = k_error_dis_au;
+	yaw_last_error = y_error_dis_au;
 
 }
 
@@ -1151,7 +1162,7 @@ void DriveControllerMother::RunAutonDrive() {
 
 	if (row_index == next_zero_index) {
 		StopAll(); //maybe add counts after stop and before zero
-		if (zero_wait_counter < 50) {
+		if (zero_wait_counter < 10) {
 			ZeroAll(true); //ZEROING NO LONGER INCLUDES ZEROING THE YAW. ENCODERS STILL NEED TO BE ZEROED
 			zero_wait_counter++;
 //			if(std::abs(left_enc) < 0.1) {
