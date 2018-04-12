@@ -1145,28 +1145,24 @@ void DriveControllerMother::RunAutonDrive() {
 		drive_ref.at(i) = auton_profile.at(row_index).at(i); //from SetRef()
 	}
 
-	SmartDashboard::PutNumber("zeroing length", zeroing_index.size());
-
 	if (zeroing_index.size() > 0) {
 		next_zero_index = zeroing_index.at(zero_counter);
 	}
 
-	if (row_index == next_zero_index) { //canNOT be reading the last reference
+	if (row_index == next_zero_index) {
 		StopAll(); //maybe add counts after stop and before zero
-		if (zero_wait_counter < 50) { //zeroing indeces set in generateprofiler()'s
-			ZeroAll(true); //sets drive to 0.0 ZEROING NO LONGER INCLUDES ZEROING THE YAW/ENCODERS STILL NEED TO BE ZEROED
-			zero_wait_counter++; //if already zeroed, break? //6in toward me
-//			if(std::abs(left_enc) < 0.1 && std::abs(yaw_pos) < 0.1) {
+		if (zero_wait_counter < 50) {
+			ZeroAll(true); //ZEROING NO LONGER INCLUDES ZEROING THE YAW. ENCODERS STILL NEED TO BE ZEROED
+			zero_wait_counter++;
+//			if(std::abs(left_enc) < 0.1) {
 //				zero_wait_counter = 50; //hack to just break out of the counter 'loop'
 //			}
-			//std::cout << "trying to zero" << std::endl;
 		} else {
-			//ZeroAll(true);
 			if(zero_counter < (zeroing_index.size() - 1)) {
 				zero_counter++;
 			}
-			row_index++;
-			zero_wait_counter = 0;
+			zero_wait_counter = 0; //for the next time we need to zero
+			row_index++; //break out of this if
 		}
 	} else {
 		AutonDrive(); //send each row to auton drive before getting the next row

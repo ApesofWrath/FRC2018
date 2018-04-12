@@ -27,11 +27,12 @@ void ScaleSide::GenerateScale(bool left_start, bool switch_, bool left_switch,
 
 	//feet
 	if (left_start) {
-		p1 = {0.0, 0.0, 0.0};
-		p2 = { -16.0, 0.0, d2r(0.0) };// {-22.5, 6.5, d2r(-35.0)}; //yaw is still from the robot's perspective
-		p3 = { -23.6, 1.5, d2r(-25.0) }; //2.85, 6, 20
+		p1 = { 0.0, 0.0, 0.0 };
+		p2 = { -16.0, -0.2, d2r(0.0) };// {-22.5, 6.5, d2r(-35.0)}; //yaw is still from the robot's perspective
+		p3 = { -23.6, 2.2, d2r(-25.0) }; //2.85, 6, 20
 	}
 	else {
+		p1 = {0.0, 0.0, 0.0};
 		p2 = { -16.0, 0.0, d2r(0.0) };// {-22.5, 6.5, d2r(-35.0)}; //yaw is still from the robot's perspective
 		p3 = { -23.6, -1.5, d2r(25.0) }; //2.85, 6, 20
 	}
@@ -205,9 +206,9 @@ void ScaleSide::GenerateShootCrossedScale(bool left_start, bool added_switch,
 
 //feet
 	if (left_start) {
-		p1 = {0.0, 0.0, 0.0}; //Y, X, yaw
-		p2 = { -0.5, 0.0, 0.0}; 	//p2 = {-3.0, -1.0, d2r(40.0)};p2 = {-3.0, -1.0, d2r(40.0)};
-		p3 = { -2.3, 0.0, 0.0 };
+		p1 = {-19.0, 19.0, d2r(0.0)}; //Y, X, yaw
+		p2 = { -19.5, 19.0, d2r(0.0)}; 	//p2 = {-3.0, -1.0, d2r(40.0)};p2 = {-3.0, -1.0, d2r(40.0)};
+		p3 = { -21.3, 19.0, d2r(-15.0)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -284,11 +285,12 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale,
 	Waypoint p1, p2;
 
 //feet
+	//WAYPOINTS ARE NO LONGER RELATIVE TO THE LAST POINT, THEY ARE CONTNUOUS
 	if (left_switch) {
 		//p1 = {0.0, 0.0, 0.0}; //Y, X, yaw
 		//p2 = {6.0, 2.77, d2r(20.0)};
 		p1 = {-23.6, 1.5, d2r(-25.0)}; //Y, X, yaw
-		p2 = {-17.6, 1.77, d2r(35.0)};
+		p2 = {-17.6, 1.2, d2r(10.0)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -330,7 +332,7 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale,
 
 		if (i >= (first_traj_len + added_switch_len)) { //still have more points left after placing on scale backwards and placing switch
 			if (added_scale) {
-				zeroing_indeces.push_back(first_traj_len + added_switch_len); //TODO: check to see if this is how it works
+				zeroing_indeces.push_back(first_traj_len + added_switch_len);
 				GenerateAddedScale(left_added_scale);
 				break; //generateAddedScale will finish off the 1500 points itself
 			} else {
@@ -367,7 +369,7 @@ void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spl
 	//WAYPOINTS ARE NO LONGER RELATIVE TO THE LAST POINT, THEY ARE CONTNUOUS
 	if (left) {
 		p1 = {-17.6, 2.27, d2r(45.0)}; //Y, X, yaw
-		p2 = {-23.6, 1.9, d2r(-30.0)};
+		p2 = {-22.6, 1.0, d2r(-30.0)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -548,7 +550,7 @@ void ScaleSide::RunStateMachineScaleScale(bool *place_scale_backwards, //state m
 		drive_controller->StopProfile(false);
 	}
 
-	if (drive_index >= (scale_traj_len / 1.5)) { //start moving superstructure
+	if (drive_index >= (scale_traj_len / 3)) { //start moving superstructure
 
 		if (auton_state_machine->shoot_counter == 0 || ((drive_index //if have not shot before, if at end of the total profile and there is that addded profile
 		>= (scale_traj_len + added_switch_len + added_scale_len) //will need to divide by 2

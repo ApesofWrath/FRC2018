@@ -131,19 +131,20 @@ public:
 	frc::SendableChooser<std::string> autonChooser;
 
 	//first letter indicates starting position: Left, Right, Center, Side (Left or Right)
-	const std::string sideDriveForward = "S DriveForward";
+	const std::string sideDriveForward = "S DriveForward"; //scale scale opp, scale scale same, 2-switch center
 	const std::string centerDriveForward = "C DriveForward";
 	const std::string leftCubeSwitch = "L Switch";
 	const std::string rightCubeSwitch = "R Switch";
 	const std::string centerCubeSwitch = "C Switch";
-	const std::string centerCubeSwitchSwitch = "C 2-Switch";
 	const std::string leftCubeScale = "L Scale";
 	const std::string rightCubeScale = "R Scale";
-	const std::string leftCubeScaleScale = "L Scale-Scale";
-	const std::string rightCubeScaleScale = "R Scale-Scale";
 	const std::string leftScaleSwitch = "L Scale-Switch";
 	const std::string rightScaleSwitch = "R Scale-Switch";
 	const std::string doNothing = "Do Nothing";
+
+	const std::string centerCubeSwitchSwitch = "C 2-Switch";
+	const std::string leftCubeScaleScale = "L Scale-Scale";
+	const std::string rightCubeScaleScale = "R Scale-Scale";
 
 	bool leftSwitch, leftScale;
 
