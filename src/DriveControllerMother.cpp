@@ -91,18 +91,18 @@ const double K_D_YAW_AU_WC = 0.0; //0.085;
 
 const double K_P_RIGHT_DIS = 0.15; //0.085; //0.1;
 const double K_P_LEFT_DIS = 0.15; //0.085; // 0.1;
-const double K_P_YAW_DIS = 3.0; //1.5; //3.0
+const double K_P_YAW_DIS = 2.4;//3.5; //1.5; //3.0 //was spending too much time making the turn and when it actually got to the shoot the gap part of the profile, the profile was already ahead of it
 const double K_P_KICKER_DIS = 0.280;
 
 const double K_I_RIGHT_DIS = 0.0;
 const double K_I_LEFT_DIS = 0.0;
 const double K_I_KICKER_DIS = 0.0;
-const double K_I_YAW_DIS = 1.0;//0.1;
+const double K_I_YAW_DIS = 0.0;//1;//0.0
 
 const double K_D_RIGHT_DIS = 0.0;
 const double K_D_LEFT_DIS = 0.0;
 const double K_D_KICKER_DIS = 0.0;
-const double K_D_YAW_DIS = 30.0; //pd controller on yaw //20
+const double K_D_YAW_DIS = 4.0;//4.0; //pd controller on yaw //20, p sum of p and d
 
 // Drive Gains End
 
@@ -280,7 +280,7 @@ DriveControllerMother::DriveControllerMother(int l1, int l2, int l3, int l4,
 
 	time_step_drive = time_step;
 
-	k_p_yaw_au = K_P_YAW_AU_WC;
+	k_p_yaw_au = K_P_YAW_AU_WC; //these get sent from AutonDrive to Controller, not used in AutonDrive
 	k_d_yaw_au = K_D_YAW_AU_WC;
 
 	if (start_low) { //CANNOT CALL OTHER FUNCTIONS IN THE CONSTRUCTOR
@@ -480,8 +480,8 @@ void DriveControllerMother::SetGainsHigh() {
 	Kv = (1 / MAX_FPS);
 	max_yaw_rate = (25 / actual_max_y_rpm) * max_y_rpm;
 
-	k_p_right_vel = K_P_RIGHT_VEL_HIGH;
-	k_p_left_vel = K_P_LEFT_VEL_HIGH; //TODO: change for auton
+	k_p_right_vel = K_P_RIGHT_VEL_HIGH; //these are all for teleop; we don't shift gears in auton
+	k_p_left_vel = K_P_LEFT_VEL_HIGH;
 	k_p_yaw_t = K_P_YAW_VEL_HIGH;
 	k_d_yaw_t = K_P_YAW_VEL_HIGH;
 	k_d_right_vel = K_D_RIGHT_VEL_HIGH;
@@ -812,6 +812,9 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	double total_left = P_LEFT_DIS + I_LEFT_DIS + D_LEFT_DIS;
 
 	double total_yaw = P_YAW_DIS + I_YAW_DIS + D_YAW_DIS;
+
+	SmartDashboard::PutNumber("TOTAL", total_yaw);
+
 	double target_rpm_yaw_change = total_yaw * MAX_FPS;
 	double target_rpm_right = total_right * MAX_FPS; //max rpm* gear ratio
 	double target_rpm_left = total_left * MAX_FPS;
@@ -844,7 +847,7 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 //	}
 
 	Controller(0.0, 0.0, 0.0, targetYawRate, k_p_right_vel_au, k_p_left_vel_au,
-			0.0, k_p_yaw_au, k_d_yaw_au, k_d_left_vel_au, k_d_right_vel_au, 0.0,
+			0.0, k_p_yaw_au, k_d_yaw_au, k_d_left_vel_au, k_d_right_vel_au, 0.0, //sends all 0.0 gains
 			target_rpm_left, target_rpm_right, 0.0);
 
 	l_last_error = l_error_dis_au;
@@ -854,11 +857,11 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 
 }
 
-void DriveControllerMother::Controller(double ref_kick, double ref_right,
+void DriveControllerMother::Controller(double ref_kick, double ref_right, //first parameter refs are for teleop
 		double ref_left, double ref_yaw, double k_p_right, double k_p_left,
 		double k_p_kick, double k_p_yaw, double k_d_yaw, double k_d_right,
 		double k_d_left, double k_d_kick, double target_vel_left,
-		double target_vel_right, double target_vel_kick) {
+		double target_vel_right, double target_vel_kick) { //last parameter targets are for auton
 
 	double yaw_rate_current = -1.0 * (double) ahrs->GetRate()
 			* (double) ((PI) / 180.0); //left should be positive
@@ -868,7 +871,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	double target_yaw_rate = ref_yaw;
 
 	ref_left = ref_left - (target_yaw_rate * (max_y_rpm / max_yaw_rate)); //left should be positive
-	ref_right = ref_right + (target_yaw_rate * (max_y_rpm / max_yaw_rate));
+	ref_right = ref_right + (target_yaw_rate * (max_y_rpm / max_yaw_rate)); //ff
 
 	double yaw_error = target_yaw_rate - yaw_rate_current;
 //
@@ -883,7 +886,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 
 	d_yaw_dis = yaw_error - yaw_last_error;
 
-	double yaw_output = ((k_p_yaw * yaw_error) + (k_d_yaw * d_yaw_dis)); //pd for auton, p for teleop
+	double yaw_output = ((k_p_yaw * yaw_error) + (k_d_yaw * d_yaw_dis)); //pd for auton, p for teleop //fb
 
 	ref_right += yaw_output; //left should be positive
 	ref_left -= yaw_output;
@@ -918,21 +921,21 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 
 	SmartDashboard::PutNumber("actual left vel", l_current);
 
-	if ((std::abs(l_current) <= 0.5 && canTalonLeft1->GetOutputCurrent() > 4.0) //encoders not working
-			|| (std::abs(r_current) <= 0.5
-					&& canTalonRight1->GetOutputCurrent() > 4.0)) {
-		SmartDashboard::PutString("Drive Motor Encoders", "Not working");
-		k_p_yaw = 0.0;
-		k_d_yaw = 0.0;
-		feed_forward_l = 0.0;
-		feed_forward_r = 0.0;
-		k_p_left = 0.0;
-		k_p_right = 0.0;
-		k_d_left = 0.0;
-		k_d_right = 0.0;
-	} else {
-		SmartDashboard::PutString("Drive Motor Encoders", "Not working");
-	}
+//	if ((std::abs(l_current) <= 0.5 && canTalonLeft1->GetOutputCurrent() > 4.0) //encoders not working
+//			|| (std::abs(r_current) <= 0.5
+//					&& canTalonRight1->GetOutputCurrent() > 4.0)) {
+//		SmartDashboard::PutString("Drive Motor Encoders", "Not working");
+//		k_p_yaw = 0.0;
+//		k_d_yaw = 0.0;
+//		feed_forward_l = 0.0;
+//		feed_forward_r = 0.0;
+//		k_p_left = 0.0;
+//		k_p_right = 0.0;
+//		k_d_left = 0.0;
+//		k_d_right = 0.0;
+//	} else {
+//		SmartDashboard::PutString("Drive Motor Encoders", "Not working");
+//	}
 
 	l_error_vel_t = ref_left - l_current;
 	r_error_vel_t = ref_right - r_current;
@@ -950,7 +953,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right,
 	D_RIGHT_VEL = k_d_right * d_right_vel;
 	D_KICK_VEL = k_d_kick * d_kick_vel;
 
-	if (frc::RobotState::IsAutonomous()) { //only want the feedforward based off the motion profile during autonomous. The root generated ones (in the if() statement)
+	if (frc::RobotState::IsAutonomous()) { //only want the feedforward based off the motion profile during autonomous. The root generated ones (in the if() statement) //should already be 0 during auton because we send 0 as refs
 		feed_forward_r = 0;	// will be close to 0  (low error between profile points) for the most part but will get quite aggressive when an error builds,
 		feed_forward_l = 0;			//the PD controller should handle it itself
 		feed_forward_k = 0;

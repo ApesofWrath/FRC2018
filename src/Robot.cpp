@@ -248,10 +248,11 @@ public:
 
 		std::string gameData = "";
 
-		for (int i = 0; i < 1000; i++) { //FMS data may not come immediately
+		for (int i = 0; i < 5000; i++) { //FMS data may not come immediately
 			gameData =
 					frc::DriverStation::GetInstance().GetGameSpecificMessage();
-			if (gameData.length() > 0) {
+			if (gameData.length() > 0) { //sizeof(gameData) / sizeof(gameData[0]
+				std::cout << "BREAK" << std::endl;
 				break; //leave for loop early
 			}
 
@@ -273,6 +274,7 @@ public:
 			}
 		} else { //still have not received FMS data
 			autoSelected = sideDriveForward; //regardless of auton chooser //centerDriveForward
+			std::cout << "DEFAULT" << std::endl;
 		}
 
 		//////////////////////////////////////////////////////////////////

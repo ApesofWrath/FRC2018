@@ -110,10 +110,13 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 	if (left_start) { //will do the right scale
 
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {-16.9, 0.0, d2r(0.0)}; //have to pull back the y on this one too + 2.3 //16.2
-		p3 = {-21.0, 4.0, d2r(-90.0)}; //shorter this x, tighter the turn
-		p4 = {-21.0, 17.0, d2r(-90.0)}; //18.2
-		p5 = {-23.0, 19.5, d2r(0.0)}; //19.5, -45 //4 in forward //17/7
+		p2 = {-15.66, -1.5, d2r(-30.0)}; //have to pull back the y on this one too + 2.3 //16.2
+		p3 = {-18.12, 4.0, d2r(-90.0)}; //shorter this x, tighter the turn
+		p4 = {-18.12, 17.0, d2r(-90.0)}; //shorter this x, tighter the turn
+		p5 = {-21.0, 19.5, d2r(0.0)};
+		//p4 = {-19.0, 17.0, d2r(-90.0)}; //18.2
+		//p5 = {-21.0, 19.5, d2r(0.0)}; //19.5, -45 //4 in forward //17/7
+
 	//	p6 = {-19.0, 19.0, d2r(0.0)}; //17.5 //25
 	}
 	else {
@@ -131,7 +134,7 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.02, 17.0, 6.0, 10000000.0, &candidate); //had to be slowed down //17.0, 6.0
+	PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 4.0, 10000000.0, &candidate); //had to be slowed down //17.0, 6.0
 
 	length = candidate.length;
 	crossed_scale_len = length;
@@ -167,19 +170,19 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 //				GenerateAddedSwitch(left_switch, added_scale, left_added_scale); //this function will finish off 1500 points //added scale goes through switch first //true, true, true
 //				break;
 //			} else { //fill the rest with the last point to just stay there
-//				full_refs_sc.at(i).at(0) = full_refs_sc.at(i - 1).at(0); //l - 1 will always be the last sensible value since it cascades through the vector
-//				full_refs_sc.at(i).at(1) = full_refs_sc.at(i - 1).at(1);
-//				full_refs_sc.at(i).at(2) = full_refs_sc.at(i - 1).at(2);
-//				full_refs_sc.at(i).at(3) = full_refs_sc.at(i - 1).at(3);
-//				full_refs_sc.at(i).at(4) = full_refs_sc.at(i - 1).at(4);
-//				full_refs_sc.at(i).at(5) = full_refs_sc.at(i - 1).at(5);
-//			}
+				full_refs_sc.at(i).at(0) = full_refs_sc.at(i - 1).at(0); //l - 1 will always be the last sensible value since it cascades through the vector
+				full_refs_sc.at(i).at(1) = full_refs_sc.at(i - 1).at(1);
+				full_refs_sc.at(i).at(2) = full_refs_sc.at(i - 1).at(2);
+				full_refs_sc.at(i).at(3) = full_refs_sc.at(i - 1).at(3);
+				full_refs_sc.at(i).at(4) = full_refs_sc.at(i - 1).at(4);
+				full_refs_sc.at(i).at(5) = full_refs_sc.at(i - 1).at(5);
+		//	}
 
 			SmartDashboard::PutNumber("Position Ref", full_refs_sc.at(i).at(1));
 			SmartDashboard::PutNumber("Profile Length", first_traj_len);
-			zeroing_indeces.push_back(crossed_scale_len);
-			GenerateShootCrossedScale(left_start, added_switch, left_switch,
-					added_scale, left_added_scale);
+//			zeroing_indeces.push_back(crossed_scale_len);
+//			GenerateShootCrossedScale(left_start, added_switch, left_switch,
+//					added_scale, left_added_scale);
 			break;
 		}
 	}
@@ -199,17 +202,18 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 void ScaleSide::GenerateShootCrossedScale(bool left_start, bool added_switch,
 		bool left_switch, bool added_scale, bool left_added_scale) {
 
-	int POINT_LENGTH = 3;
+	int POINT_LENGTH = 6;
 
 	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
 
-	Waypoint p1, p2, p3;
+	Waypoint p1, p2, p3, p4, p5, p6;
 
 //feet//target heading
 	if (left_start) {
-		p1 = {-23.0, 19.5, d2r(0.0) }; //Y, X, yaw
-		p2 = {-23.5, 19.6, d2r(0.0)}; 	//p2 = {-3.0, -1.0, d2r(40.0)};p2 = {-3.0, -1.0, d2r(40.0)}; //19
-		p3 = { -24.0, 19.6, d2r(0.0)};
+
+		p4 = {-23.0, 19.5, d2r(0.0) }; //Y, X, yaw
+		p5 = {-23.5, 19.6, d2r(0.0)}; 	//p2 = {-3.0, -1.0, d2r(40.0)};p2 = {-3.0, -1.0, d2r(40.0)}; //19
+		p6 = { -24.0, 19.6, d2r(0.0)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -219,6 +223,9 @@ void ScaleSide::GenerateShootCrossedScale(bool left_start, bool added_switch,
 	points[0] = p1;
 	points[1] = p2;
 	points[2] = p3;
+	points[3] = p4;
+	points[4] = p5;
+	points[5] = p6;
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC, //always using cubic, to not go around the points so much
