@@ -91,18 +91,18 @@ const double K_D_YAW_AU_WC = 0.0; //0.085;
 
 const double K_P_RIGHT_DIS = 0.15; //0.085; //0.1;
 const double K_P_LEFT_DIS = 0.15; //0.085; // 0.1;
-const double K_P_YAW_DIS = 3.0; //1.5;
+const double K_P_YAW_DIS = 3.0; //1.5; //3.0
 const double K_P_KICKER_DIS = 0.280;
 
 const double K_I_RIGHT_DIS = 0.0;
 const double K_I_LEFT_DIS = 0.0;
 const double K_I_KICKER_DIS = 0.0;
-const double K_I_YAW_DIS = 0.1;//1;
+const double K_I_YAW_DIS = 1.0;//0.1;
 
 const double K_D_RIGHT_DIS = 0.0;
 const double K_D_LEFT_DIS = 0.0;
 const double K_D_KICKER_DIS = 0.0;
-const double K_D_YAW_DIS = 20.0; //pd controller on yaw
+const double K_D_YAW_DIS = 30.0; //pd controller on yaw //20
 
 // Drive Gains End
 
