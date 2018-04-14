@@ -90,19 +90,19 @@ const double K_P_YAW_AU_WC = 0.0; //5.0;
 const double K_D_YAW_AU_WC = 0.0; //0.085;
 
 const double K_P_RIGHT_DIS = 0.15; //0.085; //0.1;
-const double K_P_LEFT_DIS = 0.15; //0.085; // 0.1;
-const double K_P_YAW_DIS = 2.4;//3.5; //1.5; //3.0 //was spending too much time making the turn and when it actually got to the shoot the gap part of the profile, the profile was already ahead of it
+const double K_P_LEFT_DIS = 0.15; //0.085; // 0.1;//2.4
+const double K_P_YAW_DIS = 0.2;//3.3;//3.5; //1.5; //3.0 //was spending too much time making the turn and when it actually got to the shoot the gap part of the profile, the profile was already ahead of it
 const double K_P_KICKER_DIS = 0.280;
 
 const double K_I_RIGHT_DIS = 0.0;
 const double K_I_LEFT_DIS = 0.0;
 const double K_I_KICKER_DIS = 0.0;
-const double K_I_YAW_DIS = 0.0;//1;//0.0
+const double K_I_YAW_DIS = 0.0;//3;//1;//0.0
 
 const double K_D_RIGHT_DIS = 0.0;
 const double K_D_LEFT_DIS = 0.0;
 const double K_D_KICKER_DIS = 0.0;
-const double K_D_YAW_DIS = 4.0;//4.0; //pd controller on yaw //20, p sum of p and d
+const double K_D_YAW_DIS = 4.0;//3.2;//4.0; //pd controller on yaw //20, p sum of p and d
 
 // Drive Gains End
 
@@ -773,7 +773,7 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	l_error_dis_au = refLeft - l_dis;
 	r_error_dis_au = refRight - r_dis;
 
-	y_error_dis_au = refYaw - y_dis;
+	y_error_dis_au = refYaw - y_dis; //positive - 0
 
 	SmartDashboard::PutNumber("Heading error", y_error_dis_au);
 

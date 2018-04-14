@@ -100,7 +100,7 @@ void ScaleSide::GenerateScale(bool left_start, bool switch_, bool left_switch,
 void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 		bool left_switch, bool added_scale, bool left_added_scale) {
 
-	int POINT_LENGTH = 5;
+	int POINT_LENGTH = 6;
 
 	Waypoint *points = (Waypoint*) malloc(sizeof(Waypoint) * POINT_LENGTH);
 
@@ -110,10 +110,11 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 	if (left_start) { //will do the right scale
 
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {-15.66, -1.5, d2r(-30.0)}; //have to pull back the y on this one too + 2.3 //16.2
+		p2 = {-16.16, -1.5, d2r(-30.0)}; //have to pull back the y on this one too + 2.3 //16.2
 		p3 = {-18.12, 4.0, d2r(-90.0)}; //shorter this x, tighter the turn
-		p4 = {-18.12, 17.0, d2r(-90.0)}; //shorter this x, tighter the turn
-		p5 = {-21.0, 19.5, d2r(0.0)};
+		p4 = {-18.12, 13.0, d2r(-90.0)}; //shorter this x, tighter the turn
+		p5 = {-21.0, 16.0, d2r(0.0)};
+		p6 = {-23.5, 16.0, d2r(0.0)};
 		//p4 = {-19.0, 17.0, d2r(-90.0)}; //18.2
 		//p5 = {-21.0, 19.5, d2r(0.0)}; //19.5, -45 //4 in forward //17/7
 
@@ -129,12 +130,12 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 	points[2] = p3;
 	points[3] = p4;
 	points[4] = p5;
-	//points[5] = p6;
+	points[5] = p6;
 	//points[6] = p7;
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 4.0, 10000000.0, &candidate); //had to be slowed down //17.0, 6.0
+	PATHFINDER_SAMPLES_FAST, 0.02, 15.0, 4.0, 10000000.0, &candidate); //had to be slowed down //17.0, 6.0
 
 	length = candidate.length;
 	crossed_scale_len = length;
@@ -154,8 +155,8 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 	int i;
 	for (i = 0; i < 1500; i++) {
 
-		Segment sl = leftTrajectory[i];
-		Segment sr = rightTrajectory[i];
+		Segment sl = rightTrajectory[i]; //THE LEFT AND RIGHT TRAJECTORIES MUST BE SWITCHED WHEN GOING BACKWARDS. OTHERWISE, ANGLE WILL NOT CORRESPOND TO EACH SIDE'S MAGNITUDES. PATHFINDER ALWAYS ASSUMES FORWRAD TRAJECTORIES; IN ADDITION TO REVERSING (*-1.0 and -PI for yaw), WE MUST SWITCH THE LEFT AND RIGHT TRAJECTORIES
+		Segment sr = leftTrajectory[i]; //magnitudes AND directions must reverse, to get mirror image
 
 		full_refs_sc.at(i).at(0) = ((double) sl.heading) - PI; //profile tries to turn robot around and go straight, in order to go backwards
 		full_refs_sc.at(i).at(1) = -1.0 * ((double) sl.position); //pathfinder does not give negative references
@@ -591,8 +592,8 @@ void ScaleSide::RunStateMachineScaleSideOnly(bool *place_scale_backwards,
 
 	int drive_index = drive_controller->GetDriveIndex();
 //crossed scale len
-	if (drive_index >= (crossed_scale_len + added_crossed_scale_len)) { //start moving superstructure on the way //slowing down the profile will increase the number of points
-		if (drive_index >= (crossed_scale_len + added_crossed_scale_len)) { //drive profile refs should stay at the last index, at the scale position, anyway, but just for clarity
+	if (drive_index >= (crossed_scale_len / 2)) { //start moving superstructure on the way //slowing down the profile will increase the number of points
+		if (drive_index >= (crossed_scale_len)) { //drive profile refs should stay at the last index, at the scale position, anyway, but just for clarity
 			drive_controller->StopProfile(true);
 		} //no else
 		if (auton_state_machine->shoot_counter == 0) {

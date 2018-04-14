@@ -163,6 +163,15 @@ public:
 
 	void RobotInit() {
 
+		SmartDashboard::PutNumber("targetHeading", 0);
+		SmartDashboard::PutNumber("Actual Heading", 0);
+
+		SmartDashboard::PutNumber("P", 0);
+		SmartDashboard::PutNumber("I", 0);
+		SmartDashboard::PutNumber("D", 0);
+
+		SmartDashboard::PutNumber("TOTAL", 0);
+
 		elevator_profiler_ = new ElevatorMotionProfiler(1.15, 5.0, TIME_STEP); //max vel, max accel, timestep //1.6, 10
 		intake_profiler_ = new IntakeMotionProfiler(2.0, 10.0, TIME_STEP);
 
@@ -426,14 +435,23 @@ public:
 
 	void AutonomousPeriodic() {
 
-		SmartDashboard::PutNumber("Left 1", drive_controller->GetLeftVel());
-		//		SmartDashboard::PutNumber("Left 2",
-		//				drive_controller->canTalonLeft2->GetOutputCurrent());
-		//		SmartDashboard::PutNumber("Left 3",
-		//				drive_controller->canTalonLeft3->GetOutputCurrent());
-		//		SmartDashboard::PutNumber("Left 4",
-		//				drive_controller->canTalonLeft4->GetOutputCurrent());
-		SmartDashboard::PutNumber("Right 1", drive_controller->GetRightVel());
+		SmartDashboard::PutNumber("Left 1",
+				drive_controller->canTalonLeft1->GetOutputCurrent());
+		SmartDashboard::PutNumber("Left 2",
+				drive_controller->canTalonLeft2->GetOutputCurrent());
+		SmartDashboard::PutNumber("Left 3",
+				drive_controller->canTalonLeft3->GetOutputCurrent());
+		SmartDashboard::PutNumber("Left 4",
+				drive_controller->canTalonLeft4->GetOutputCurrent());
+
+		SmartDashboard::PutNumber("Right 1",
+				drive_controller->canTalonRight1->GetOutputCurrent());
+		SmartDashboard::PutNumber("Right 2",
+				drive_controller->canTalonRight2->GetOutputCurrent());
+		SmartDashboard::PutNumber("Right 3",
+				drive_controller->canTalonRight3->GetOutputCurrent());
+		SmartDashboard::PutNumber("Right 4",
+				drive_controller->canTalonRight4->GetOutputCurrent());
 
 		if (scaleOnlyState) { //same side
 			scale_side->RunStateMachineScaleOnly(&raise_to_scale_backwards,
@@ -478,20 +496,39 @@ public:
 
 	void TeleopPeriodic() {
 
-		SmartDashboard::PutNumber("Left 1", drive_controller->GetLeftVel());
+	//	SmartDashboard::PutNumber("Left 1", drive_controller->GetLeftVel());
 //		SmartDashboard::PutNumber("Left 2",
 //				drive_controller->canTalonLeft2->GetOutputCurrent());
 //		SmartDashboard::PutNumber("Left 3",
 //				drive_controller->canTalonLeft3->GetOutputCurrent());
 //		SmartDashboard::PutNumber("Left 4",
 //				drive_controller->canTalonLeft4->GetOutputCurrent());
-		SmartDashboard::PutNumber("Right 1", drive_controller->GetRightVel());
+	//	SmartDashboard::PutNumber("Right 1", drive_controller->GetRightVel());
 //		SmartDashboard::PutNumber("Right 2",
 //				drive_controller->canTalonRight2->GetOutputCurrent());
 //		SmartDashboard::PutNumber("Right 3",
 //				drive_controller->canTalonRight3->GetOutputCurrent());
 //		SmartDashboard::PutNumber("Right 4",
 //				drive_controller->canTalonRight4->GetOutputCurrent());
+
+
+		SmartDashboard::PutNumber("Left 1",
+						drive_controller->canTalonLeft1->GetOutputCurrent());
+				SmartDashboard::PutNumber("Left 2",
+						drive_controller->canTalonLeft2->GetOutputCurrent());
+				SmartDashboard::PutNumber("Left 3",
+						drive_controller->canTalonLeft3->GetOutputCurrent());
+				SmartDashboard::PutNumber("Left 4",
+						drive_controller->canTalonLeft4->GetOutputCurrent());
+
+				SmartDashboard::PutNumber("Right 1",
+						drive_controller->canTalonRight1->GetOutputCurrent());
+				SmartDashboard::PutNumber("Right 2",
+						drive_controller->canTalonRight2->GetOutputCurrent());
+				SmartDashboard::PutNumber("Right 3",
+						drive_controller->canTalonRight3->GetOutputCurrent());
+				SmartDashboard::PutNumber("Right 4",
+						drive_controller->canTalonRight4->GetOutputCurrent());
 
 #if !STATEMACHINE
 		intake_->ManualArm(joyOp);
@@ -516,7 +553,7 @@ public:
 		intake_spin_in = joyThrottle->GetRawButton(INTAKE_SPIN_IN);
 		intake_spin_out = joyThrottle->GetRawButton(INTAKE_SPIN_OUT);
 		intake_spin_slow = joyThrottle->GetRawButton(INTAKE_SPIN_SLOW);
-		intake_spin_med = joyOp->GetRawButton(INTAKE_SPIN_MED);
+		intake_spin_med = joyOp->GetRawButton(INTAKE_SPIN_MED); //operator switch pop shot
 		//intake_spin_stop = joyThrottle->GetRawButton(INTAKE_SPIN_STOP);
 
 		intake_arm_up = joyOp->GetRawButton(INTAKE_ARM_UP);
