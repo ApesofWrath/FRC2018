@@ -53,7 +53,7 @@ const double DOWN_SHIFT_VEL = 200.0; //will be less than up shift vel (14/56) *9
 const double DRIVE_WAIT_TIME = 0.05; //seconds
 const double MINUTE_CONVERSION = 600.0; //part of the conversion from ticks velocity to rpm
 
-const double FF_SCALE = 1.0;
+double FF_SCALE = 1.0;
 
 double l_last_current;
 
@@ -91,18 +91,19 @@ const double K_D_YAW_AU_WC = 0.0; //0.085;
 
 const double K_P_RIGHT_DIS = 0.15; //0.085; //0.1;
 const double K_P_LEFT_DIS = 0.15; //0.085; // 0.1;//2.4
-const double K_P_YAW_DIS = 0.05;//0.2;3.3;//3.5; //1.5; //3.0 //was spending too much time making the turn and when it actually got to the shoot the gap part of the profile, the profile was already ahead of it
 const double K_P_KICKER_DIS = 0.280;
 
 const double K_I_RIGHT_DIS = 0.0;
 const double K_I_LEFT_DIS = 0.0;
 const double K_I_KICKER_DIS = 0.0;
-const double K_I_YAW_DIS = 0.0;//3;//1;//0.0
 
 const double K_D_RIGHT_DIS = 0.0;
 const double K_D_LEFT_DIS = 0.0;
-const double K_D_KICKER_DIS = 0.0;//f
-const double K_D_YAW_DIS = 0.0;//4.03.2;//4.0; //pd controller on yaw //20, p sum of p and d
+const double K_D_KICKER_DIS = 0.0; //f
+
+double K_P_YAW_DIS = 0.05; //0.2;3.3;//3.5; //1.5; //3.0 //was spending too much time making the turn and when it actually got to the shoot the gap part of the profile, the profile was already ahead of it
+double K_I_YAW_DIS = 0.0; //3;//1;//0.0
+double K_D_YAW_DIS = 0.0; //4.03.2;//4.0; //pd controller on yaw //20, p sum of p and d
 
 // Drive Gains End
 
@@ -519,6 +520,19 @@ void DriveControllerMother::SetGainsLow() {
 
 }
 
+void DriveControllerMother::SetAutonGains(bool same_side_scale) {
+
+	if (same_side_scale) {
+		K_P_YAW_DIS = 1.68;
+		K_I_YAW_DIS = 0.001;
+		FF_SCALE = 0.7;
+		//zero wait counter = 50
+	} else { //if need another one
+
+	}
+
+}
+
 void DriveControllerMother::AutoShift(bool auto_shift) { //not used
 
 	double current_rpm_l = ((double) canTalonLeft1->GetSelectedSensorVelocity(0)
@@ -857,7 +871,8 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 
 }
 
-void DriveControllerMother::Controller(double ref_kick, double ref_right, //first parameter refs are for teleop
+void DriveControllerMother::Controller(double ref_kick,
+		double ref_right, //first parameter refs are for teleop
 		double ref_left, double ref_yaw, double k_p_right, double k_p_left,
 		double k_p_kick, double k_p_yaw, double k_d_yaw, double k_d_right,
 		double k_d_left, double k_d_kick, double target_vel_left,
@@ -960,9 +975,9 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right, //firs
 	}
 
 	double total_right = D_RIGHT_VEL + P_RIGHT_VEL + feed_forward_r
-			+ (Kv * target_vel_right); //Kv only in auton, straight from motion profile
+			+ (Kv * target_vel_right * FF_SCALE); //Kv only in auton, straight from motion profile
 	double total_left = D_LEFT_VEL + P_LEFT_VEL + feed_forward_l
-			+ (Kv * target_vel_left);
+			+ (Kv * target_vel_left * FF_SCALE);
 //	double total_kick = D_KICK_VEL + P_KICK_VEL + feed_forward_k
 //			+ (Kv_KICK * target_vel_kick);
 
@@ -978,7 +993,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right, //firs
 	}
 
 	SmartDashboard::PutNumber("Percent output left", total_left);
-	SmartDashboard::PutNumber("Percent output right",-total_right);
+	SmartDashboard::PutNumber("Percent output right", -total_right);
 
 	canTalonLeft1->Set(ControlMode::PercentOutput, total_left);
 	canTalonRight1->Set(ControlMode::PercentOutput, -total_right); //negative for Koba and for new drive train
@@ -1154,8 +1169,7 @@ void DriveControllerMother::RunAutonDrive() {
 	double left_enc = canTalonLeft1->GetSelectedSensorPosition(0);
 	double yaw_pos = ahrs->GetYaw();
 
-	SmartDashboard::PutNumber("enc.",
-			left_enc);
+	SmartDashboard::PutNumber("enc.", left_enc);
 	SmartDashboard::PutNumber("yaw zeroed", yaw_pos);
 
 	for (int i = 0; i < auton_profile[0].size(); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs
@@ -1175,7 +1189,7 @@ void DriveControllerMother::RunAutonDrive() {
 //				zero_wait_counter = 50; //hack to just break out of the counter 'loop'
 //			}
 		} else {
-			if(zero_counter < (zeroing_index.size() - 1)) {
+			if (zero_counter < (zeroing_index.size() - 1)) {
 				zero_counter++;
 			}
 			zero_wait_counter = 0; //for the next time we need to zero

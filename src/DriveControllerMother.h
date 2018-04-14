@@ -61,6 +61,8 @@ public:
 	void ShiftDown();
 	void SetGainsHigh();
 	void SetGainsLow();
+	void SetAutonGains(bool same_side_scale);
+
 	void AutoShift(bool auto_shift);
 
 	void RunTeleopDrive(Joystick *JoyThrottle, Joystick *JoyWheel, bool is_heading);

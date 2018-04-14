@@ -63,7 +63,7 @@ void ScaleSide::GenerateScale(bool left_start, bool switch_, bool left_switch,
 	int i;
 	for (i = 0; i < 1500; i++) {
 
-		Segment sl = leftTrajectory[i];
+		Segment sl = leftTrajectory[i]; //yes, wrong, but keeping it because we made the wrong work
 		Segment sr = rightTrajectory[i];
 
 		full_refs_sc.at(i).at(0) = ((double) sl.heading) - PI; //profile tries to turn robot around and go straight, in order to go backwards
@@ -89,6 +89,7 @@ void ScaleSide::GenerateScale(bool left_start, bool switch_, bool left_switch,
 		}
 	}
 
+	drive_controller->SetAutonGains(true);
 	drive_controller->SetZeroingIndex(zeroing_indeces);
 	drive_controller->SetRefs(full_refs_sc);
 

@@ -209,7 +209,7 @@ public:
 		joyWheel = new Joystick(JOY_WHEEL);
 		joyOp = new Joystick(JOY_OP);
 
-		autonChooser.AddObject(centerDriveForward, centerDriveForward); //*****
+		autonChooser.AddObject(centerDriveForward, centerDriveForward); //*****FOR TESTING
 		autonChooser.AddObject(sideDriveForward, sideDriveForward);
 		autonChooser.AddObject(centerCubeSwitch, centerCubeSwitch);
 		autonChooser.AddObject(leftCubeSwitch, leftCubeSwitch);
