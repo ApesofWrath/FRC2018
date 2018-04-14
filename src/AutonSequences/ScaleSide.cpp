@@ -114,7 +114,7 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 		p3 = {-18.12, 4.0, d2r(-90.0)}; //shorter this x, tighter the turn
 		p4 = {-18.12, 13.0, d2r(-90.0)}; //shorter this x, tighter the turn
 		p5 = {-21.0, 16.0, d2r(0.0)};
-		p6 = {-23.5, 16.0, d2r(0.0)};
+		p6 = {-25.5, 16.0, d2r(0.0)};
 		//p4 = {-19.0, 17.0, d2r(-90.0)}; //18.2
 		//p5 = {-21.0, 19.5, d2r(0.0)}; //19.5, -45 //4 in forward //17/7
 
@@ -135,7 +135,7 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.02, 15.0, 4.0, 10000000.0, &candidate); //had to be slowed down //17.0, 6.0
+	PATHFINDER_SAMPLES_FAST, 0.02, 10.0, 4.0, 10000000.0, &candidate); //had to be slowed down //17.0, 6.0
 
 	length = candidate.length;
 	crossed_scale_len = length;
@@ -147,7 +147,7 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 	Segment *leftTrajectory = (Segment*) malloc(sizeof(Segment) * length);
 	Segment *rightTrajectory = (Segment*) malloc(sizeof(Segment) * length);
 
-	double wheelbase_width = 2.1;
+	double wheelbase_width = 1.8; //2.1
 
 	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
 			wheelbase_width);

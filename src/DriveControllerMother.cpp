@@ -91,7 +91,7 @@ const double K_D_YAW_AU_WC = 0.0; //0.085;
 
 const double K_P_RIGHT_DIS = 0.15; //0.085; //0.1;
 const double K_P_LEFT_DIS = 0.15; //0.085; // 0.1;//2.4
-const double K_P_YAW_DIS = 0.2;//3.3;//3.5; //1.5; //3.0 //was spending too much time making the turn and when it actually got to the shoot the gap part of the profile, the profile was already ahead of it
+const double K_P_YAW_DIS = 0.05;//0.2;3.3;//3.5; //1.5; //3.0 //was spending too much time making the turn and when it actually got to the shoot the gap part of the profile, the profile was already ahead of it
 const double K_P_KICKER_DIS = 0.280;
 
 const double K_I_RIGHT_DIS = 0.0;
@@ -101,8 +101,8 @@ const double K_I_YAW_DIS = 0.0;//3;//1;//0.0
 
 const double K_D_RIGHT_DIS = 0.0;
 const double K_D_LEFT_DIS = 0.0;
-const double K_D_KICKER_DIS = 0.0;
-const double K_D_YAW_DIS = 4.0;//3.2;//4.0; //pd controller on yaw //20, p sum of p and d
+const double K_D_KICKER_DIS = 0.0;//f
+const double K_D_YAW_DIS = 0.0;//4.03.2;//4.0; //pd controller on yaw //20, p sum of p and d
 
 // Drive Gains End
 
@@ -747,11 +747,11 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 //	SmartDashboard::PutNumber("refRightVel", tarVelRight);
 //	SmartDashboard::PutNumber("refYaw", refYaw);
 
-	//rpm //not needed besides check for jitter
+	//fps //not needed besides check for jitter
 	double r_current = -((double) canTalonRight1->GetSelectedSensorVelocity(0)
-			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
+			/ (double) 1205.0) * MINUTE_CONVERSION / 60;
 	double l_current = ((double) canTalonLeft1->GetSelectedSensorVelocity(0)
-			/ (double) TICKS_PER_ROT) * MINUTE_CONVERSION;
+			/ (double) 1205.0) * MINUTE_CONVERSION / 60;
 
 	//SmartDashboard::PutNumber("Actual left", l_current);
 
@@ -760,7 +760,7 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	double l_dis = ((double) canTalonLeft1->GetSelectedSensorPosition(0)
 			/ 1205.0);
 
-	SmartDashboard::PutNumber("actualLeftDis", l_dis);
+//	SmartDashboard::PutNumber("actualLeftDis", l_dis);
 //	SmartDashboard::PutNumber("actualRightDis", r_dis);
 //	SmartDashboard::PutNumber("actualLeftVel", l_current);
 //	SmartDashboard::PutNumber("actualRightVel", r_current);
@@ -775,7 +775,7 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 
 	y_error_dis_au = refYaw - y_dis; //positive - 0
 
-	SmartDashboard::PutNumber("Heading error", y_error_dis_au);
+	//SmartDashboard::PutNumber("Heading error", y_error_dis_au);
 
 	if (std::abs(tarVelLeft - tarVelRight) < .05 && (std::abs(r_current) < 10)
 			&& (std::abs(l_current) < 10)) { //initial jitter
@@ -813,7 +813,7 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 
 	double total_yaw = P_YAW_DIS + I_YAW_DIS + D_YAW_DIS;
 
-	SmartDashboard::PutNumber("TOTAL", total_yaw);
+	//SmartDashboard::PutNumber("TOTAL", total_yaw);
 
 	double target_rpm_yaw_change = total_yaw * MAX_FPS;
 	double target_rpm_right = total_right * MAX_FPS; //max rpm* gear ratio
@@ -866,7 +866,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right, //firs
 	double yaw_rate_current = -1.0 * (double) ahrs->GetRate()
 			* (double) ((PI) / 180.0); //left should be positive
 
-	SmartDashboard::PutNumber("yrc", yaw_rate_current);
+	//SmartDashboard::PutNumber("yrc", yaw_rate_current);
 
 	double target_yaw_rate = ref_yaw;
 
@@ -919,7 +919,7 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right, //firs
 //	double kick_current = ((double) canTalonKicker->GetSelectedSensorVelocity(0) //will timeout, taking too much time
 //			 (double) TICKS_PER_ROT) * MINUTE_CONVERSION; //going right is positive
 
-	SmartDashboard::PutNumber("actual left vel", l_current);
+//	SmartDashboard::PutNumber("actual left vel", l_current);
 
 //	if ((std::abs(l_current) <= 0.5 && canTalonLeft1->GetOutputCurrent() > 4.0) //encoders not working
 //			|| (std::abs(r_current) <= 0.5
@@ -960,9 +960,9 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right, //firs
 	}
 
 	double total_right = D_RIGHT_VEL + P_RIGHT_VEL + feed_forward_r
-			+ (Kv * target_vel_right * 0.7); //Kv only in auton, straight from motion profile
+			+ (Kv * target_vel_right); //Kv only in auton, straight from motion profile
 	double total_left = D_LEFT_VEL + P_LEFT_VEL + feed_forward_l
-			+ (Kv * target_vel_left * 0.7);
+			+ (Kv * target_vel_left);
 //	double total_kick = D_KICK_VEL + P_KICK_VEL + feed_forward_k
 //			+ (Kv_KICK * target_vel_kick);
 
@@ -976,6 +976,9 @@ void DriveControllerMother::Controller(double ref_kick, double ref_right, //firs
 	} else if (total_left < -1.0) {
 		total_left = -1.0;
 	}
+
+	SmartDashboard::PutNumber("Percent output left", total_left);
+	SmartDashboard::PutNumber("Percent output right",-total_right);
 
 	canTalonLeft1->Set(ControlMode::PercentOutput, total_left);
 	canTalonRight1->Set(ControlMode::PercentOutput, -total_right); //negative for Koba and for new drive train
@@ -1179,9 +1182,12 @@ void DriveControllerMother::RunAutonDrive() {
 			row_index++; //break out of this if
 		}
 	} else {
-		AutonDrive(); //send each row to auton drive before getting the next row
+		//AutonDrive(); //send each row to auton drive before getting the next row
 		if (continue_profile && row_index < auton_profile.size()) {
+			AutonDrive();
 			row_index++;
+		} else {
+			StopAll();
 		}
 	}
 

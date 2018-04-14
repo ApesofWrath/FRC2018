@@ -166,11 +166,27 @@ public:
 		SmartDashboard::PutNumber("targetHeading", 0);
 		SmartDashboard::PutNumber("Actual Heading", 0);
 
+		SmartDashboard::PutNumber("Percent output right", 0);
+		SmartDashboard::PutNumber("Percent output left", 0);
+
+//		SmartDashboard::PutNumber("refLeft", 0);
+//		SmartDashboard::PutNumber("refRight", 0);
+//		SmartDashboard::PutNumber("refLeftVel", 0);
+//		SmartDashboard::PutNumber("refRightVel", 0);
+//
+//		SmartDashboard::PutNumber("actualLeftDis", 0);
+//		SmartDashboard::PutNumber("actualRightDis", 0);
+//		SmartDashboard::PutNumber("actualLeftVel", 0);
+//		SmartDashboard::PutNumber("actualRightVel", 0);
+//
+		SmartDashboard::PutNumber("enc.",
+					0);
+//
 		SmartDashboard::PutNumber("P", 0);
 		SmartDashboard::PutNumber("I", 0);
 		SmartDashboard::PutNumber("D", 0);
 
-		SmartDashboard::PutNumber("TOTAL", 0);
+//		SmartDashboard::PutNumber("TOTAL", 0);
 
 		elevator_profiler_ = new ElevatorMotionProfiler(1.15, 5.0, TIME_STEP); //max vel, max accel, timestep //1.6, 10
 		intake_profiler_ = new IntakeMotionProfiler(2.0, 10.0, TIME_STEP);
@@ -193,12 +209,12 @@ public:
 		joyWheel = new Joystick(JOY_WHEEL);
 		joyOp = new Joystick(JOY_OP);
 
-		autonChooser.AddDefault(centerDriveForward, centerDriveForward);
+		autonChooser.AddObject(centerDriveForward, centerDriveForward); //*****
 		autonChooser.AddObject(sideDriveForward, sideDriveForward);
 		autonChooser.AddObject(centerCubeSwitch, centerCubeSwitch);
 		autonChooser.AddObject(leftCubeSwitch, leftCubeSwitch);
 		autonChooser.AddObject(rightCubeSwitch, rightCubeSwitch);
-		autonChooser.AddObject(leftCubeScale, leftCubeScale);
+		autonChooser.AddDefault(leftCubeScale, leftCubeScale);
 		autonChooser.AddObject(rightCubeScale, rightCubeScale);
 		autonChooser.AddObject(leftCubeScaleScale, leftCubeScaleScale);
 		autonChooser.AddObject(rightCubeScaleScale, rightCubeScaleScale);
@@ -585,6 +601,9 @@ public:
 
 		///intake_->currents_file.close();
 
+
+		SmartDashboard::PutNumber("enc.",
+							0);
 		//	task_manager->EndThread();
 		//teleop_state_machine->EndStateMachineThread();
 //		drive_controller->EndDriveThreads();
@@ -596,6 +615,12 @@ public:
 	}
 
 	void TestPeriodic() {
+
+		SmartDashboard::PutNumber("enc l",
+							drive_controller->canTalonLeft1->GetSelectedSensorPosition(0));
+
+		SmartDashboard::PutNumber("enc r",
+									drive_controller->canTalonRight1->GetSelectedSensorPosition(0));
 
 		SmartDashboard::PutNumber("EL POS", elevator_->GetElevatorPosition());
 		SmartDashboard::PutNumber("ARM POS", intake_->GetAngularPosition());
