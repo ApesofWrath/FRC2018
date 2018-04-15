@@ -50,22 +50,24 @@ public:
 	const int WAIT_FOR_BUTTON = 13;
 
 	const int GET_CUBE_GROUND = 14;
-	const int GET_CUBE_STATION = 4;
+	const int GET_CUBE_STATION = 99;
 	//const int POST_INTAKE = 5; //taken for middle shot
 	const int RAISE_TO_SWITCH = 6;
-	const int RAISE_TO_SCALE = 1;
+	const int RAISE_TO_SCALE_MED = 1;
+	const int RAISE_TO_SCALE_SLOW = 5;
+	const int RAISE_TO_SCALE_FAST = 4;
 	const int RAISE_TO_SCALE_BACKWARDS = 12;
 
 	const int INTAKE_SPIN_IN = 10; //not enough buttons for these three
 	const int INTAKE_SPIN_OUT = 1; //throttle
 	const int INTAKE_SPIN_STOP = 99;
 	const int INTAKE_SPIN_SLOW = 8; //back to what it should be
-	const int INTAKE_SPIN_MED = 5;
+	const int INTAKE_SPIN_MED = 99;
 
 	const int INTAKE_ARM_UP = 8;
 	const int INTAKE_ARM_MID = 2;
 	const int INTAKE_ARM_DOWN = 15;
-	const int INTAKE_ARM_BACKWARDS = 4; //no manual for this one
+	const int INTAKE_ARM_BACKWARDS = 99; //no manual for this one
 
 	const int ELEVATOR_UP = 3;
 	const int ELEVATOR_MID = 16;
@@ -102,7 +104,7 @@ public:
 
 	bool wait_for_button, intake_spin_in, intake_spin_out, intake_spin_slow,
 			intake_spin_med, intake_spin_stop, get_cube_ground,
-			get_cube_station, post_intake, raise_to_switch, raise_to_scale,
+			get_cube_station, post_intake, raise_to_switch, raise_to_scale_slow, raise_to_scale_med, raise_to_scale_fast,
 			intake_arm_up, intake_arm_mid, intake_arm_down, elevator_up,
 			elevator_mid, elevator_down, raise_to_scale_backwards; //BOTH state machines
 
@@ -235,7 +237,7 @@ public:
 				&intake_spin_in, &intake_spin_out, &intake_spin_slow,
 				&intake_spin_med, &intake_spin_stop, &get_cube_ground,
 				&get_cube_station, &post_intake, &raise_to_switch,
-				&raise_to_scale, &intake_arm_up, &intake_arm_mid,
+				&raise_to_scale_slow, &raise_to_scale_med, &raise_to_scale_fast, &intake_arm_up, &intake_arm_mid,
 				&intake_arm_down, &elevator_up, &elevator_mid, &elevator_down,
 				&raise_to_scale_backwards, joyThrottle, joyWheel, &is_heading);
 
@@ -565,9 +567,16 @@ public:
 
 		//post_intake = joyOp->GetRawButton(POST_INTAKE); //taken for medium shot
 		raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
-		raise_to_scale = joyOp->GetRawButton(RAISE_TO_SCALE);
+
+		raise_to_scale_med = joyOp->GetRawButton(RAISE_TO_SCALE_MED);
+		raise_to_scale_slow = joyOp->GetRawButton(RAISE_TO_SCALE_SLOW);
+		raise_to_scale_fast = joyOp->GetRawButton(RAISE_TO_SCALE_FAST);
+
+		std::cout << "bool: " << raise_to_scale_fast << " " << raise_to_switch << std::endl;
+
 		raise_to_scale_backwards = joyOp->GetRawButton(
 				RAISE_TO_SCALE_BACKWARDS);
+
 
 		intake_spin_in = joyThrottle->GetRawButton(INTAKE_SPIN_IN);
 		intake_spin_out = joyThrottle->GetRawButton(INTAKE_SPIN_OUT);

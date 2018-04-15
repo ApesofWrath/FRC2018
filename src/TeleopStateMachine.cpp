@@ -19,9 +19,11 @@ const int GET_CUBE_GROUND_STATE = 2;
 const int GET_CUBE_STATION_STATE = 3;
 const int POST_INTAKE_SWITCH_STATE = 4; //once we have gotten a cube, AND after we have shot a cube
 const int POST_INTAKE_SCALE_STATE = 5; //scale AND backwards scale
-const int PLACE_SCALE_STATE = 6;
-const int PLACE_SWITCH_STATE = 7;
-const int PLACE_SCALE_BACKWARDS_STATE = 8;
+const int PLACE_SCALE_SLOW_STATE = 6;
+const int PLACE_SCALE_MED_STATE = 7;
+const int PLACE_SCALE_FAST_STATE = 8;
+const int PLACE_SWITCH_STATE = 9;
+const int PLACE_SCALE_BACKWARDS_STATE = 10;
 int state = INIT_STATE;
 
 bool state_intake_wheel = false; //set to true to override the states set in the state machine
@@ -50,10 +52,12 @@ TeleopStateMachine::TeleopStateMachine(Elevator *elevator_, Intake *intake_,
 void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		bool intake_spin_out, bool intake_spin_slow, bool intake_spin_med,
 		bool intake_spin_stop, bool get_cube_ground, bool get_cube_station,
-		bool post_intake, bool raise_to_switch, bool raise_to_scale,
+		bool post_intake, bool raise_to_switch, bool raise_to_scale_slow, bool raise_to_scale_med, bool raise_to_scale_fast,
 		bool intake_arm_up, bool intake_arm_mid, bool intake_arm_down,
 		bool elevator_up, bool elevator_mid, bool elevator_down,
 		bool raise_to_scale_backwards) {
+
+	std::cout << "tsm: " << raise_to_scale_fast << " " << raise_to_switch << std::endl;
 
 	if (wait_for_button) { //can always return to wait for button state
 		state = WAIT_FOR_BUTTON_STATE;
@@ -138,8 +142,12 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 			state = GET_CUBE_STATION_STATE;
 		} else if (post_intake) {
 			state = POST_INTAKE_SWITCH_STATE; //TODO: note that will go to switch
-		} else if (raise_to_scale) { //should not need to go from wfb state to a raise state, but in case
-			state = PLACE_SCALE_STATE;
+		} else if (raise_to_scale_slow) { //should not need to go from wfb state to a raise state, but in case
+			state = PLACE_SCALE_SLOW_STATE;
+		} else if (raise_to_scale_med) {
+			state = PLACE_SCALE_MED_STATE;
+		} else if (raise_to_scale_fast) {
+			state = PLACE_SCALE_FAST_STATE;
 		} else if (raise_to_switch) {
 			state = PLACE_SWITCH_STATE;
 		} else if (raise_to_scale_backwards) {
@@ -203,13 +211,18 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		if (state_intake_wheel) {
 			intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
 		}
-		if (raise_to_scale) { //go to place from this state, return to this state after placing and then wfb
-			state = PLACE_SCALE_STATE;
+
+		if (raise_to_scale_slow) { //should not need to go from wfb state to a raise state, but in case
+			state = PLACE_SCALE_SLOW_STATE;
+		} else if (raise_to_scale_med) {
+			state = PLACE_SCALE_MED_STATE; //go to place from this state, return to this state after placing and then wfb
+		} else if (raise_to_scale_fast) {
+			state = PLACE_SCALE_FAST_STATE;
 		} else if (raise_to_switch) {
 			state = PLACE_SWITCH_STATE;
 		} else if (raise_to_scale_backwards) {
 			state = PLACE_SCALE_BACKWARDS_STATE;
-		} else if (last_state == PLACE_SCALE_STATE //will keep checking if arm is low enough to start lowering the elevator
+		} else if (last_state == PLACE_SCALE_SLOW_STATE || last_state == PLACE_SCALE_MED_STATE || last_state == PLACE_SCALE_FAST_STATE//will keep checking if arm is low enough to start lowering the elevator
 		|| last_state == PLACE_SWITCH_STATE || is_intake_low_enough) { //little bit of ahack but the check wont run if it only goes through this state once
 
 			state = WAIT_FOR_BUTTON_STATE;
@@ -244,9 +257,9 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		//can always go back to wait for button state
 		break;
 
-	case PLACE_SCALE_STATE:
+	case PLACE_SCALE_SLOW_STATE:
 
-		SmartDashboard::PutString("STATE", "SCALE FORWARDS");
+		SmartDashboard::PutString("STATE", "SCALE SLOW FORWARDS");
 
 		if (state_intake_arm) {
 			intake->intake_arm_state = intake->UP_STATE_H;
@@ -254,27 +267,57 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		if (state_elevator) {
 			elevator->elevator_state = elevator->UP_STATE_E_H;
 		}
-		if (elevator->GetElevatorPosition() >= 0.55 //&& state_intake_wheel
-		&& !raise_to_scale) { //hold button until ready to shoot, elevator and intake will be in position
-			if (intake_spin_slow) {
-				intake->intake_wheel_state = intake->SLOW_STATE_H;
-				if (intake->ReleasedCube(intake->SLOW_SCALE)) {
-					state = POST_INTAKE_SCALE_STATE;
-				}
-			} else if (intake_spin_out) {
-				intake->intake_wheel_state = intake->OUT_STATE_H;
-				if (intake->ReleasedCube(intake->SCALE)) {
-					//state = POST_INTAKE_SWITCH_STATE;
-					state = POST_INTAKE_SCALE_STATE;
-				}
-			} else {
-				intake->intake_wheel_state = intake->SLOW_SCALE_STATE_H;
-				if (intake->ReleasedCube(intake->SLOW_SCALE)) {
-					state = POST_INTAKE_SCALE_STATE;
-				}
+		if (elevator->GetElevatorPosition() >= 0.84 //&& state_intake_wheel
+		&& !raise_to_scale_slow) { //hold button until ready to shoot, elevator and intake will be in positio
+			intake->intake_wheel_state = intake->SLOW_STATE_H;
+			if (intake->ReleasedCube(intake->SLOW_SCALE)) {
+				state = POST_INTAKE_SCALE_STATE;
+			}
+
+		}
+		last_state = PLACE_SCALE_SLOW_STATE;
+		//stay in this state when spitting cube, then return to WFB
+		break;
+
+	case PLACE_SCALE_MED_STATE:
+
+		SmartDashboard::PutString("STATE", "SCALE MED FORWARDS");
+
+		if (state_intake_arm) {
+			intake->intake_arm_state = intake->UP_STATE_H;
+		}
+		if (state_elevator) {
+			elevator->elevator_state = elevator->UP_STATE_E_H;
+		}
+		if (elevator->GetElevatorPosition() >= 0.84 //&& state_intake_wheel
+		&& !raise_to_scale_med) { //hold button until ready to shoot, elevator and intake will be in position
+			intake->intake_wheel_state = intake->SLOW_SCALE_STATE_H;
+			if (intake->ReleasedCube(intake->SLOW_SCALE)) {
+				state = POST_INTAKE_SCALE_STATE;
 			}
 		}
-		last_state = PLACE_SCALE_STATE;
+		last_state = PLACE_SCALE_MED_STATE;
+		//stay in this state when spitting cube, then return to WFB
+		break;
+
+	case PLACE_SCALE_FAST_STATE:
+
+		SmartDashboard::PutString("STATE", "SCALE FAST FORWARDS");
+
+		if (state_intake_arm) {
+			intake->intake_arm_state = intake->UP_STATE_H;
+		}
+		if (state_elevator) {
+			elevator->elevator_state = elevator->UP_STATE_E_H;
+		}
+		if (elevator->GetElevatorPosition() >= 0.84 //&& state_intake_wheel
+		&& !raise_to_scale_fast) { //hold button until ready to shoot, elevator and intake will be in position
+			intake->intake_wheel_state = intake->OUT_STATE_H;
+			if (intake->ReleasedCube(intake->SLOW_SCALE)) {
+				state = POST_INTAKE_SCALE_STATE;
+			}
+		}
+		last_state = PLACE_SCALE_FAST_STATE;
 		//stay in this state when spitting cube, then return to WFB
 		break;
 

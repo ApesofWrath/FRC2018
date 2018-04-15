@@ -29,7 +29,7 @@ void ScaleSide::GenerateScale(bool left_start, bool switch_, bool left_switch,
 	if (left_start) {
 		p1 = { 0.0, 0.0, 0.0 };
 		p2 = { -16.0, -0.2, d2r(0.0) };// {-22.5, 6.5, d2r(-35.0)}; //yaw is still from the robot's perspective
-		p3 = { -23.6, 2.2, d2r(-25.0) }; //2.85, 6, 20
+		p3 = { -21.0, 2.2, d2r(-25.0) }; //2.85, 6, 20
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -63,8 +63,8 @@ void ScaleSide::GenerateScale(bool left_start, bool switch_, bool left_switch,
 	int i;
 	for (i = 0; i < 1500; i++) {
 
-		Segment sl = leftTrajectory[i]; //yes, wrong, but keeping it because we made the wrong work
-		Segment sr = rightTrajectory[i];
+		Segment sl = rightTrajectory[i]; //yes, making it correct!
+		Segment sr = leftTrajectory[i];
 
 		full_refs_sc.at(i).at(0) = ((double) sl.heading) - PI; //profile tries to turn robot around and go straight, in order to go backwards
 		full_refs_sc.at(i).at(1) = -1.0 * ((double) sl.position); //pathfinder does not give negative references
