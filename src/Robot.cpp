@@ -209,18 +209,21 @@ public:
 		joyWheel = new Joystick(JOY_WHEEL);
 		joyOp = new Joystick(JOY_OP);
 
-		autonChooser.AddObject(centerDriveForward, centerDriveForward); //*****FOR TESTING
-		autonChooser.AddObject(sideDriveForward, sideDriveForward);
+		autonChooser.AddObject(centerDriveForward, centerDriveForward); //*****FOR TESTING //drives forward
+		autonChooser.AddObject(sideDriveForward, sideDriveForward); //drives backward
 		autonChooser.AddObject(centerCubeSwitch, centerCubeSwitch);
-		autonChooser.AddObject(leftCubeSwitch, leftCubeSwitch);
+
+		autonChooser.AddObject(leftCubeSwitch, leftCubeSwitch); //these do NOT exist
 		autonChooser.AddObject(rightCubeSwitch, rightCubeSwitch);
+		autonChooser.AddObject(centerCubeSwitchSwitch, centerCubeSwitchSwitch);
+
 		autonChooser.AddDefault(leftCubeScale, leftCubeScale);
 		autonChooser.AddObject(rightCubeScale, rightCubeScale);
 		autonChooser.AddObject(leftCubeScaleScale, leftCubeScaleScale);
 		autonChooser.AddObject(rightCubeScaleScale, rightCubeScaleScale);
 		autonChooser.AddObject(leftScaleSwitch, leftScaleSwitch);
 		autonChooser.AddObject(rightScaleSwitch, rightScaleSwitch);
-		autonChooser.AddObject(centerCubeSwitchSwitch, centerCubeSwitchSwitch);
+
 		autonChooser.AddObject(doNothing, doNothing);
 
 		frc::SmartDashboard::PutData("Auto Modes", &autonChooser);

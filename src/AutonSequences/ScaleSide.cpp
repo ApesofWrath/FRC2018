@@ -180,8 +180,8 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 				full_refs_sc.at(i).at(5) = full_refs_sc.at(i - 1).at(5);
 		//	}
 
-			SmartDashboard::PutNumber("Position Ref", full_refs_sc.at(i).at(1));
-			SmartDashboard::PutNumber("Profile Length", first_traj_len);
+//			SmartDashboard::PutNumber("Position Ref", full_refs_sc.at(i).at(1));
+//
 //			zeroing_indeces.push_back(crossed_scale_len);
 //			GenerateShootCrossedScale(left_start, added_switch, left_switch,
 //					added_scale, left_added_scale);
@@ -189,6 +189,7 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 		}
 	}
 
+	SmartDashboard::PutNumber("Profile Length", first_traj_len);
 	//SmartDashboard::PutNumber("1st ZERO", zeroing_indeces.at(0));
 
 	drive_controller->SetZeroingIndex(zeroing_indeces);
@@ -283,7 +284,7 @@ void ScaleSide::GenerateShootCrossedScale(bool left_start, bool added_switch,
 
 }
 
-void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale,
+void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale, //if doing scale-switch, just going to the switch to get another cube is the last trajectory needed
 		bool left_added_scale) { //new trajectory so that old spline interpolation does not carry over and new waypoints do not change old trajectory
 
 	//PLACE SWITCH POSITION

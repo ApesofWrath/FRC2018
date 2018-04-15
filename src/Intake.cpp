@@ -393,7 +393,7 @@ void Intake::Slow() {
 
 }
 
-void Intake::SlowScale() {
+void Intake::SlowScale() { //medium
 
 	talonIntake1->Set(ControlMode::PercentOutput, 0.6); // 1.0
 	talonIntake2->Set(ControlMode::PercentOutput, -0.6); // -1.0
@@ -724,7 +724,7 @@ void Intake::IntakeWheelStateMachine() {
 		break;
 
 	case SLOW_SCALE_STATE:
-		SmartDashboard::PutString("IW", "SLOW");
+		SmartDashboard::PutString("IW", "SLOW SCALE");
 		if (last_intake_wheel_state != SLOW_SCALE_STATE) {
 			DisableCurrentLimits();
 		}

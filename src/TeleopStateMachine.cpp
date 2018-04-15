@@ -48,18 +48,19 @@ TeleopStateMachine::TeleopStateMachine(Elevator *elevator_, Intake *intake_,
 }
 
 void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
-		bool intake_spin_out, bool intake_spin_slow, bool intake_spin_med, bool intake_spin_stop,
-		bool get_cube_ground, bool get_cube_station, bool post_intake,
-		bool raise_to_switch, bool raise_to_scale, bool intake_arm_up,
-		bool intake_arm_mid, bool intake_arm_down, bool elevator_up,
-		bool elevator_mid, bool elevator_down, bool raise_to_scale_backwards) {
+		bool intake_spin_out, bool intake_spin_slow, bool intake_spin_med,
+		bool intake_spin_stop, bool get_cube_ground, bool get_cube_station,
+		bool post_intake, bool raise_to_switch, bool raise_to_scale,
+		bool intake_arm_up, bool intake_arm_mid, bool intake_arm_down,
+		bool elevator_up, bool elevator_mid, bool elevator_down,
+		bool raise_to_scale_backwards) {
 
 	if (wait_for_button) { //can always return to wait for button state
 		state = WAIT_FOR_BUTTON_STATE;
 	}
-
-	//intake wheels -- intake_spin_slow CANNOT make state_intake_wheel false or else when shooting forward/backward scale will not outtake cube, which is why there is a med and slow. med is operator's, slow is driver's
-	if (intake_spin_out) { //driver's slow button can only change the shoot strength when actually in one of the shooting states
+	//same with intake_spin_med
+	//intake wheels -- intake_spin_slow CANNOT make state_intake_wheel false or else when shooting forward/backward scale will not outtake cube
+	if (intake_spin_out) { //driver's slow button can control intake spin speed always
 		state_intake_wheel = false;
 		intake->intake_wheel_state = intake->OUT_STATE_H;
 	} else if (intake_spin_in) {
@@ -68,9 +69,12 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 	} else if (intake_spin_stop) {
 		state_intake_wheel = false;
 		intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
-	} else if (intake_spin_med) {
+	} else if (intake_spin_med) { //'pop' shot
 		state_intake_wheel = false;
 		intake->intake_wheel_state = intake->SLOW_SCALE_STATE_H; //stronger than slow
+	} else if (intake_spin_slow) {
+		state_intake_wheel = false;
+		intake->intake_wheel_state = intake->SLOW_STATE_H;
 	} else {
 		state_intake_wheel = true;
 	}
@@ -114,8 +118,8 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 //			elevator->elevator_state = elevator->UP_STATE_E_H; //there is the safety for the elevator to not go down if the arm is too high (in setvoltagelevator), but that safety will basically just kill the elevator.
 //			//since the elevator will be slowly going down, the arm will not be able to go down for the elevator to actually go down. //will need to manually down if this happens
 //		} else {
-			elevator->elevator_state = elevator->DOWN_STATE_E_H;
-	//	}
+		elevator->elevator_state = elevator->DOWN_STATE_E_H;
+		//	}
 		intake->intake_arm_state = intake->UP_STATE_H;
 		//elevator->elevator_state = elevator->INIT_STATE_E_H;
 		//intake->intake_arm_state = intake->INIT_STATE_H;
@@ -236,17 +240,6 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		if (state_intake_wheel) {
 			intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
 		}
-//		if (raise_to_scale) { //go to place from this state, return to this state after placing and then wfb
-//			state = PLACE_SCALE_STATE;
-//		} else if (raise_to_switch) {
-//			state = PLACE_SWITCH_STATE;
-//		} else if (raise_to_scale_backwards) {
-//			state = PLACE_SCALE_BACKWARDS_STATE;
-//		} else if (last_state == PLACE_SCALE_STATE //will keep checking if arm is low enough to start lowering the elevator
-//		|| is_intake_low_enough) { //little bit of ahack but the check wont run if it only goes through this state once
-//
-//			state = WAIT_FOR_BUTTON_STATE;
-//		}
 		last_state = POST_INTAKE_SCALE_STATE;
 		//can always go back to wait for button state
 		break;
@@ -261,21 +254,23 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		if (state_elevator) {
 			elevator->elevator_state = elevator->UP_STATE_E_H;
 		}
-		if (elevator->GetElevatorPosition() >= 0.55 && state_intake_wheel
-				&& !raise_to_scale) { //hold button until ready to shoot, elevator and intake will be in position
-			if (!intake_spin_slow) {
+		if (elevator->GetElevatorPosition() >= 0.55 //&& state_intake_wheel
+		&& !raise_to_scale) { //hold button until ready to shoot, elevator and intake will be in position
+			if (intake_spin_slow) {
+				intake->intake_wheel_state = intake->SLOW_STATE_H;
+				if (intake->ReleasedCube(intake->SLOW_SCALE)) {
+					state = POST_INTAKE_SCALE_STATE;
+				}
+			} else if (intake_spin_out) {
 				intake->intake_wheel_state = intake->OUT_STATE_H;
 				if (intake->ReleasedCube(intake->SCALE)) {
 					//state = POST_INTAKE_SWITCH_STATE;
-					state = POST_INTAKE_SCALE_STATE; //3/24/18 Max did this because we still clip the 775's when shooting regular shots.The response of the outtake algorithm is so fast,
-													 //that the elevator comes down while the shooter is still recoiling
+					state = POST_INTAKE_SCALE_STATE;
 				}
 			} else {
 				intake->intake_wheel_state = intake->SLOW_SCALE_STATE_H;
 				if (intake->ReleasedCube(intake->SLOW_SCALE)) {
-					//state = POST_INTAKE_SWITCH_STATE;
-					state = POST_INTAKE_SCALE_STATE; //3/24/18 Max did this because we still clip the 775's when shooting regular shots.The response of the outtake algorithm is so fast,
-													 //that the elevator comes down while the shooter is still recoiling
+					state = POST_INTAKE_SCALE_STATE;
 				}
 			}
 		}
@@ -293,8 +288,8 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		if (state_intake_arm) { //elevator->GetElevatorPosition() >= 0.1 &&
 			intake->intake_arm_state = intake->MID_STATE_H;
 		}
-		if (std::abs(intake->GetAngularPosition() - intake->MID_ANGLE) <= 0.2
-				&& state_intake_wheel && !raise_to_switch) { //hold button until ready to shoot, elevator and intake will be in position
+		if (std::abs(intake->GetAngularPosition() - intake->MID_ANGLE) <= 0.2 //switch will not shoot if you press a shooting button
+		&& state_intake_wheel && !raise_to_switch) { //hold button until ready to shoot, elevator and intake will be in position
 			intake->intake_wheel_state = intake->SLOW_STATE_H;
 			if (intake->ReleasedCube(intake->SWITCH)) {
 				state = POST_INTAKE_SWITCH_STATE;
@@ -318,7 +313,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 			elevator->elevator_state = elevator->UP_STATE_E_H;
 		}
 		if (elevator->GetElevatorPosition() >= 0.85
-				&& intake->GetAngularPosition() > 1.98 && state_intake_wheel
+				&& intake->GetAngularPosition() > 1.98 //&& state_intake_wheel
 				&& !raise_to_scale_backwards) { //shoot if the height of the elevator and the angle of the arm is good enough //hold button until ready to shoot, elevator and intake will be in position
 			if (!intake_spin_slow) {
 				intake->intake_wheel_state = intake->OUT_STATE_H;
