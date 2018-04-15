@@ -827,7 +827,7 @@ bool Intake::ReleasedCube(int shot_type) { //forward scale or backwards scale. i
 //			corr_outtake_l[i] = 0.0;
 //		}
 
-		TIME_LIMIT = 30; //is slow
+		TIME_LIMIT = 15; //is slow //30
 	} else if (shot_type == SLOW_BACK) {
 //		alglib::corrr1d(currents_outtake_r, arr_len, master_scale, arr_len, //slow_back
 //				corr_outtake_r);

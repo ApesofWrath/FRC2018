@@ -407,7 +407,7 @@ public:
 			scale_side = new ScaleSide(drive_controller, elevator_, intake_,
 					auton_state_machine);
 			if (leftScale && leftSwitch) { //scale and switch
-				SmartDashboard::PutNumber("auto selected", 1);
+				//SmartDashboard::PutNumber("auto selected", 1);
 				scale_side->GenerateScale(true, true, true, false, false);
 				scaleSwitchState = true; //scale state machine works for both scale and scale+switch
 			} else if (leftScale && !leftSwitch) { //only scale
@@ -572,7 +572,7 @@ public:
 		raise_to_scale_slow = joyOp->GetRawButton(RAISE_TO_SCALE_SLOW);
 		raise_to_scale_fast = joyOp->GetRawButton(RAISE_TO_SCALE_FAST);
 
-		std::cout << "bool: " << raise_to_scale_fast << " " << raise_to_switch << std::endl;
+	//	std::cout << "bool: " << raise_to_scale_fast << " " << raise_to_switch << std::endl;
 
 		raise_to_scale_backwards = joyOp->GetRawButton(
 				RAISE_TO_SCALE_BACKWARDS);

@@ -57,7 +57,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		bool elevator_up, bool elevator_mid, bool elevator_down,
 		bool raise_to_scale_backwards) {
 
-	std::cout << "tsm: " << raise_to_scale_fast << " " << raise_to_switch << std::endl;
+//	std::cout << "tsm: " << raise_to_scale_fast << " " << raise_to_switch << std::endl;
 
 	if (wait_for_button) { //can always return to wait for button state
 		state = WAIT_FOR_BUTTON_STATE;

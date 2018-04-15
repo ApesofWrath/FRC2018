@@ -53,7 +53,9 @@ const double DOWN_SHIFT_VEL = 200.0; //will be less than up shift vel (14/56) *9
 const double DRIVE_WAIT_TIME = 0.05; //seconds
 const double MINUTE_CONVERSION = 600.0; //part of the conversion from ticks velocity to rpm
 
-double FF_SCALE = 1.0;
+double FF_SCALE = 0.7;
+
+const double TICKS_PER_FOOT = 1315.0;
 
 double l_last_current;
 
@@ -101,7 +103,7 @@ const double K_D_RIGHT_DIS = 0.0;
 const double K_D_LEFT_DIS = 0.0;
 const double K_D_KICKER_DIS = 0.0; //f
 
-double K_P_YAW_DIS = 0.05; //0.2;3.3;//3.5; //1.5; //3.0 //was spending too much time making the turn and when it actually got to the shoot the gap part of the profile, the profile was already ahead of it
+double K_P_YAW_DIS = 0.5; //0.2;3.3;//3.5; //1.5; //3.0 //was spending too much time making the turn and when it actually got to the shoot the gap part of the profile, the profile was already ahead of it
 double K_I_YAW_DIS = 0.0; //3;//1;//0.0
 double K_D_YAW_DIS = 0.0; //4.03.2;//4.0; //pd controller on yaw //20, p sum of p and d
 
@@ -755,28 +757,28 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 
 	SmartDashboard::PutNumber("targetHeading", refYaw);
 
-//	SmartDashboard::PutNumber("refLeft", refLeft);
+	SmartDashboard::PutNumber("refLeft", refLeft);
 //	SmartDashboard::PutNumber("refRight", refRight);
-//	SmartDashboard::PutNumber("refLeftVel", tarVelLeft);
+	SmartDashboard::PutNumber("refLeftVel", tarVelLeft);
 //	SmartDashboard::PutNumber("refRightVel", tarVelRight);
 //	SmartDashboard::PutNumber("refYaw", refYaw);
 
 	//fps //not needed besides check for jitter
 	double r_current = -((double) canTalonRight1->GetSelectedSensorVelocity(0)
-			/ (double) 1205.0) * MINUTE_CONVERSION / 60;
+			/ (double) TICKS_PER_FOOT) * MINUTE_CONVERSION / 60;
 	double l_current = ((double) canTalonLeft1->GetSelectedSensorVelocity(0)
-			/ (double) 1205.0) * MINUTE_CONVERSION / 60;
+			/ (double) TICKS_PER_FOOT) * MINUTE_CONVERSION / 60;
 
 	//SmartDashboard::PutNumber("Actual left", l_current);
 
 	double r_dis = -((double) canTalonRight1->GetSelectedSensorPosition(0) //empirically determined ticks per foot
-	/ 1205.0);
+	/ TICKS_PER_FOOT);
 	double l_dis = ((double) canTalonLeft1->GetSelectedSensorPosition(0)
-			/ 1205.0);
+			/ TICKS_PER_FOOT);
 
-//	SmartDashboard::PutNumber("actualLeftDis", l_dis);
+	SmartDashboard::PutNumber("actualLeftDis", l_dis);
 //	SmartDashboard::PutNumber("actualRightDis", r_dis);
-//	SmartDashboard::PutNumber("actualLeftVel", l_current);
+	SmartDashboard::PutNumber("actualLeftVel", l_current);
 //	SmartDashboard::PutNumber("actualRightVel", r_current);
 
 	double y_dis = -1.0 * ahrs->GetYaw() * (double) (PI / 180); //current theta (yaw) value
@@ -1125,7 +1127,7 @@ void DriveControllerMother::StopProfile(bool stop_profile) {
 double DriveControllerMother::GetLeftPosition() {
 
 	double l_dis = ((double) canTalonLeft1->GetSelectedSensorPosition(0)
-			/ 1205.0);
+			/ TICKS_PER_FOOT);
 
 	return l_dis;
 
@@ -1134,7 +1136,7 @@ double DriveControllerMother::GetLeftPosition() {
 double DriveControllerMother::GetRightPosition() {
 
 	double r_dis = -((double) canTalonLeft1->GetSelectedSensorPosition(0)
-			/ 1205.0);
+			/ TICKS_PER_FOOT);
 
 	return r_dis;
 

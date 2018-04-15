@@ -16,7 +16,7 @@ int first_traj_len = 0;
 
 std::vector<std::vector<double> > full_refs_sc(1500, std::vector<double>(6)); //initalizes each index value to 0, depends on only needing 1500 points: one every 10 ms, should only be using 300 since actually using a 50 ms time step, but we may change the time step
 
-void ScaleSide::GenerateScale(bool left_start, bool switch_, bool left_switch,
+void ScaleSide::GenerateScale(bool left_start, bool switch_, bool left_switch, //true, false, false, true, true
 		bool added_scale, bool left_added_scale) { //true, true, true, false, false //direction on the switch needs to be accurate, but switch_ can be false //**switch_ and added_scale refer to if we want the second cube we get to be for scale or switch
 
 	int POINT_LENGTH = 3;
@@ -28,8 +28,8 @@ void ScaleSide::GenerateScale(bool left_start, bool switch_, bool left_switch,
 	//feet
 	if (left_start) {
 		p1 = { 0.0, 0.0, 0.0 };
-		p2 = { -16.0, -0.2, d2r(0.0) };// {-22.5, 6.5, d2r(-35.0)}; //yaw is still from the robot's perspective
-		p3 = { -21.0, 2.2, d2r(-25.0) }; //2.85, 6, 20
+		p2 = { -16.0, -0.0, d2r(0.0) };// {-22.5, 6.5, d2r(-35.0)}; //yaw is still from the robot's perspective
+		p3 = { -21.5, 1.1, d2r(-10.0) }; //2.85, 6, 20
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -43,7 +43,7 @@ void ScaleSide::GenerateScale(bool left_start, bool switch_, bool left_switch,
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.02, 17.0, 6.0, 100000.0, &candidate); //had to be slowed down
+	PATHFINDER_SAMPLES_FAST, 0.02, 11.0, 6.0, 100000.0, &candidate); //had to be slowed down //15, 5
 
 	length = candidate.length;
 	scale_traj_len = length;
@@ -55,7 +55,7 @@ void ScaleSide::GenerateScale(bool left_start, bool switch_, bool left_switch,
 	Segment *leftTrajectory = (Segment*) malloc(sizeof(Segment) * length);
 	Segment *rightTrajectory = (Segment*) malloc(sizeof(Segment) * length);
 
-	double wheelbase_width = 2.1;
+	double wheelbase_width = 2.1; //2.1
 
 	pathfinder_modify_tank(trajectory, length, leftTrajectory, rightTrajectory,
 			wheelbase_width);
@@ -89,7 +89,7 @@ void ScaleSide::GenerateScale(bool left_start, bool switch_, bool left_switch,
 		}
 	}
 
-	drive_controller->SetAutonGains(true);
+	//drive_controller->SetAutonGains(true);
 	drive_controller->SetZeroingIndex(zeroing_indeces);
 	drive_controller->SetRefs(full_refs_sc);
 
@@ -299,9 +299,9 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale, //if doi
 	//WAYPOINTS ARE NO LONGER RELATIVE TO THE LAST POINT, THEY ARE CONTNUOUS
 	if (left_switch) {
 		//p1 = {0.0, 0.0, 0.0}; //Y, X, yaw
-		//p2 = {6.0, 2.77, d2r(20.0)};
-		p1 = {-23.6, 1.5, d2r(-25.0)}; //Y, X, yaw
-		p2 = {-17.6, 1.2, d2r(10.0)};
+		//p2 = {6.0, 2.77, d2r(20.0)};  -21.0, 1.5, d2r(0.0) }
+		p1 = { -21.5, 1.1, d2r(-10.0) }; //Y, X, yaw { -21.0, 2.0, d2r(-25.0) };
+		p2 = {-16.3, 2.0, d2r(0.0)};
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -313,7 +313,7 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale, //if doi
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC, //always using cubic, to not go around the points so much
-			PATHFINDER_SAMPLES_FAST, 0.02, 17.0, 6.0, 100000.0, &candidate); //TODO: update time step
+			PATHFINDER_SAMPLES_FAST, 0.02, 11.0, 6.5, 100000.0, &candidate); //TODO: update time step
 
 	length = candidate.length;
 	added_switch_len = length;
@@ -379,8 +379,8 @@ void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spl
 
 	//WAYPOINTS ARE NO LONGER RELATIVE TO THE LAST POINT, THEY ARE CONTNUOUS
 	if (left) {
-		p1 = {-17.6, 2.27, d2r(45.0)}; //Y, X, yaw
-		p2 = {-22.6, 1.0, d2r(-30.0)};
+		p1 = {-17.6, 2.0, d2r(0.0)}; //Y, X, yaw {-17.6, 1.2, d2r(10.0)}; {-17.6, 5.0, d2r(25.0)};
+		p2 = { -21.5, 0.5, d2r(-10.0) };//{-23.6, 3.5, d2r(-40.0)}; { -21.5, 1.5, d2r(0.0) };
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
@@ -392,7 +392,7 @@ void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spl
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC, //always using cubic, to not go around the points so much
-			PATHFINDER_SAMPLES_FAST, 0.02, 16.0, 6.0, 100000.0, &candidate);
+			PATHFINDER_SAMPLES_FAST, 0.02, 15.0, 6.0, 100000.0, &candidate);
 
 	length = candidate.length;
 	added_scale_len = length;
@@ -410,8 +410,8 @@ void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spl
 
 	for (int i = (first_traj_len + added_switch_len); i < 1500; i++) { //starting from the next point, right after the pathfinder trajectory ends
 
-		Segment sl = leftTrajectory[i - (first_traj_len + added_switch_len)]; //starting from the first point in the new trajectory
-		Segment sr = rightTrajectory[i - (first_traj_len + added_switch_len)];
+		Segment sl = rightTrajectory[i - (first_traj_len + added_switch_len)]; //starting from the first point in the new trajectory
+		Segment sr = leftTrajectory[i - (first_traj_len + added_switch_len)];
 
 		full_refs_sc.at(i).at(0) = ((double) sl.heading) - PI; //need to reverse
 		full_refs_sc.at(i).at(1) = -1.0 * ((double) sl.position);
@@ -561,7 +561,7 @@ void ScaleSide::RunStateMachineScaleScale(bool *place_scale_backwards, //state m
 		drive_controller->StopProfile(false);
 	}
 
-	if (drive_index >= (scale_traj_len / 3)) { //start moving superstructure
+	if (drive_index >= (scale_traj_len / 1.5)) { //start moving superstructure
 
 		if (auton_state_machine->shoot_counter == 0 || ((drive_index //if have not shot before, if at end of the total profile and there is that addded profile
 		>= (scale_traj_len + added_switch_len + added_scale_len) //will need to divide by 2
