@@ -78,7 +78,8 @@ void ScaleSide::GenerateScale(bool left_start, bool switch_, bool left_switch, /
 		if (i >= length) { //still have more in the 1500 allotted points, finished putting in the points to get to the place backwards position
 			if (switch_ || added_scale) {
 				zeroing_indeces.push_back(scale_traj_len);
-				GenerateAddedSwitch(left_start, added_scale, left_added_scale); //this function will finish off 1500 points //added scale goes through switch first //true, true, true
+				GenerateAddedSwitch(true, left_start, added_scale,
+						left_added_scale); //this function will finish off 1500 points //added scale goes through switch first //true, true, true
 				break;
 			} else { //fill the rest with the last point to just stay there
 				full_refs_sc.at(i).at(0) = full_refs_sc.at(i - 1).at(0); //l - 1 will always be the last sensible value since it cascades through the vector
@@ -113,11 +114,11 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 	if (left_start) { //will do the right scale
 
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {-16.16, -1.5, d2r(-30.0)}; //have to pull back the y on this one too + 2.3 //16.2
-		p3 = {-18.12, 4.0, d2r(-90.0)}; //shorter this x, tighter the turn
-		p4 = {-18.12, 13.0, d2r(-90.0)}; //shorter this x, tighter the turn
+		p2 = {-16.16, -1.2, d2r(-30.0)}; //have to pull back the y on this one too + 2.3 //16.2
+		p3 = {-18.0, 4.0, d2r(-90.0)}; //shorter this x, tighter the turn 18.12
+		p4 = {-18.0, 13.0, d2r(-90.0)}; //shorter this x, tighter the turn
 		p5 = {-21.0, 16.0, d2r(0.0)};
-		p6 = {-23.5, 16.0, d2r(25.0)};
+		p6 = {-22.5, 16.5, d2r(25.0)};
 		//p4 = {-19.0, 17.0, d2r(-90.0)}; //18.2
 		//p5 = {-21.0, 19.5, d2r(0.0)}; //19.5, -45 //4 in forward //17/7
 
@@ -138,7 +139,7 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.02, 7.0, 4.0, 10000000.0, &candidate); //had to be slowed down //17.0, 6.0
+	PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 7.0, 10000000.0, &candidate); //had to be slowed down //17.0, 6.0
 
 	length = candidate.length;
 	crossed_scale_len = length;
@@ -171,7 +172,8 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 		if (i >= length) { //still have more in the 1500 allotted points, finished putting in the points to get to the place backwards position
 			if (added_switch || added_scale) {
 				zeroing_indeces.push_back(crossed_scale_len); //note that will need for opposite scale
-				GenerateAddedSwitch(left_switch, added_scale, left_added_scale); //this function will finish off 1500 points //added scale goes through switch first //true, true, true
+				GenerateAddedSwitch(false, left_switch, added_scale,
+						left_added_scale); //this function will finish off 1500 points //added scale goes through switch first //true, true, true
 				break;
 			} else { //fill the rest with the last point to just stay there
 				full_refs_sc.at(i).at(0) = full_refs_sc.at(i - 1).at(0); //l - 1 will always be the last sensible value since it cascades through the vector
@@ -287,7 +289,8 @@ void ScaleSide::GenerateCrossedScale(bool left_start, bool added_switch,
 //
 //}
 
-void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale, //if doing scale-switch, just going to the switch to get another cube is the last trajectory needed
+void ScaleSide::GenerateAddedSwitch(bool same_side, bool left_switch,
+		bool added_scale, //if doing scale-switch, just going to the switch to get another cube is the last trajectory needed
 		bool left_added_scale) { //new trajectory so that old spline interpolation does not carry over and new waypoints do not change old trajectory
 
 	//PLACE SWITCH POSITION
@@ -300,18 +303,21 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale, //if doi
 
 //feet
 	//WAYPOINTS ARE NO LONGER RELATIVE TO THE LAST POINT, THEY ARE CONTNUOUS
-	if (left_switch) {
-		if (first_traj_len == scale_traj_len) {
+	if (!left_switch) {
+		if (same_side) {
 			p1 = {-21.5, 1.1, d2r(-10.0)}; //Y, X, yaw { -21.0, 2.0, d2r(-25.0) };
 			p2 = {-16.3, 2.0, d2r(0.0)};
+			SmartDashboard::PutString("the right switch", "nope");
 		} else {
-			p1 = {-23.5, 16.0, d2r(25.0)}; //Y, X, yaw { -21.0, 2.0, d2r(-25.0) };  {-23.5, 16.0, d2r(25.0)};
-			p2 = {-16.3, 16.5, d2r(0.0)};
+			p1 = {-22.5, 16.5, d2r(25.0)}; //Y, X, yaw { -21.0, 2.0, d2r(-25.0) };  {-23.5, 16.0, d2r(25.0)};{-22.5, 16.5, d2r(25.0)};
+			p2 = {-20.0, 17.0, d2r(0.0)};
+			SmartDashboard::PutString("the right switch", "waypoints");
 		}
 	}
 	else {
 		p1 = {0.0, 0.0, 0.0};
 		p2 = {5.65, -2.35, d2r(-10.0)};
+		SmartDashboard::PutString("the right switch", "very nope");
 	}
 
 	points[0] = p1;
@@ -319,7 +325,7 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale, //if doi
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC, //always using cubic, to not go around the points so much
-			PATHFINDER_SAMPLES_FAST, 0.02, 11.0, 6.5, 100000.0, &candidate); //TODO: update time step
+			PATHFINDER_SAMPLES_FAST, 0.02, 15.0, 7.0, 100000.0, &candidate); //TODO: update time step
 
 	length = candidate.length;
 	added_switch_len = length;
@@ -350,7 +356,7 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale, //if doi
 		if (i >= (first_traj_len + added_switch_len)) { //still have more points left after placing on scale backwards and placing switch
 			if (added_scale) {
 				zeroing_indeces.push_back(first_traj_len + added_switch_len);
-				GenerateAddedScale(left_added_scale);
+				GenerateAddedScale(same_side, left_added_scale);
 				break; //generateAddedScale will finish off the 1500 points itself
 			} else {
 				full_refs_sc.at(i).at(0) = full_refs_sc.at(i - 1).at(0); //i - 1 will always be the last sensible value since it cascades
@@ -371,7 +377,7 @@ void ScaleSide::GenerateAddedSwitch(bool left_switch, bool added_scale, //if doi
 
 }
 
-void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spline interpolation does not carry over and new waypoints do not change old trajectory
+void ScaleSide::GenerateAddedScale(bool same_side, bool left) { //new trajectory so that old spline interpolation does not carry over and new waypoints do not change old trajectory
 
 	//GO BACK TO PLACE SCALE BACKWARDS POSITION
 
@@ -384,13 +390,14 @@ void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spl
 //feet
 
 	//WAYPOINTS ARE NO LONGER RELATIVE TO THE LAST POINT, THEY ARE CONTNUOUS
-	if (left) {
-		if (first_traj_len == scale_traj_len) {
+	if (!left) {
+		if (same_side) {
 			p1 = {-17.6, 2.0, d2r(0.0)}; //Y, X, yaw {-17.6, 1.2, d2r(10.0)}; {-17.6, 5.0, d2r(25.0)};
 			p2 = {-21.5, 0.5, d2r(-10.0)}; //{-23.6, 3.5, d2r(-40.0)}; { -21.5, 1.5, d2r(0.0) };
-		} else {
-			p1 = {-16.3, 16.5, d2r(0.0)}; //Y, X, yaw {-17.6, 1.2, d2r(10.0)}; {-17.6, 5.0, d2r(25.0)}; {-15.3, -1.0, d2r(0.0)}; {-16.3, 14.0, d2r(0.0)}; {-16.3, 15.5, d2r(0.0)};16.5
-			p2 = {-23.5, 16.0, d2r(25.0)}; //{-23.6, 3.5, d2r(-40.0)}; { -21.5, 1.5, d2r(0.0) };{-15.3, -1.0, d2r(0.0)}; {-23.5, 16.0, d2r(25.0)}; {-23.5, 16.0, d2r(25.0)};
+		} else { //{-17.8, 17.0, d2r(0.0)};
+			p1 = {-21.0, 17.0, d2r(0.0)}; //Y, X, yaw {-17.6, 1.2, d2r(10.0)}; {-17.6, 5.0, d2r(25.0)}; {-15.3, -1.0, d2r(0.0)}; {-16.3, 14.0, d2r(0.0)}; {-16.3, 15.5, d2r(0.0)};16.5{-17.8, 17.5, d2r(0.0)};
+			p2 = {-23.0, 16.0, d2r(20.0)}; //{-23.6, 3.5, d2r(-40.0)}; { -21.5, 1.5, d2r(0.0) };{-15.3, -1.0, d2r(0.0)}; {-23.5, 16.0, d2r(25.0)}; {-23.5, 16.0, d2r(25.0)};
+			SmartDashboard::PutString("the right 2nd scale", "waypoints");
 		}
 
 	}
@@ -404,7 +411,7 @@ void ScaleSide::GenerateAddedScale(bool left) { //new trajectory so that old spl
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC, //always using cubic, to not go around the points so much
-			PATHFINDER_SAMPLES_FAST, 0.02, 15.0, 6.0, 100000.0, &candidate);
+			PATHFINDER_SAMPLES_FAST, 0.02, 15.0, 7.0, 100000.0, &candidate);
 
 	length = candidate.length;
 	added_scale_len = length;
@@ -541,7 +548,7 @@ void ScaleSide::RunStateMachineScaleOnly(bool *place_scale_backwards,
 
 }
 
-//2-scale
+//2-scale //TODO: separate for same-side and opposite-side
 //init, wfb, place_scale_backwards, post_intake_scale, wfb (just passing through), get_cube_ground_state, post_intake_switch, place_scale_backwards, post_intake_scale, wfb
 //      psb(1)		gcg	, !psb																					psb(2)				!psb , !gcg
 void ScaleSide::RunStateMachineScaleScale(bool *place_scale_backwards, //state machine works, but drive is wrong
@@ -550,8 +557,8 @@ void ScaleSide::RunStateMachineScaleScale(bool *place_scale_backwards, //state m
 	int drive_index = drive_controller->GetDriveIndex();
 
 	SmartDashboard::PutNumber("total indeces.", //went through whole profile without shooting the second cube
-			added_switch_len + scale_traj_len + added_scale_len);
-	SmartDashboard::PutNumber("1.", scale_traj_len);
+			added_switch_len + crossed_scale_len + added_scale_len);
+	SmartDashboard::PutNumber("1.", crossed_scale_len);
 	SmartDashboard::PutNumber("2.", added_switch_len);
 	SmartDashboard::PutNumber("3.", added_scale_len);
 	SmartDashboard::PutNumber("index..", drive_index);
@@ -573,7 +580,7 @@ void ScaleSide::RunStateMachineScaleScale(bool *place_scale_backwards, //state m
 		drive_controller->StopProfile(false);
 	}
 
-	if (first_traj_len == scale_traj_len) {
+	if (first_traj_len == scale_traj_len) { //TODO: test this logic
 		start_elevator_index = scale_traj_len / 1.5;
 	} else {
 		start_elevator_index = crossed_scale_len / 1.1;
@@ -582,12 +589,18 @@ void ScaleSide::RunStateMachineScaleScale(bool *place_scale_backwards, //state m
 	if (drive_index >= (start_elevator_index)) { //start moving superstructure
 
 		if (auton_state_machine->shoot_counter == 0 || ((drive_index //if have not shot before, if at end of the total profile and there is that addded profile
-		>= (first_traj_len + added_switch_len + added_scale_len) //will need to divide by 2
+		>= (first_traj_len + added_switch_len) //will need to divide by 2  ///FOR SAME SIDE + added_scale_len
 		) && auton_state_machine->shoot_counter == 1)) {
 
 			*place_scale_backwards = true; //needs to go back to being false
 
-			if (std::abs(drive_controller->GetLeftVel()) < 0.5) {
+			if (((std::abs(drive_controller->GetLeftVel()) < 0.5)
+					&& auton_state_machine->shoot_counter == 0)
+					|| (auton_state_machine->shoot_counter == 1
+							&& (std::abs(drive_controller->GetLeftVel()) < 0.5)
+							&& drive_index
+									>= (first_traj_len + added_switch_len
+											+ added_scale_len))) {
 				auton_state_machine->shoot_cube = true;
 			} else {
 				auton_state_machine->shoot_cube = false; //will start that slow, and need to reset to false during middle ofprofile

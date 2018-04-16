@@ -22,8 +22,8 @@ public:
 	void GenerateCrossedScale(bool left_start, bool added_switch, bool left_switch, bool added_scale, bool left_added_scale);
 	void GenerateShootCrossedScale(bool left_start, bool added_switch, bool left_switch, bool added_scale, bool left_added_scale);
 
-	void GenerateAddedSwitch(bool left_switch, bool added_scale, bool added_switch); //used for 2nd scale
-	void GenerateAddedScale(bool left);
+	void GenerateAddedSwitch(bool same_side, bool left_switch, bool added_scale, bool added_switch); //used for 2nd scale
+	void GenerateAddedScale(bool same_side, bool left);
 
 	void RunStateMachineScaleSwitch(bool *place_scale_backwards, bool *place_switch, bool *get_cube_ground);
 	void RunStateMachineScaleScale(bool *place_scale_backwards, bool *get_cube_ground);

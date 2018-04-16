@@ -374,6 +374,8 @@ public:
 						false);
 				scaleSideOnlyState = true;
 			}
+
+			//HERE
 		} else if (autoSelected == leftCubeScaleScale) {
 			if (leftScale) {
 				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
@@ -388,7 +390,7 @@ public:
 				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
 						auton_state_machine);
 				scale_side->GenerateCrossedScale(true, false, false, true, //bool left_start, bool switch_, bool left_switch, bool added_scale, bool left_added_scale
-						true);
+						false); //want right added scale
 				scaleOppTwoState = true;
 			}
 
