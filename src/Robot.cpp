@@ -104,9 +104,10 @@ public:
 
 	bool wait_for_button, intake_spin_in, intake_spin_out, intake_spin_slow,
 			intake_spin_med, intake_spin_stop, get_cube_ground,
-			get_cube_station, post_intake, raise_to_switch, raise_to_scale_slow, raise_to_scale_med, raise_to_scale_fast,
-			intake_arm_up, intake_arm_mid, intake_arm_down, elevator_up,
-			elevator_mid, elevator_down, raise_to_scale_backwards; //BOTH state machines
+			get_cube_station, post_intake, raise_to_switch, raise_to_scale_slow,
+			raise_to_scale_med, raise_to_scale_fast, intake_arm_up,
+			intake_arm_mid, intake_arm_down, elevator_up, elevator_mid,
+			elevator_down, raise_to_scale_backwards; //BOTH state machines
 
 	bool is_heading, is_vision, is_fc; //drive
 	bool is_auto_shift;
@@ -152,7 +153,7 @@ public:
 
 	bool switchCenterOneState, scaleScaleState, scaleSwitchState,
 			scaleOnlyState, switchSideState, switchSwitchState,
-			switchCenterTwoState, scaleTwoState, scaleSideOnlyState;
+			switchCenterTwoState, scaleTwoState, scaleSideOnlyState, scaleOppTwoState;
 
 	std::string autoSelected;
 
@@ -181,8 +182,7 @@ public:
 //		SmartDashboard::PutNumber("actualLeftVel", 0);
 //		SmartDashboard::PutNumber("actualRightVel", 0);
 //
-		SmartDashboard::PutNumber("enc.",
-					0);
+		SmartDashboard::PutNumber("enc.", 0);
 //
 		SmartDashboard::PutNumber("P", 0);
 		SmartDashboard::PutNumber("I", 0);
@@ -237,9 +237,10 @@ public:
 				&intake_spin_in, &intake_spin_out, &intake_spin_slow,
 				&intake_spin_med, &intake_spin_stop, &get_cube_ground,
 				&get_cube_station, &post_intake, &raise_to_switch,
-				&raise_to_scale_slow, &raise_to_scale_med, &raise_to_scale_fast, &intake_arm_up, &intake_arm_mid,
-				&intake_arm_down, &elevator_up, &elevator_mid, &elevator_down,
-				&raise_to_scale_backwards, joyThrottle, joyWheel, &is_heading);
+				&raise_to_scale_slow, &raise_to_scale_med, &raise_to_scale_fast,
+				&intake_arm_up, &intake_arm_mid, &intake_arm_down, &elevator_up,
+				&elevator_mid, &elevator_down, &raise_to_scale_backwards,
+				joyThrottle, joyWheel, &is_heading);
 
 #else
 		intake_->StartIntakeThread(); //controllers
@@ -353,9 +354,6 @@ public:
 				scale_side->GenerateScale(true, false, false, false, false);
 				scaleOnlyState = true;
 			} else {
-//				drive_forward = new DriveForward(drive_controller, elevator_,
-//						intake_, auton_state_machine);
-//				drive_forward->GenerateForward(false); //assuming will start forward for side switch
 				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
 						auton_state_machine);
 				scale_side->GenerateCrossedScale(true, false, false, false,
@@ -370,9 +368,6 @@ public:
 				scale_side->GenerateScale(false, false, false, false, false);
 				scaleOnlyState = true;
 			} else {
-//				drive_forward = new DriveForward(drive_controller, elevator_,
-//						intake_, auton_state_machine);
-//				drive_forward->GenerateForward(false); //assuming will start forward for side switch
 				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
 						auton_state_machine);
 				scale_side->GenerateCrossedScale(false, false, false, false, //bool left_start, bool switch_, bool left_switch, bool added_scale, bool left_added_scale
@@ -386,9 +381,15 @@ public:
 				scale_side->GenerateScale(true, false, false, true, true);
 				scaleTwoState = true;
 			} else {
-				drive_forward = new DriveForward(drive_controller, elevator_,
-						intake_, auton_state_machine);
-				drive_forward->GenerateForward(false); //assuming will start forward for side switch
+//				drive_forward = new DriveForward(drive_controller, elevator_,
+//						intake_, auton_state_machine);
+//				drive_forward->GenerateForward(false); //assuming will start forward for side switch
+
+				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
+						auton_state_machine);
+				scale_side->GenerateCrossedScale(true, false, false, true, //bool left_start, bool switch_, bool left_switch, bool added_scale, bool left_added_scale
+						true);
+				scaleOppTwoState = true;
 			}
 
 		} else if (autoSelected == rightCubeScaleScale) {
@@ -496,7 +497,7 @@ public:
 			switch_center->RunStateMachineTwo(&raise_to_switch,
 					&get_cube_ground);
 
-		} else if (scaleTwoState) {
+		} else if (scaleTwoState || scaleOppTwoState) {
 			scale_side->RunStateMachineScaleScale(&raise_to_scale_backwards,
 					&get_cube_ground);
 		} else if (scaleSideOnlyState) { //opposite side
@@ -517,14 +518,14 @@ public:
 
 	void TeleopPeriodic() {
 
-	//	SmartDashboard::PutNumber("Left 1", drive_controller->GetLeftVel());
+		//	SmartDashboard::PutNumber("Left 1", drive_controller->GetLeftVel());
 //		SmartDashboard::PutNumber("Left 2",
 //				drive_controller->canTalonLeft2->GetOutputCurrent());
 //		SmartDashboard::PutNumber("Left 3",
 //				drive_controller->canTalonLeft3->GetOutputCurrent());
 //		SmartDashboard::PutNumber("Left 4",
 //				drive_controller->canTalonLeft4->GetOutputCurrent());
-	//	SmartDashboard::PutNumber("Right 1", drive_controller->GetRightVel());
+		//	SmartDashboard::PutNumber("Right 1", drive_controller->GetRightVel());
 //		SmartDashboard::PutNumber("Right 2",
 //				drive_controller->canTalonRight2->GetOutputCurrent());
 //		SmartDashboard::PutNumber("Right 3",
@@ -532,24 +533,23 @@ public:
 //		SmartDashboard::PutNumber("Right 4",
 //				drive_controller->canTalonRight4->GetOutputCurrent());
 
-
 		SmartDashboard::PutNumber("Left 1",
-						drive_controller->canTalonLeft1->GetOutputCurrent());
-				SmartDashboard::PutNumber("Left 2",
-						drive_controller->canTalonLeft2->GetOutputCurrent());
-				SmartDashboard::PutNumber("Left 3",
-						drive_controller->canTalonLeft3->GetOutputCurrent());
-				SmartDashboard::PutNumber("Left 4",
-						drive_controller->canTalonLeft4->GetOutputCurrent());
+				drive_controller->canTalonLeft1->GetOutputCurrent());
+		SmartDashboard::PutNumber("Left 2",
+				drive_controller->canTalonLeft2->GetOutputCurrent());
+		SmartDashboard::PutNumber("Left 3",
+				drive_controller->canTalonLeft3->GetOutputCurrent());
+		SmartDashboard::PutNumber("Left 4",
+				drive_controller->canTalonLeft4->GetOutputCurrent());
 
-				SmartDashboard::PutNumber("Right 1",
-						drive_controller->canTalonRight1->GetOutputCurrent());
-				SmartDashboard::PutNumber("Right 2",
-						drive_controller->canTalonRight2->GetOutputCurrent());
-				SmartDashboard::PutNumber("Right 3",
-						drive_controller->canTalonRight3->GetOutputCurrent());
-				SmartDashboard::PutNumber("Right 4",
-						drive_controller->canTalonRight4->GetOutputCurrent());
+		SmartDashboard::PutNumber("Right 1",
+				drive_controller->canTalonRight1->GetOutputCurrent());
+		SmartDashboard::PutNumber("Right 2",
+				drive_controller->canTalonRight2->GetOutputCurrent());
+		SmartDashboard::PutNumber("Right 3",
+				drive_controller->canTalonRight3->GetOutputCurrent());
+		SmartDashboard::PutNumber("Right 4",
+				drive_controller->canTalonRight4->GetOutputCurrent());
 
 #if !STATEMACHINE
 		intake_->ManualArm(joyOp);
@@ -572,11 +572,10 @@ public:
 		raise_to_scale_slow = joyOp->GetRawButton(RAISE_TO_SCALE_SLOW);
 		raise_to_scale_fast = joyOp->GetRawButton(RAISE_TO_SCALE_FAST);
 
-	//	std::cout << "bool: " << raise_to_scale_fast << " " << raise_to_switch << std::endl;
+		//	std::cout << "bool: " << raise_to_scale_fast << " " << raise_to_switch << std::endl;
 
 		raise_to_scale_backwards = joyOp->GetRawButton(
 				RAISE_TO_SCALE_BACKWARDS);
-
 
 		intake_spin_in = joyThrottle->GetRawButton(INTAKE_SPIN_IN);
 		intake_spin_out = joyThrottle->GetRawButton(INTAKE_SPIN_OUT);
@@ -613,9 +612,7 @@ public:
 
 		///intake_->currents_file.close();
 
-
-		SmartDashboard::PutNumber("enc.",
-							0);
+		SmartDashboard::PutNumber("enc.", 0);
 		//	task_manager->EndThread();
 		//teleop_state_machine->EndStateMachineThread();
 //		drive_controller->EndDriveThreads();
@@ -629,10 +626,10 @@ public:
 	void TestPeriodic() {
 
 		SmartDashboard::PutNumber("enc l",
-							drive_controller->canTalonLeft1->GetSelectedSensorPosition(0));
+				drive_controller->canTalonLeft1->GetSelectedSensorPosition(0));
 
 		SmartDashboard::PutNumber("enc r",
-									drive_controller->canTalonRight1->GetSelectedSensorPosition(0));
+				drive_controller->canTalonRight1->GetSelectedSensorPosition(0));
 
 		SmartDashboard::PutNumber("EL POS", elevator_->GetElevatorPosition());
 		SmartDashboard::PutNumber("ARM POS", intake_->GetAngularPosition());
