@@ -26,6 +26,7 @@ public:
 	void PlaceAddedSwitch(bool left);
 
 	void RunStateMachine(bool *place_switch);
+
 	void RunStateMachineTwo(bool *place_switch, bool *get_cube_ground);
 
 };

@@ -18,18 +18,22 @@ public:
 
 	}
 
-	void GenerateScale(bool left_start, bool switch_, bool left_switch, bool added_scale, bool left_added_scale);
-	void GenerateCrossedScale(bool left_start, bool added_switch, bool left_switch, bool added_scale, bool left_added_scale);
-	void GenerateShootCrossedScale(bool left_start, bool added_switch, bool left_switch, bool added_scale, bool left_added_scale);
+	//robot ends up in a different spot after placing the first scale cube. it depends on if it started on the same side, or if it crossed over
 
-	void GenerateAddedSwitch(bool same_side, bool left_switch, bool added_scale, bool added_switch); //used for 2nd scale
-	void GenerateAddedScale(bool same_side, bool left);
+	void GenerateSameScale(bool is_left, bool added_switch, bool added_scale); //only doing switch if the switch is on the same side as the scale (the side the robot starts on)
+	void GenerateOppScale(bool left_start, bool added_switch, bool added_scale);
 
-	void RunStateMachineScaleSwitch(bool *place_scale_backwards, bool *place_switch, bool *get_cube_ground);
-	void RunStateMachineScaleScale(bool *place_scale_backwards, bool *get_cube_ground);
-	void RunStateMachineCrossedScaleScale(bool *place_scale_backwards, bool *get_cube_ground);
-	void RunStateMachineScaleOnly(bool *place_scale_backwards, bool *get_cube_ground);
-	void RunStateMachineScaleSideOnly(bool *place_scale_backwards, bool *get_cube_ground);
+	void GenerateAddedSwitch(bool same_side, bool added_scale); //used for 2nd scale too
+	void GenerateAddedScale(bool same_side);
+
+	void RunStateMachineSameScaleSwitch(bool *place_scale_backwards, bool *place_switch, bool *get_cube_ground);
+	void RunStateMachineOppScaleSwitch(bool *place_scale_backwards, bool *place_switch, bool *get_cube_ground);
+
+	void RunStateMachineSameScaleScale(bool *place_scale_backwards, bool *get_cube_ground);
+	void RunStateMachineOppScaleScale(bool *place_scale_backwards, bool *get_cube_ground);
+
+	void RunStateMachineSameScale(bool *place_scale_backwards, bool *get_cube_ground);
+	void RunStateMachineOppScale(bool *place_scale_backwards, bool *get_cube_ground);
 
 	int length;
 
