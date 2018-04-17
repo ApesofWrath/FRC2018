@@ -53,7 +53,7 @@ public:
 	const int SWITCH_STATE_E_H = 5;
 	int elevator_state = INIT_STATE_E_H;
 
-	const double DOWN_POS_E = 0.00;
+	const double DOWN_POS_E = 0.02;
 	const double MID_POS_E = 0.668;
 	const double SWITCH_POS_E = 0.5;
 	const double UP_POS_E = 0.89;//87

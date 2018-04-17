@@ -28,14 +28,3 @@ Autonomous::Autonomous(DriveController *dc, Elevator *el, Intake *in, AutonState
 
 	time_step_auton = drive_controller->time_step_drive;
 }
-
-bool Autonomous::StartedShoot() { //has_started_shoot never resets to false
-
-	if ((intake_->intake_wheel_state == intake_->SLOW_STATE_H
-			|| intake_->intake_wheel_state == intake_->OUT_STATE_H)) {
-		has_started_shoot = true;
-	}
-
-	return has_started_shoot;
-
-}

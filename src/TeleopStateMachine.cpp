@@ -5,7 +5,6 @@
  *      Author: DriversStation
  */
 
-//CHANGE: hold button until ready to shoot, elevator and intake will be in position - test this
 //TODO: add safety in case we end auton unsafely
 #include <TeleopStateMachine.h>
 #include <WPILib.h>
@@ -97,7 +96,6 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 	} else {
 		state_intake_arm = true;
 	}
-//TODO: add manual for intake all the way back
 
 	//elevator
 	if (elevator_up) {
@@ -267,7 +265,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		if (state_elevator) {
 			elevator->elevator_state = elevator->UP_STATE_E_H;
 		}
-		if (elevator->GetElevatorPosition() >= 0.84 //&& state_intake_wheel
+		if (elevator->GetElevatorPosition() >= 0.84 && state_intake_wheel
 		&& !raise_to_scale_slow) { //hold button until ready to shoot, elevator and intake will be in positio
 			intake->intake_wheel_state = intake->SLOW_STATE_H;
 			if (intake->ReleasedCube(intake->SLOW_SCALE)) {
@@ -289,7 +287,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		if (state_elevator) {
 			elevator->elevator_state = elevator->UP_STATE_E_H;
 		}
-		if (elevator->GetElevatorPosition() >= 0.84 //&& state_intake_wheel
+		if (elevator->GetElevatorPosition() >= 0.84 && state_intake_wheel
 		&& !raise_to_scale_med) { //hold button until ready to shoot, elevator and intake will be in position
 			intake->intake_wheel_state = intake->SLOW_SCALE_STATE_H;
 			if (intake->ReleasedCube(intake->SLOW_SCALE)) {
@@ -300,7 +298,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		//stay in this state when spitting cube, then return to WFB
 		break;
 
-	case PLACE_SCALE_FAST_STATE:
+	case PLACE_SCALE_FAST_STATE: //if mess up on strength button, can TRY keep holding the button, press and hold down wfb, let go of the shoot button, and them manual outtake
 
 		SmartDashboard::PutString("STATE", "SCALE FAST FORWARDS");
 
@@ -310,7 +308,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		if (state_elevator) {
 			elevator->elevator_state = elevator->UP_STATE_E_H;
 		}
-		if (elevator->GetElevatorPosition() >= 0.84 //&& state_intake_wheel
+		if (elevator->GetElevatorPosition() >= 0.84 && state_intake_wheel
 		&& !raise_to_scale_fast) { //hold button until ready to shoot, elevator and intake will be in position
 			intake->intake_wheel_state = intake->OUT_STATE_H;
 			if (intake->ReleasedCube(intake->SLOW_SCALE)) {

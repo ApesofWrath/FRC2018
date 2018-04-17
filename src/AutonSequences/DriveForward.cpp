@@ -23,7 +23,7 @@ void DriveForward::GenerateForward(bool forward) {
 
 	if (forward) {
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {10.0, 0.2, 0.0}; //10
+		p2 = {10.0, 0.2, 0.0}; //can just go forward along y; generates parametric function
 	} else {
 		p1 = {0.0, 0.0, 0.0};
 		p2 = {-10.0, -0.2, 0.0}; //10

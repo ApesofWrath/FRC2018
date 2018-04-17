@@ -61,7 +61,7 @@ public:
 	const int INTAKE_SPIN_IN = 10; //not enough buttons for these three
 	const int INTAKE_SPIN_OUT = 1; //throttle
 	const int INTAKE_SPIN_STOP = 99;
-	const int INTAKE_SPIN_SLOW = 8; //back to what it should be
+	const int INTAKE_SPIN_SLOW = 8;
 	const int INTAKE_SPIN_MED = 99;
 
 	const int INTAKE_ARM_UP = 8;
@@ -150,7 +150,7 @@ public:
 
 	bool leftSwitch, leftScale;
 
-	bool switchCenterOneState, sameScaleScaleState, oppScaleScaleState,
+	bool switchCenterOneState, sameScaleTwoState, oppScaleTwoState,
 			sameScaleSwitchState, oppScaleSwitchState, //can do opp scale switch! make happen!
 			sameScaleOneState, oppScaleOneState; //switchSideState, switchSwitchState, switchCenterTwoState,
 
@@ -300,7 +300,7 @@ public:
 			} else {
 				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
 						auton_state_machine);
-				scale_side->GenerateOppScale(true, false, false);
+				scale_side->GenerateOppScale(true, false, false); //first param is starting pos
 				oppScaleOneState = true;
 			}
 
@@ -322,16 +322,16 @@ public:
 				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
 						auton_state_machine);
 				scale_side->GenerateSameScale(true, false, true);
-				sameScaleScaleState = true;
+				sameScaleTwoState = true;
 			} else {
-				drive_forward = new DriveForward(drive_controller, elevator_,
-						intake_, auton_state_machine);
-				drive_forward->GenerateForward(false);
+//				drive_forward = new DriveForward(drive_controller, elevator_, // IF WRONG SIDE, will stay safe and just do one on opp
+//						intake_, auton_state_machine);
+//				drive_forward->GenerateForward(false);
 
-//				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
-//						auton_state_machine);
-//				scale_side->GenerateOppScale(true, false, true);
-//				oppScaleScaleState = true;
+				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
+						auton_state_machine);
+				scale_side->GenerateOppScale(true, false, false);
+				oppScaleOneState = true;
 			}
 
 		} else if (autoSelected == rightCubeScaleScale) {
@@ -339,46 +339,56 @@ public:
 				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
 						auton_state_machine);
 				scale_side->GenerateSameScale(false, false, true);
-				sameScaleScaleState = true;
+				sameScaleTwoState = true;
 			} else {
-				drive_forward = new DriveForward(drive_controller, elevator_,
-						intake_, auton_state_machine);
-				drive_forward->GenerateForward(false); //assuming will start forward for side switch
+//				drive_forward = new DriveForward(drive_controller, elevator_,
+//						intake_, auton_state_machine);
+//				drive_forward->GenerateForward(false);
 
-//				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
-//						auton_state_machine);
-//				scale_side->GenerateOppScale(false, false, true);
-//				oppScaleScaleState = true;
+				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
+						auton_state_machine);
+				scale_side->GenerateOppScale(false, false, false);
+				oppScaleOneState = true;
 			}
 
-		} else if (autoSelected == leftScaleSwitch) { //if only scale is on our side, will do scale only, likewise switch
+		} else if (autoSelected == leftScaleSwitch) {
 			scale_side = new ScaleSide(drive_controller, elevator_, intake_,
 					auton_state_machine);
 			if (leftScale && leftSwitch) { //scale and switch
 				scale_side->GenerateSameScale(true, true, false);
-				sameScaleSwitchState = true; //scale state machine works for both scale and scale+switch
+				sameScaleSwitchState = true;
 			} else if (leftScale && !leftSwitch) { //only scale
 				scale_side->GenerateSameScale(true, false, false);
 				sameScaleOneState = true;
-			} else { //if only have switch or nothing
-				drive_forward = new DriveForward(drive_controller, elevator_,
-						intake_, auton_state_machine);
-				drive_forward->GenerateForward(false);
+			} else { //!leftScale
+//				drive_forward = new DriveForward(drive_controller, elevator_,
+//						intake_, auton_state_machine);
+//				drive_forward->GenerateForward(false);
+
+				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
+						auton_state_machine);
+				scale_side->GenerateOppScale(true, false, false);
+				oppScaleOneState = true;
 			}
 
-		} else if (autoSelected == rightScaleSwitch) { //if only scale is on our side, will do scale only, likewise switch
+		} else if (autoSelected == rightScaleSwitch) {
 			scale_side = new ScaleSide(drive_controller, elevator_, intake_,
 					auton_state_machine);
 			if (!leftScale && !leftSwitch) { //scale and switch
-				scale_side->GenerateSameScale(false, true, true);
+				scale_side->GenerateSameScale(false, true, false);
 				sameScaleSwitchState = true; //scale state machine works for both scale and scale+switch
 			} else if (!leftScale && leftSwitch) { //only scale
 				scale_side->GenerateSameScale(false, false, false);
 				sameScaleOneState = true;
-			} else { //if only have switch or nothing
-				drive_forward = new DriveForward(drive_controller, elevator_,
-						intake_, auton_state_machine);
-				drive_forward->GenerateForward(false);
+			} else { //leftScale
+//				drive_forward = new DriveForward(drive_controller, elevator_,
+//						intake_, auton_state_machine);
+//				drive_forward->GenerateForward(false);
+
+				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
+						auton_state_machine);
+				scale_side->GenerateOppScale(false, false, false);
+				oppScaleOneState = true;
 			}
 
 		} else if (autoSelected == centerDriveForward) { //depends on starting robot backwards when on side, and forwards when in middle
@@ -436,11 +446,11 @@ public:
 		} else if (oppScaleSwitchState) {
 			scale_side->RunStateMachineOppScaleSwitch(&raise_to_scale_backwards,
 					&raise_to_switch, &get_cube_ground);
-		} else if (sameScaleScaleState) {
+		} else if (sameScaleTwoState) {
 			scale_side->RunStateMachineSameScaleScale(&raise_to_scale_backwards,
 					&get_cube_ground);
 
-		} else if (oppScaleScaleState) {
+		} else if (oppScaleTwoState) {
 			scale_side->RunStateMachineOppScaleScale(&raise_to_scale_backwards,
 					&get_cube_ground);
 		} else if (switchCenterOneState) {
@@ -493,30 +503,26 @@ public:
 
 		wait_for_button = joyOp->GetRawButton(WAIT_FOR_BUTTON);
 		get_cube_ground = joyOp->GetRawButton(GET_CUBE_GROUND);
-		get_cube_station = joyOp->GetRawButton(GET_CUBE_STATION);
-
+		//get_cube_station = joyOp->GetRawButton(GET_CUBE_STATION); //not in existencee
 		//post_intake = joyOp->GetRawButton(POST_INTAKE); //taken for medium shot
 		raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
-
 		raise_to_scale_med = joyOp->GetRawButton(RAISE_TO_SCALE_MED);
 		raise_to_scale_slow = joyOp->GetRawButton(RAISE_TO_SCALE_SLOW);
 		raise_to_scale_fast = joyOp->GetRawButton(RAISE_TO_SCALE_FAST);
-
 		raise_to_scale_backwards = joyOp->GetRawButton(
 				RAISE_TO_SCALE_BACKWARDS);
-
-		intake_spin_in = joyThrottle->GetRawButton(INTAKE_SPIN_IN);
-		intake_spin_out = joyThrottle->GetRawButton(INTAKE_SPIN_OUT);
-		intake_spin_slow = joyThrottle->GetRawButton(INTAKE_SPIN_SLOW);
-		intake_spin_med = joyOp->GetRawButton(INTAKE_SPIN_MED); //operator switch pop shot
+		//intake_spin_med = joyOp->GetRawButton(INTAKE_SPIN_MED); //operator switch pop shot
 		//intake_spin_stop = joyThrottle->GetRawButton(INTAKE_SPIN_STOP);
-
 		intake_arm_up = joyOp->GetRawButton(INTAKE_ARM_UP);
 		intake_arm_mid = joyOp->GetRawButton(INTAKE_ARM_MID);
 		intake_arm_down = joyOp->GetRawButton(INTAKE_ARM_DOWN);
 		elevator_up = joyOp->GetRawButton(ELEVATOR_UP);
 		elevator_mid = joyOp->GetRawButton(ELEVATOR_MID);
 		elevator_down = joyOp->GetRawButton(ELEVATOR_DOWN);
+
+		intake_spin_in = joyThrottle->GetRawButton(INTAKE_SPIN_IN); //these all are manual and can always happen
+		intake_spin_out = joyThrottle->GetRawButton(INTAKE_SPIN_OUT);
+		intake_spin_slow = joyThrottle->GetRawButton(INTAKE_SPIN_SLOW); //this one specifically for slowing down backwards shot //TODO: maybe add a different state for the two back shot speeds
 
 		is_heading = joyThrottle->GetRawButton(HEADING_BUTTON);
 		is_vision = false;

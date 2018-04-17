@@ -9,7 +9,7 @@
 #include "ctre/Phoenix.h"
 #include <WPILib.h>
 
-#define CORNELIUS 0
+#define CORNELIUS 1
 
 #if CORNELIUS
 double ff_percent_e = 0.4;

@@ -36,8 +36,6 @@ public:
 
 	std::vector<int> zeroing_indeces; //can also add the profile refs here
 
-	bool StartedShoot();
-
 };
 
 #endif /* SRC_AUTONOMOUS_H_ */
