@@ -438,6 +438,7 @@ public:
 		} else if (oppScaleOneState) {
 			scale_side->RunStateMachineOppScale(&raise_to_scale_backwards,
 					&get_cube_ground);
+
 		} else if (sameScaleSwitchState) {
 			scale_side->RunStateMachineSameScaleSwitch(
 					&raise_to_scale_backwards, &raise_to_switch,
@@ -446,6 +447,7 @@ public:
 		} else if (oppScaleSwitchState) {
 			scale_side->RunStateMachineOppScaleSwitch(&raise_to_scale_backwards,
 					&raise_to_switch, &get_cube_ground);
+
 		} else if (sameScaleTwoState) {
 			scale_side->RunStateMachineSameScaleScale(&raise_to_scale_backwards,
 					&get_cube_ground);
@@ -453,6 +455,7 @@ public:
 		} else if (oppScaleTwoState) {
 			scale_side->RunStateMachineOppScaleScale(&raise_to_scale_backwards,
 					&get_cube_ground);
+
 		} else if (switchCenterOneState) {
 			switch_center->RunStateMachine(&raise_to_switch);
 
