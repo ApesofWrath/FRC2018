@@ -506,7 +506,7 @@ public:
 
 		wait_for_button = joyOp->GetRawButton(WAIT_FOR_BUTTON);
 		get_cube_ground = joyOp->GetRawButton(GET_CUBE_GROUND);
-		//get_cube_station = joyOp->GetRawButton(GET_CUBE_STATION); //not in existencee
+		get_cube_station = false; //joyOp->GetRawButton(GET_CUBE_STATION); //not in existencee
 		//post_intake = joyOp->GetRawButton(POST_INTAKE); //taken for medium shot
 		raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
 		raise_to_scale_med = joyOp->GetRawButton(RAISE_TO_SCALE_MED);
@@ -526,6 +526,7 @@ public:
 		intake_spin_in = joyThrottle->GetRawButton(INTAKE_SPIN_IN); //these all are manual and can always happen
 		intake_spin_out = joyThrottle->GetRawButton(INTAKE_SPIN_OUT);
 		intake_spin_slow = joyThrottle->GetRawButton(INTAKE_SPIN_SLOW); //this one specifically for slowing down backwards shot //TODO: maybe add a different state for the two back shot speeds
+		intake_spin_stop = false;
 
 		is_heading = joyThrottle->GetRawButton(HEADING_BUTTON);
 		is_vision = false;

@@ -265,7 +265,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		if (state_elevator) {
 			elevator->elevator_state = elevator->UP_STATE_E_H;
 		}
-		if (elevator->GetElevatorPosition() >= 0.84 && state_intake_wheel
+		if (elevator->GetElevatorPosition() >= 0.84 //&& state_intake_wheel
 		&& !raise_to_scale_slow) { //hold button until ready to shoot, elevator and intake will be in positio
 			intake->intake_wheel_state = intake->SLOW_STATE_H;
 			if (intake->ReleasedCube(intake->SLOW_SCALE)) {
@@ -287,7 +287,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		if (state_elevator) {
 			elevator->elevator_state = elevator->UP_STATE_E_H;
 		}
-		if (elevator->GetElevatorPosition() >= 0.84 && state_intake_wheel
+		if (elevator->GetElevatorPosition() >= 0.84 //&& state_intake_wheel
 		&& !raise_to_scale_med) { //hold button until ready to shoot, elevator and intake will be in position
 			intake->intake_wheel_state = intake->SLOW_SCALE_STATE_H;
 			if (intake->ReleasedCube(intake->SLOW_SCALE)) {
@@ -308,7 +308,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		if (state_elevator) {
 			elevator->elevator_state = elevator->UP_STATE_E_H;
 		}
-		if (elevator->GetElevatorPosition() >= 0.84 && state_intake_wheel
+		if (elevator->GetElevatorPosition() >= 0.84 //&& state_intake_wheel
 		&& !raise_to_scale_fast) { //hold button until ready to shoot, elevator and intake will be in position
 			intake->intake_wheel_state = intake->OUT_STATE_H;
 			if (intake->ReleasedCube(intake->SLOW_SCALE)) {

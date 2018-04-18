@@ -13,7 +13,7 @@
 
 #define CORNELIUS 0
 
-#if CORNELIUS //reversed ifdefs, yes
+#if CORNELIUS
 double ff_percent_i = 0.6;
 double offset_angle = 1.65;
 double SLOW_SPEED = 0.25;
@@ -21,7 +21,7 @@ double SLOW_SPEED = 0.25;
 #else
 double ff_percent_i = 0.6;
 double offset_angle = 1.65; //raising this will make the arm positions be higher
-double SLOW_SPEED = 0.8;
+double SLOW_SPEED = 0.4;
 #endif
 
 using namespace std::chrono;
@@ -194,6 +194,135 @@ Intake::Intake(PowerDistributionPanel *pdp,
 			StatusFrameEnhanced::Status_2_Feedback0, 10, 0);
 
 	pdp_i = pdp;
+
+	currents_intake.setlength(arr_len);
+	currents_outtake_r.setlength(arr_len);
+	currents_outtake_l.setlength(arr_len);
+
+//	master_slow_scale.setlength(arr_len);
+//	master_switch.setlength(arr_len);
+//	master_back.setlength(arr_len);
+//	master_slow_back.setlength(arr_len);
+//	master_scale.setlength(arr_len);
+
+	corr_intake.setlength(arr_len - 2);
+	corr_outtake_r.setlength(arr_len - 2);
+	corr_outtake_l.setlength(arr_len - 2);
+
+	for (int i = 0; i < arr_len; i++) {
+		currents_intake[i] = 0.0;
+		currents_outtake_r[i] = 0.0;
+		currents_outtake_l[i] = 0.0;
+	}
+
+//	master_scale = {10.3750000000000,
+//		12.7500000000000,
+//		23.3750000000000,
+//		35.6250000000000,
+//		46.5000000000000,
+//		48.3750000000000,
+//		44.0,
+//		44.0,
+//		40.5000000000000,
+//		40.5000000000000,
+//		34.7500000000000,
+//		29.3750000000000,
+//		24.5000000000000,
+//		24.5000000000000,
+//		17.7500000000000,
+//		15.8750000000000,
+//		14.1250000000000
+//	};
+
+//	double master_switch_arr[] = { 2.62500000000000, 2.62500000000000,
+//			4.25000000000000, 5.50000000000000, 7.12500000000000,
+//			8.12500000000000, 8.25000000000000, 8.37500000000000,
+//			8.37500000000000, 8, 7.50000000000000, 6.75000000000000,
+//			6.50000000000000, 6.37500000000000, 6.25000000000000,
+//			6.25000000000000, 6.37500000000000, 6.25000000000000,
+//			5.87500000000000, 5.25000000000000, 4.62500000000000,
+//			4.25000000000000, 3.75000000000000, 3.50000000000000,
+//			3.25000000000000, 3.12500000000000, 3.25000000000000,
+//			3.37500000000000, 3.12500000000000, 2.75000000000000,
+//			2.75000000000000, 2.75000000000000, 2.50000000000000,
+//			2.50000000000000, 2.50000000000000, 2.50000000000000,
+//			2.50000000000000, 2.50000000000000, 2.12500000000000,
+//			2.50000000000000, 2.50000000000000, 2.12500000000000,
+//			2.12500000000000, 2.12500000000000, 2.12500000000000,
+//			2.12500000000000, 2.12500000000000, 2.12500000000000,
+//			2.12500000000000, 2.12500000000000 };
+////
+//	master_switch[0] = 10.3750000000000;
+//	master_switch[1] = 12.7500000000000;
+//	master_switch[2] = 23.3750000000000;
+//	master_switch[3] = 35.6250000000000;
+//	master_switch[4] = 46.5000000000000;
+//	master_switch[5] = 48.3750000000000;
+//	master_switch[6] = 44;
+//	master_switch[7] = 44;
+//	master_switch[8] = 40.5000000000000;
+//	master_switch[9] = 40.5000000000000;
+//	master_switch[10] = 34.7500000000000;
+//	master_switch[11] = 29.3750000000000;
+//	master_switch[12] = 24.5000000000000;
+//	master_switch[13] = 24.5000000000000;
+//	master_switch[14] = 17.7500000000000;
+//	master_switch[15] = 15.8750000000000;
+//	master_switch[16] = 14.1250000000000;
+//	master_switch[17] = 12.750000000000;
+//	master_switch[18] = 11.750000000000;
+//	master_switch[19] = 10.8750000000000;
+//	master_switch[20] = 9.62500000000000;
+//	master_switch[21] = 9.0000000000;
+//	master_switch[22] = 8.50000000000;
+//	master_switch[23] = 8.250000000000;
+//	master_switch[24] = 8.0000000000;
+//	master_switch[25] = 8.2500000000000;
+//	master_switch[26] = 7.870000000000;
+//	master_switch[27] = 7.870000000000;
+//	master_switch[28] = 8.0000000000;
+//	master_switch[29] = 8.250000000000;
+////
+//	master_slow[0] = 10.3750000000000;
+//	master_slow[1] = 12.7500000000000;
+//	master_slow[2] = 23.3750000000000;
+//	master_slow[3] = 35.6250000000000;
+//	master_slow[4] = 46.5000000000000;
+//	master_slow[5] = 48.3750000000000;
+//	master_slow[6] = 44;
+//	master_slow[7] = 44;
+//	master_slow[8] = 40.5000000000000;
+//	master_slow[9] = 40.5000000000000;
+//	master_slow[10] = 34.7500000000000;
+//	master_slow[11] = 29.3750000000000;
+//	master_slow[12] = 24.5000000000000;
+//	master_slow[13] = 24.5000000000000;
+//	master_slow[14] = 17.7500000000000;
+//	master_slow[15] = 15.8750000000000;
+//	master_slow[16] = 14.1250000000000;
+//	master_slow[17] = 12.750000000000;
+//	master_slow[18] = 11.750000000000;
+//	master_slow[19] = 10.8750000000000;
+//	master_slow[20] = 9.62500000000000;
+//	master_slow[21] = 9.0000000000;
+//	master_slow[22] = 8.50000000000;
+//	master_slow[23] = 8.250000000000;
+//	master_slow[24] = 8.0000000000;
+//	master_slow[25] = 8.2500000000000;
+//	master_slow[26] = 7.870000000000;
+//	master_slow[27] = 7.870000000000;
+//	master_slow[28] = 8.0000000000;
+//	master_slow[29] = 8.250000000000;
+
+	//master_switch.setcontent(50, master_switch_arr);
+//
+//	for (int i = 2; i < arr_len; i++) {
+//		master_scale[i] = 0.0;
+//		master_slow_scale[i] = 0.0;
+//		master_switch[i] = 0.0;
+//		master_slow_back[i] = 0.0;
+//		master_back[i] = 0.0;
+//	}
 
 }
 
@@ -641,26 +770,100 @@ bool Intake::HaveCube() {
 
 }
 
-bool Intake::ReleasedCube(int shot_type) {
-
+bool Intake::ReleasedCube(int shot_type) { //forward scale or backwards scale. is irrelevant for switch
+//75 for fast, 1 for slow
 	time_counter++; //depends on calling this function when need to start the timer
 
-	if (shot_type == SCALE) {
+//	for (int i = 0; i < (sample_window_outtake - 2); i++) { //to index 18
+//		currents_outtake_r[i] = currents_outtake_r[i + 1];
+//		currents_outtake_l[i] = currents_outtake_l[i + 1];
+//	}
+//
+//	///std::cout << "in the method" << std::endl;
+//
+//	currents_outtake_r[sample_window_outtake - 1] =
+//			talonIntake1->GetOutputCurrent();
+//	currents_outtake_l[sample_window_outtake - 1] =
+//			talonIntake2->GetOutputCurrent();
+
+	if (shot_type == SCALE) { //scale, backwards intake_arm_state == OUT_STATE && forward
+//		alglib::corrr1d(currents_outtake_r, arr_len, master_switch, arr_len,
+//				corr_outtake_r);
+//		alglib::corrr1d(currents_outtake_l, arr_len, master_switch, arr_len,
+//				corr_outtake_l);
+//		for (int i = 0; i < (arr_len - 2); i++) {
+//			corr_outtake_r[i] = 0.0;
+//			corr_outtake_l[i] = 0.0;
+//		}
 		TIME_LIMIT = 42;
-	} else if (shot_type == SWITCH) {
+	} else if (shot_type == SWITCH) { //switch intake_arm_state == SLOW_STATE && forward
+		//std::cout << "switch" << std::endl;
+//		for (int i = 0; i < (arr_len - 2); i++) {
+//			corr_outtake_r[i] = 0.0;
+//			corr_outtake_l[i] = 0.0;
+//		}
 		TIME_LIMIT = 42;
+//		alglib::corrr1d(currents_outtake_r, arr_len, master_scale, arr_len,
+//				corr_outtake_r);
+//		alglib::corrr1d(currents_outtake_l, arr_len, master_scale, arr_len,
+//				corr_outtake_l);
 	} else if (shot_type == SLOW_SCALE) {
+//		alglib::corrr1d(currents_outtake_r, arr_len, master_slow_scale, arr_len,
+//				corr_outtake_r);
+//		alglib::corrr1d(currents_outtake_l, arr_len, master_slow_scale, arr_len,
+//				corr_outtake_l);
+//		for (int i = 0; i < (arr_len - 2); i++) {
+//			corr_outtake_r[i] = 0.0;
+//			corr_outtake_l[i] = 0.0;
+//		}
 		TIME_LIMIT = 50;
 	} else if (shot_type == BACK) {
-		TIME_LIMIT = 15;
+//		alglib::corrr1d(currents_outtake_r, arr_len, master_scale, arr_len, //back
+//				corr_outtake_r);
+//		alglib::corrr1d(currents_outtake_l, arr_len, master_scale, arr_len,
+//				corr_outtake_l);
+//		for (int i = 0; i < (arr_len - 2); i++) {
+//			corr_outtake_r[i] = 0.0;
+//			corr_outtake_l[i] = 0.0;
+//		}
+
+		TIME_LIMIT = 15; //is slow //30
 	} else if (shot_type == SLOW_BACK) {
+//		alglib::corrr1d(currents_outtake_r, arr_len, master_scale, arr_len, //slow_back
+//				corr_outtake_r);
+//		alglib::corrr1d(currents_outtake_l, arr_len, master_scale, arr_len,
+//				corr_outtake_l);
+//		for (int i = 0; i < (arr_len - 2); i++) {
+//			corr_outtake_r[i] = 0.0;
+//			corr_outtake_l[i] = 0.0;
+//		}
+
 		TIME_LIMIT = 50;
 	}
 
-	if ((time_counter > TIME_LIMIT)) {
+	//std::cout << "corr: " << FindMaximum(corr_outtake_r) << ", "<< FindMaximum(corr_outtake_l) << std::endl;
+
+//	corr_val_now_r = corr_outtake_r[(int) (arr_len / 2)]; //FindMaximum(corr_outtake_r); //returns how correlated the actual currents are with the master currents. since the master dataset ends
+//	corr_val_now_l = corr_outtake_l[(int) (arr_len / 2)]; //FindMaximum(corr_outtake_l); //returns how correlated the actual currents are with the master currents. since the master dataset ends
+
+	//std::cout << "corr val: " << (corr_val_now_r - last_corr_val_r) << std::endl;
+
+	if ( //((last_corr_val_l > corr_val_now_l || last_corr_val_r > corr_val_now_r)) //if the arrays match close enough (corr_val_now_r > OUTTAKE_CORR_VALUE
+	//|| corr_val_now_l > OUTTAKE_CORR_VALUE)
+	///&&
+	(time_counter > TIME_LIMIT)) {
+		//	std::cout << "last corr val: " << last_corr_val_r << std::endl;
+//		for (int i = 0; i < (sample_window_outtake - 1); i++) {
+//			currents_outtake_r[i] = 0.0;
+//			currents_outtake_l[i] = 0.0;
+//		}
 		time_counter = 0;
+//		last_corr_val_r = 0.0;
+//		last_corr_val_l = 0.0;
 		return true;
 	} else {
+//		last_corr_val_r = corr_val_now_r;
+//		last_corr_val_l = corr_val_now_l;
 		return false;
 	}
 
