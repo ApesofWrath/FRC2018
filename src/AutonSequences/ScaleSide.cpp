@@ -213,7 +213,7 @@ void ScaleSide::GenerateAddedSwitch(bool same_side, bool added_scale //if doing 
 			SmartDashboard::PutString("waypoints1", "same side right");
 		} else {
 			p1 = {-22.5, 16.5, d2r(25.0)}; //working on these
-			p2 = {-18.7, 16.6, d2r(0.0)};
+			p2 = {-18.0, 15.8, d2r(0.0)};
 			SmartDashboard::PutString("waypoints1", "opp side right");
 		}
 	}
@@ -302,7 +302,7 @@ void ScaleSide::GenerateAddedScale(bool same_side) { //new trajectory so that ol
 			p2 = {-21.5, -0.5, d2r(10.0)};
 			SmartDashboard::PutString("waypoints2", "same side right");
 		} else {
-			p1 = {-19.0, 16.7, d2r(0.0)}; //working on these
+			p1 = {-18.0, 15.5, d2r(0.0)}; //working on these
 			p2 = {-23.0, 16.0, d2r(20.0)};
 			SmartDashboard::PutString("waypoints2", "opp side right");
 		}
