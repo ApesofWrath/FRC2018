@@ -43,6 +43,7 @@ const int IN_STATE = 1;
 const int OUT_STATE = 2;
 const int SLOW_STATE = 3;
 const int SLOW_SCALE_STATE = 4;
+const int POP_SWITCH_STATE = 5;
 
 const double TICKS_PER_ROT_I = 4096.0;
 const double MAX_VOLTAGE_I = 12.0; //CANNOT EXCEED abs(10)
@@ -394,6 +395,13 @@ void Intake::Slow() {
 
 }
 
+void Intake::Pop() {
+
+	talonIntake1->Set(ControlMode::PercentOutput, 0.4); // 1.0
+	talonIntake2->Set(ControlMode::PercentOutput, -0.4); // -1.0
+
+}
+
 void Intake::SlowScale() { //medium
 
 	talonIntake1->Set(ControlMode::PercentOutput, 0.6); // 1.0
@@ -537,7 +545,7 @@ void Intake::SetVoltageIntake(double voltage_i) {
 		voltage_i = 0.0;
 	}
 
-	if (ang_pos < .1 && voltage_i < 1.5){
+	if (ang_pos < .1 && voltage_i < 1.5) {
 
 		voltage_i = 0.0;
 
@@ -731,6 +739,15 @@ void Intake::IntakeWheelStateMachine() {
 		}
 		SlowScale();
 		last_intake_wheel_state = SLOW_SCALE_STATE;
+		break;
+
+	case POP_SWITCH_STATE:
+		SmartDashboard::PutString("IW", "POP");
+		if (last_intake_wheel_state != POP_SWITCH_STATE) {
+			DisableCurrentLimits();
+		}
+		Pop();
+		last_intake_wheel_state = POP_SWITCH_STATE;
 		break;
 
 	}

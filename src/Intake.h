@@ -61,6 +61,7 @@ public:
 	const int OUT_STATE_H = 2;
 	const int SLOW_STATE_H = 3;
 	const int SLOW_SCALE_STATE_H = 4;
+	const int POP_SWITCH_STATE_H = 5;
 	int intake_wheel_state = STOP_WHEEL_STATE_H;
 
 	const double DOWN_ANGLE = 0.0; //instead of changing the offset
@@ -86,6 +87,7 @@ public:
 	void SlowScale();
 	void StopWheels();
 	void StopArm();
+	void Pop();
 
 	void Rotate();
 	double GetAngularVelocity();

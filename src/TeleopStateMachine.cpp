@@ -22,7 +22,8 @@ const int PLACE_SCALE_SLOW_STATE = 6;
 const int PLACE_SCALE_MED_STATE = 7;
 const int PLACE_SCALE_FAST_STATE = 8;
 const int PLACE_SWITCH_STATE = 9;
-const int PLACE_SCALE_BACKWARDS_STATE = 10;
+const int PLACE_SWITCH_POP_STATE = 10;
+const int PLACE_SCALE_BACKWARDS_STATE = 11;
 int state = INIT_STATE;
 
 bool state_intake_wheel = false; //set to true to override the states set in the state machine
@@ -51,7 +52,7 @@ TeleopStateMachine::TeleopStateMachine(Elevator *elevator_, Intake *intake_,
 void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		bool intake_spin_out, bool intake_spin_slow, bool intake_spin_med,
 		bool intake_spin_stop, bool get_cube_ground, bool get_cube_station,
-		bool post_intake, bool raise_to_switch, bool raise_to_scale_slow, bool raise_to_scale_med, bool raise_to_scale_fast,
+		bool post_intake, bool raise_to_switch, bool pop_switch, bool raise_to_scale_slow, bool raise_to_scale_med, bool raise_to_scale_fast,
 		bool intake_arm_up, bool intake_arm_mid, bool intake_arm_down,
 		bool elevator_up, bool elevator_mid, bool elevator_down,
 		bool raise_to_scale_backwards) {
@@ -148,6 +149,8 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 			state = PLACE_SCALE_FAST_STATE;
 		} else if (raise_to_switch) {
 			state = PLACE_SWITCH_STATE;
+		} else if (pop_switch) {
+			state = PLACE_SWITCH_POP_STATE;
 		} else if (raise_to_scale_backwards) {
 			state = PLACE_SCALE_BACKWARDS_STATE;
 		}
@@ -332,6 +335,27 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		if (std::abs(intake->GetAngularPosition() - intake->MID_ANGLE) <= 0.2 //switch will not shoot if you press a shooting button
 		&& state_intake_wheel && !raise_to_switch) { //hold button until ready to shoot, elevator and intake will be in position
 			intake->intake_wheel_state = intake->SLOW_STATE_H;
+			if (intake->ReleasedCube(intake->SWITCH)) {
+				state = POST_INTAKE_SWITCH_STATE;
+			}
+		}
+		last_state = PLACE_SWITCH_STATE;
+		//stay in this state when spitting cube, then return to WFB
+		break;
+
+	case PLACE_SWITCH_POP_STATE:
+
+		SmartDashboard::PutString("STATE", "POP SWITCH");
+
+		if (state_elevator) {
+			elevator->elevator_state = elevator->DOWN_STATE_E_H;
+		}
+		if (state_intake_arm) { //elevator->GetElevatorPosition() >= 0.1 &&
+			intake->intake_arm_state = intake->UP_STATE_H;
+		}
+		if (std::abs(intake->GetAngularPosition() - intake->UP_ANGLE) <= 0.2 //switch will not shoot if you press a shooting button
+		&& state_intake_wheel && !pop_switch) { //hold button until ready to shoot, elevator and intake will be in position //state_intake_wheel means you let go of intake_spin_mid
+			intake->intake_wheel_state = intake->POP_SWITCH_STATE_H;
 			if (intake->ReleasedCube(intake->SWITCH)) {
 				state = POST_INTAKE_SWITCH_STATE;
 			}

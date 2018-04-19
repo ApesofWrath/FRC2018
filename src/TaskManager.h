@@ -29,7 +29,7 @@ public:
 
 	void StartThread(bool *wait_for_button, bool *intake_spin_in,
 			bool *intake_spin_out, bool *intake_spin_slow, bool *intake_spin_med, bool *intake_spin_stop, bool *get_cube_ground,
-			bool *get_cube_station, bool *post_intake, bool *raise_to_switch, bool *raise_to_scale_slow, bool *raise_to_scale_med, bool *raise_to_scale_fast,
+			bool *get_cube_station, bool *post_intake, bool *raise_to_switch, bool *pop_switch, bool *raise_to_scale_slow, bool *raise_to_scale_med, bool *raise_to_scale_fast,
 			bool *intake_arm_up, bool *intake_arm_mid, bool *intake_arm_down, bool *elevator_up, bool *elevator_mid,
 			bool *elevator_down,  bool *raise_to_scale_backwards, Joystick *JoyThrottle,
 			Joystick *JoyWheel, bool *is_heading);
@@ -37,7 +37,7 @@ public:
 	static void ThreadWrapper(TaskManager *task_manager, Joystick *JoyThrottle,
 			Joystick *JoyWheel, bool *wait_for_button, bool *intake_spin_in,
 			bool *intake_spin_out, bool *intake_spin_slow, bool *intake_spin_med, bool *intake_spin_stop, bool *get_cube_ground,
-			bool *get_cube_station, bool *post_intake, bool *raise_to_switch, bool *raise_to_scale_slow, bool *raise_to_scale_med, bool *raise_to_scale_fast,
+			bool *get_cube_station, bool *post_intake, bool *raise_to_switch, bool *pop_switch, bool *raise_to_scale_slow, bool *raise_to_scale_med, bool *raise_to_scale_fast,
 			bool *intake_arm_up, bool *intake_arm_mid, bool *intake_arm_down, bool *elevator_up, bool *elevator_mid,
 			bool *elevator_down, bool *raise_to_scale_backwards, bool *is_heading);
 

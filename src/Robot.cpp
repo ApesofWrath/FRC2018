@@ -53,6 +53,7 @@ public:
 	const int GET_CUBE_STATION = 99;
 	//const int POST_INTAKE = 5; //taken for middle shot
 	const int RAISE_TO_SWITCH = 6;
+	const int POP_SWITCH = 2;
 	const int RAISE_TO_SCALE_MED = 1;
 	const int RAISE_TO_SCALE_SLOW = 5;
 	const int RAISE_TO_SCALE_FAST = 4;
@@ -62,7 +63,7 @@ public:
 	const int INTAKE_SPIN_OUT = 1; //throttle
 	const int INTAKE_SPIN_STOP = 99;
 	const int INTAKE_SPIN_SLOW = 8;
-	const int INTAKE_SPIN_MED = 2; //pop
+	const int INTAKE_SPIN_MED = 99;
 
 	const int INTAKE_ARM_UP = 8;
 	const int INTAKE_ARM_MID = 99; //TAKEN OUT
@@ -104,7 +105,7 @@ public:
 
 	bool wait_for_button, intake_spin_in, intake_spin_out, intake_spin_slow,
 			intake_spin_med, intake_spin_stop, get_cube_ground,
-			get_cube_station, post_intake, raise_to_switch, raise_to_scale_slow,
+			get_cube_station, post_intake, raise_to_switch, pop_switch, raise_to_scale_slow,
 			raise_to_scale_med, raise_to_scale_fast, intake_arm_up,
 			intake_arm_mid, intake_arm_down, elevator_up, elevator_mid,
 			elevator_down, raise_to_scale_backwards; //for BOTH state machines
@@ -225,7 +226,7 @@ public:
 				&wait_for_button, //both auton and teleop state machines
 				&intake_spin_in, &intake_spin_out, &intake_spin_slow,
 				&intake_spin_med, &intake_spin_stop, &get_cube_ground,
-				&get_cube_station, &post_intake, &raise_to_switch,
+				&get_cube_station, &post_intake, &raise_to_switch, &pop_switch,
 				&raise_to_scale_slow, &raise_to_scale_med, &raise_to_scale_fast,
 				&intake_arm_up, &intake_arm_mid, &intake_arm_down, &elevator_up,
 				&elevator_mid, &elevator_down, &raise_to_scale_backwards,
@@ -523,6 +524,7 @@ public:
 		get_cube_station = false; //joyOp->GetRawButton(GET_CUBE_STATION); //not in existencee
 		//post_intake = joyOp->GetRawButton(POST_INTAKE); //taken for medium shot
 		raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
+		pop_switch = joyOp->GetRawButton(POP_SWITCH);
 		raise_to_scale_med = joyOp->GetRawButton(RAISE_TO_SCALE_MED);
 		raise_to_scale_slow = joyOp->GetRawButton(RAISE_TO_SCALE_SLOW);
 		raise_to_scale_fast = joyOp->GetRawButton(RAISE_TO_SCALE_FAST);
