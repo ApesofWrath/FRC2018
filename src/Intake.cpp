@@ -21,7 +21,8 @@ double SLOW_SPEED = 0.25;
 #else
 double ff_percent_i = 0.6;
 double offset_angle = 1.75; //raising this will make the arm positions be higher
-double SLOW_SPEED = 0.4;
+double SLOW_SPEED = 0.25; //0.4
+
 #endif
 
 using namespace std::chrono;

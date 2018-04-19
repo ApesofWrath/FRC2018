@@ -171,10 +171,10 @@ public:
 		SmartDashboard::PutNumber("refRight", 0);
 		SmartDashboard::PutNumber("refLeftVel", 0);
 		SmartDashboard::PutNumber("actualLeftDis", 0);
-			SmartDashboard::PutNumber("actualRightDis", 0);
-			SmartDashboard::PutNumber("actualLeftVel", 0);
-			SmartDashboard::PutNumber("Actual Heading", 0);
-			SmartDashboard::PutNumber("refYaw", 0);
+		SmartDashboard::PutNumber("actualRightDis", 0);
+		SmartDashboard::PutNumber("actualLeftVel", 0);
+		SmartDashboard::PutNumber("Actual Heading", 0);
+		SmartDashboard::PutNumber("refYaw", 0);
 
 		elevator_profiler_ = new ElevatorMotionProfiler(1.15, 5.0, TIME_STEP); //max vel, max accel, timestep
 		intake_profiler_ = new IntakeMotionProfiler(2.0, 10.0, TIME_STEP);
@@ -192,6 +192,9 @@ public:
 		task_manager = new TaskManager(teleop_state_machine,
 				auton_state_machine, drive_controller, elevator_, intake_,
 				TIME_STEP);
+
+		//if(drive_controller->ahrs->IsCalibrating())
+		//drive_controller->ahrs->IsConnected()
 
 		joyThrottle = new Joystick(JOY_THROTTLE);
 		joyWheel = new Joystick(JOY_WHEEL);
@@ -341,7 +344,7 @@ public:
 
 				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
 						auton_state_machine);
-				scale_side->GenerateOppScale(true, false, false);
+				scale_side->GenerateOppScale(true, false, true);
 				oppScaleOneState = true;
 			}
 
@@ -358,7 +361,7 @@ public:
 
 				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
 						auton_state_machine);
-				scale_side->GenerateOppScale(false, false, false);
+				scale_side->GenerateOppScale(false, false, true);
 				oppScaleOneState = true;
 			}
 

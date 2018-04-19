@@ -47,7 +47,7 @@ void ScaleSide::GenerateSameScale(bool is_left, bool added_switch,
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.02, 11.0, 6.0, 100000.0, &candidate);
+	PATHFINDER_SAMPLES_FAST, 0.02, 11.0, 6.0, 100000.0, &candidate); //11
 
 	length = candidate.length;
 	same_scale_len = length;
@@ -114,19 +114,19 @@ void ScaleSide::GenerateOppScale(bool left_start, bool added_switch,
 	if (left_start) { //will do the right scale
 		left_scale = false;
 		p1 = {0.0, 0.0, 0.0}; //TODO: tweak these to perfection, remember to update the other side as well
-		p2 = {-16.16, -1.2, d2r(-30.0)};
-		p3 = {-18.0, 4.0, d2r(-90.0)};
-		p4 = {-18.0, 13.0, d2r(-90.0)}; //shorter this x, tighter the turn
-		p5 = {-21.0, 16.0, d2r(0.0)};
+		p2 = {-16.0, -1.2, d2r(-30.0)};
+		p3 = {-17.8, 4.0, d2r(-90.0)};
+		p4 = {-17.8, 13.0, d2r(-90.0)}; //shorter this x, tighter the turn
+		p5 = {-20.8, 16.0, d2r(0.0)};
 		p6 = {-22.5, 16.5, d2r(25.0)};
 	}
 	else {
 		left_scale = true;
 		p1 = {0.0, 0.0, 0.0};
-		p2 = {-16.16, 1.2, d2r(30.0)}; //little out
-		p3 = {-18.0, -4.0, d2r(90.0)}; //turn
-		p4 = {-18.0, -13.0, d2r(90.0)}; //shoot gap
-		p5 = {-21.0, -16.0, d2r(0.0)}; //end shooting gap
+		p2 = {-16.0, 1.2, d2r(30.0)}; //little out
+		p3 = {-17.8, -4.0, d2r(90.0)}; //turn
+		p4 = {-17.8, -13.0, d2r(90.0)}; //shoot gap
+		p5 = {-20.8, -16.0, d2r(0.0)}; //end shooting gap
 		p6 = {-22.5, -16.5, d2r(-25.0)}; //position to place
 	}
 
@@ -219,8 +219,8 @@ void ScaleSide::GenerateAddedSwitch(bool same_side, bool added_scale //if doing 
 	}
 	else { //left_scale
 		if (same_side) {
-			p1 = {-21.5, 1.1, d2r(-10.0)};
-			p2 = {-16.3, 2.0, d2r(0.0)};
+			p1 = {-21.5, 1.1, d2r(-10.0)}; //1.1
+			p2 = {-16.3, 2.6, d2r(0.0)}; //2.4
 			SmartDashboard::PutString("waypoints1", "same side left");
 		} else {
 			p1 = {-22.5, -16.5, d2r(-25.0)};
@@ -309,9 +309,9 @@ void ScaleSide::GenerateAddedScale(bool same_side) { //new trajectory so that ol
 
 	}
 	else { //left_scale
-		if (same_side) {
-			p1 = {-17.6, 2.0, d2r(0.0)}; //should be right, we tested these
-			p2 = {-21.5, 0.5, d2r(-10.0)};
+		if (same_side) { //{-16.3, 2.4, d2r(0.0)};
+			p1 = {-16.3, 2.8, d2r(0.0)}; //should be right, we tested these
+			p2 = {-21.5, 1.4, d2r(-10.0)}; //+0.4
 			SmartDashboard::PutString("waypoints2", "same side left");
 		} else {
 			p1 = {-19.5, -17.0, d2r(0.0)}; //not tested
