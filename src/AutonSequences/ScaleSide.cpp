@@ -38,7 +38,7 @@ void ScaleSide::GenerateSameScale(bool is_left, bool added_switch,
 		left_scale = false;
 		p1 = {0.0, 0.0, 0.0};
 		p2 = {-16.0, 0.0, d2r(0.0)}; //yaw is still from the robot's perspective
-		p3 = {-21.5, -1.1, d2r(10.0)};
+		p3 = {-21.5, -1.4, d2r(10.0)};
 	}
 
 	points[0] = p1;
@@ -209,7 +209,7 @@ void ScaleSide::GenerateAddedSwitch(bool same_side, bool added_scale //if doing 
 	if (!left_scale) {
 		if (same_side) {
 			p1 = {-21.5, -1.1, d2r(10.0)}; //NOT tested; estimated according to same_side_left_scale
-			p2 = {-16.3, -2.0, d2r(0.0)};
+			p2 = {-16.3, -1.6, d2r(0.0)};
 			SmartDashboard::PutString("waypoints1", "same side right");
 		} else {
 			p1 = {-22.5, 16.5, d2r(25.0)}; //working on these
@@ -298,24 +298,24 @@ void ScaleSide::GenerateAddedScale(bool same_side) { //new trajectory so that ol
 	//WAYPOINTS ARE NO LONGER RELATIVE TO THE LAST POINT, THEY ARE CONTNUOUS. Last waypoint of previous trajectory MUST equal the first waypoint of the next trajectory
 	if (!left_scale) {
 		if (same_side) {
-			p1 = {-17.6, -2.0, d2r(0.0)}; //not tested
-			p2 = {-21.5, -0.5, d2r(10.0)};
+			p1 = {-16.3, -1.6, d2r(0.0)}; //not tested-1.6,
+			p2 = {-21.0, -0.5, d2r(10.0)};
 			SmartDashboard::PutString("waypoints2", "same side right");
 		} else {
 			p1 = {-19.5, 17.0, d2r(0.0)}; //working on these
-			p2 = {-23.0, 16.0, d2r(20.0)};
+			p2 = {-21.5, 16.0, d2r(20.0)};
 			SmartDashboard::PutString("waypoints2", "opp side right");
 		}
 
 	}
 	else { //left_scale
-		if (same_side) { //{-16.3, 2.4, d2r(0.0)};
-			p1 = {-16.3, 2.8, d2r(0.0)}; //should be right, we tested these
+		if (same_side) { //{-16.3, 2.4, d2r(0.0)}; {-16.3, 2.6, d2r(0.0)};
+			p1 = {-16.3, 2.6, d2r(0.0)}; //should be right, we tested these
 			p2 = {-21.5, 1.4, d2r(-10.0)}; //+0.4
 			SmartDashboard::PutString("waypoints2", "same side left");
 		} else {
 			p1 = {-19.5, -17.0, d2r(0.0)}; //not tested
-			p2 = {-23.0, -16.0, d2r(-20.0)};
+			p2 = {-21.5, -16.0, d2r(-20.0)};
 			SmartDashboard::PutString("waypoints2", "opp side left");
 		}
 	}
