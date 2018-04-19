@@ -345,7 +345,7 @@ public:
 				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
 						auton_state_machine);
 				scale_side->GenerateOppScale(true, false, true);
-				oppScaleOneState = true;
+				oppScaleTwoState = true;
 			}
 
 		} else if (autoSelected == rightCubeScaleScale) {
@@ -362,7 +362,7 @@ public:
 				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
 						auton_state_machine);
 				scale_side->GenerateOppScale(false, false, true);
-				oppScaleOneState = true;
+				oppScaleTwoState = true;
 			}
 
 		} else if (autoSelected == leftScaleSwitch) {
