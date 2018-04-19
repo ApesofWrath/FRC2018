@@ -758,10 +758,10 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	SmartDashboard::PutNumber("targetHeading", refYaw);
 
 	SmartDashboard::PutNumber("refLeft", refLeft);
-//	SmartDashboard::PutNumber("refRight", refRight);
+	SmartDashboard::PutNumber("refRight", refRight);
 	SmartDashboard::PutNumber("refLeftVel", tarVelLeft);
-//	SmartDashboard::PutNumber("refRightVel", tarVelRight);
-//	SmartDashboard::PutNumber("refYaw", refYaw);
+	SmartDashboard::PutNumber("refRightVel", tarVelRight);
+	SmartDashboard::PutNumber("refYaw", refYaw);
 
 	//fps //not needed besides check for jitter
 	double r_current = -((double) canTalonRight1->GetSelectedSensorVelocity(0)
@@ -883,7 +883,7 @@ void DriveControllerMother::Controller(double ref_kick,
 	double yaw_rate_current = -1.0 * (double) ahrs->GetRate()
 			* (double) ((PI) / 180.0); //left should be positive
 
-	//SmartDashboard::PutNumber("yrc", yaw_rate_current);
+	SmartDashboard::PutNumber("yaw pos", ahrs->GetYaw());
 
 	double target_yaw_rate = ref_yaw;
 

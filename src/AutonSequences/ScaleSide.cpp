@@ -515,25 +515,26 @@ void ScaleSide::RunStateMachineSameScaleScale(bool *place_scale_backwards, //sta
 
 	int drive_index = drive_controller->GetDriveIndex();
 
-//	SmartDashboard::PutNumber("total indeces.", //went through whole profile without shooting the second cube
-//			added_switch_len + crossed_scale_len + added_scale_len);
-//	SmartDashboard::PutNumber("1.", crossed_scale_len);
-//	SmartDashboard::PutNumber("2.", added_switch_len);
-//	SmartDashboard::PutNumber("3.", added_scale_len);
-//	SmartDashboard::PutNumber("index..", drive_index);
+	SmartDashboard::PutNumber("total indeces.", //went through whole profile without shooting the second cube
+			added_switch_len + same_scale_len + added_scale_len);
+	SmartDashboard::PutNumber("1.", same_scale_len);
+	SmartDashboard::PutNumber("2.", added_switch_len);
+	SmartDashboard::PutNumber("3.", added_scale_len);
+	SmartDashboard::PutNumber("index..", drive_index);
 
 //no other state machine booleans needed, all other ones will stay false
 
-	if ((drive_index >= first_traj_len
+	if ((drive_index >= same_scale_len
 			&& auton_state_machine->shoot_counter == 0)
-			|| (elevator_->GetElevatorPosition() > 0.3 //elevator going down
+			||
+			(elevator_->GetElevatorPosition() > 0.3 && elevator_->elevator_state == elevator_->DOWN_STATE_E_H//elevator going down
 			&& auton_state_machine->shoot_counter == 1) //when shoot counter is 0, will be going up to shoot first cube and will not stop drive. once shot first cube and everything is coming down, will stop drive. once everything is coming back up, will stop drive
 			|| auton_state_machine->state_a
 					== auton_state_machine->POST_INTAKE_SCALE_STATE_A_H
 			|| auton_state_machine->shoot_counter == 2
-			|| (drive_index
-					>= (first_traj_len + added_switch_len + added_scale_len)
-					&& auton_state_machine->shoot_counter == 1)) { //second case should not be needed, but just there //scale cube, was driving
+			) { //second case should not be needed, but just there //scale cube, was driving //|| (drive_index
+	//	>= (same_scale_len + added_switch_len + added_scale_len)
+	//	&& auton_state_machine->shoot_counter == 1)
 		drive_controller->StopProfile(true);
 	} else {
 		drive_controller->StopProfile(false);
@@ -542,7 +543,7 @@ void ScaleSide::RunStateMachineSameScaleScale(bool *place_scale_backwards, //sta
 	if (drive_index >= (same_scale_len / 1.5)) { //start moving superstructure
 
 		if (auton_state_machine->shoot_counter == 0 || ((drive_index //if have not shot before, if at end of the total profile and there is that addded profile
-		>= (first_traj_len + added_switch_len) //will need to divide by 2  ///FOR SAME SIDE + added_scale_len
+		>= (same_scale_len + added_switch_len) //will need to divide by 2  ///FOR SAME SIDE + added_scale_len
 		) && auton_state_machine->shoot_counter == 1)) {
 
 			*place_scale_backwards = true; //needs to go back to being false
@@ -552,7 +553,7 @@ void ScaleSide::RunStateMachineSameScaleScale(bool *place_scale_backwards, //sta
 					|| (auton_state_machine->shoot_counter == 1
 							&& (std::abs(drive_controller->GetLeftVel()) < 0.5)
 							&& drive_index
-									>= (first_traj_len + added_switch_len
+									>= (same_scale_len + added_switch_len
 											+ added_scale_len))) {
 				auton_state_machine->shoot_cube = true;
 			} else {

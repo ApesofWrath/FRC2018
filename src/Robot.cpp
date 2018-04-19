@@ -165,6 +165,17 @@ public:
 
 	void RobotInit() {
 
+		SmartDashboard::PutNumber("targetHeading", 0);
+
+		SmartDashboard::PutNumber("refLeft", 0);
+		SmartDashboard::PutNumber("refRight", 0);
+		SmartDashboard::PutNumber("refLeftVel", 0);
+		SmartDashboard::PutNumber("actualLeftDis", 0);
+			SmartDashboard::PutNumber("actualRightDis", 0);
+			SmartDashboard::PutNumber("actualLeftVel", 0);
+			SmartDashboard::PutNumber("Actual Heading", 0);
+			SmartDashboard::PutNumber("refYaw", 0);
+
 		elevator_profiler_ = new ElevatorMotionProfiler(1.15, 5.0, TIME_STEP); //max vel, max accel, timestep
 		intake_profiler_ = new IntakeMotionProfiler(2.0, 10.0, TIME_STEP);
 
