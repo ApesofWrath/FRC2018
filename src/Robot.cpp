@@ -62,10 +62,10 @@ public:
 	const int INTAKE_SPIN_OUT = 1; //throttle
 	const int INTAKE_SPIN_STOP = 99;
 	const int INTAKE_SPIN_SLOW = 8;
-	const int INTAKE_SPIN_MED = 99;
+	const int INTAKE_SPIN_MED = 2; //pop
 
 	const int INTAKE_ARM_UP = 8;
-	const int INTAKE_ARM_MID = 2;
+	const int INTAKE_ARM_MID = 99; //TAKEN OUT
 	const int INTAKE_ARM_DOWN = 15;
 	const int INTAKE_ARM_BACKWARDS = 99; //no manual for this one
 
@@ -528,7 +528,7 @@ public:
 		raise_to_scale_fast = joyOp->GetRawButton(RAISE_TO_SCALE_FAST);
 		raise_to_scale_backwards = joyOp->GetRawButton(
 				RAISE_TO_SCALE_BACKWARDS);
-		//intake_spin_med = joyOp->GetRawButton(INTAKE_SPIN_MED); //operator switch pop shot
+		intake_spin_med = joyOp->GetRawButton(INTAKE_SPIN_MED); //operator switch pop shot
 		//intake_spin_stop = joyThrottle->GetRawButton(INTAKE_SPIN_STOP);
 		intake_arm_up = joyOp->GetRawButton(INTAKE_ARM_UP);
 		intake_arm_mid = joyOp->GetRawButton(INTAKE_ARM_MID);
