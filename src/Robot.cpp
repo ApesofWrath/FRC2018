@@ -347,20 +347,21 @@ public:
 			}
 
 		} else if (autoSelected == leftCubeScaleScale) {
+			std::cout << "left" << std::endl;
 			if (leftScale) {
 				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
 						auton_state_machine);
 				scale_side->GenerateSameScale(true, false, true);
 				sameScaleTwoState = true;
 			} else {
-//				drive_forward = new DriveForward(drive_controller, elevator_, // IF WRONG SIDE, will stay safe and just do one on opp
-//						intake_, auton_state_machine);
-//				drive_forward->GenerateForward(false);
+				drive_forward = new DriveForward(drive_controller, elevator_, // IF WRONG SIDE, will stay safe and just do one on opp
+						intake_, auton_state_machine);
+				drive_forward->GenerateForward(false);
 
-				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
-						auton_state_machine);
-				scale_side->GenerateOppScale(true, false, true);
-				oppScaleTwoState = true;
+//				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
+//						auton_state_machine);
+//				scale_side->GenerateOppScale(true, false, false);
+//				oppScaleOneState = true;
 			}
 
 		} else if (autoSelected == rightCubeScaleScale) {
@@ -376,8 +377,8 @@ public:
 
 				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
 						auton_state_machine);
-				scale_side->GenerateOppScale(false, false, true);
-				oppScaleTwoState = true;
+				scale_side->GenerateOppScale(false, false, false);
+				oppScaleOneState = true;
 			}
 
 		} else if (autoSelected == leftScaleSwitch) {

@@ -111,7 +111,7 @@ void ScaleSide::GenerateOppScale(bool left_start, bool added_switch,
 	Waypoint p1, p2, p3, p4, p5, p6, p7;
 
 	//feet
-	if (left_start) { //will do the right scale
+	if (left_start) { //right scale
 		left_scale = false;
 		p1 = {0.0, 0.0, 0.0}; //TODO: tweak these to perfection, remember to update the other side as well
 		p2 = {-16.0, -1.2, d2r(-30.0)};
@@ -120,14 +120,14 @@ void ScaleSide::GenerateOppScale(bool left_start, bool added_switch,
 		p5 = {-20.8, 16.0, d2r(0.0)};
 		p6 = {-22.5, 16.5, d2r(25.0)};
 	}
-	else {
+	else { //left scale
 		left_scale = true;
 		p1 = {0.0, 0.0, 0.0};
 		p2 = {-16.0, 1.2, d2r(30.0)}; //little out
 		p3 = {-17.8, -4.0, d2r(90.0)}; //turn
 		p4 = {-17.8, -13.0, d2r(90.0)}; //shoot gap
 		p5 = {-20.8, -16.0, d2r(0.0)}; //end shooting gap
-		p6 = {-22.5, -16.5, d2r(-25.0)}; //position to place
+		p6 = {-22.5, -16.0, d2r(-25.0)}; //position to place
 	}
 
 	points[0] = p1;
@@ -139,7 +139,7 @@ void ScaleSide::GenerateOppScale(bool left_start, bool added_switch,
 
 	TrajectoryCandidate candidate;
 	pathfinder_prepare(points, POINT_LENGTH, FIT_HERMITE_CUBIC,
-	PATHFINDER_SAMPLES_FAST, 0.02, 8.0, 7.0, 10000000.0, &candidate); //had to be slowed down //17.0, 6.0
+	PATHFINDER_SAMPLES_FAST, 0.02, 9.0, 7.0, 10000000.0, &candidate); //had to be slowed down //17.0, 6.0
 
 	length = candidate.length;
 	opp_scale_len = length;
@@ -212,8 +212,8 @@ void ScaleSide::GenerateAddedSwitch(bool same_side, bool added_scale //if doing 
 			p2 = {-16.3, -2.0, d2r(0.0)};
 			SmartDashboard::PutString("waypoints1", "same side right");
 		} else {
-			p1 = {-22.5, 16.5, d2r(25.0)}; //working on these
-			p2 = {-18.0, 15.8, d2r(0.0)};
+			p1 = {-22.5, 16.5, d2r(25.0)}; //these are just points, pathfinder will give whatever trajectory just according to these points
+			p2 = {-18.3, 16.2, d2r(-7.0)}; //if moving in x and have an angle that doesn't correspond to the needed theta, trajectory will be an s to turn the robot to the correct theta after moving to the correct x
 			SmartDashboard::PutString("waypoints1", "opp side right");
 		}
 	}
@@ -224,7 +224,7 @@ void ScaleSide::GenerateAddedSwitch(bool same_side, bool added_scale //if doing 
 			SmartDashboard::PutString("waypoints1", "same side left");
 		} else {
 			p1 = {-22.5, -16.5, d2r(-25.0)};
-			p2 = {-19.5, -17.0, d2r(0.0)};
+			p2 = {-19.5, -16.0, d2r(0.0)};
 			SmartDashboard::PutString("waypoints1", "opp side left");
 		}
 	}
@@ -299,10 +299,10 @@ void ScaleSide::GenerateAddedScale(bool same_side) { //new trajectory so that ol
 	if (!left_scale) {
 		if (same_side) {
 			p1 = {-17.6, -2.0, d2r(0.0)}; //not tested
-			p2 = {-21.5, -0.5, d2r(10.0)};
+			p2 = {-21.9, -0.5, d2r(10.0)};
 			SmartDashboard::PutString("waypoints2", "same side right");
 		} else {
-			p1 = {-18.0, 15.5, d2r(0.0)}; //working on these
+			p1 = {-18.3, 16.2, d2r(-7.0)}; //working on these
 			p2 = {-23.0, 16.0, d2r(20.0)};
 			SmartDashboard::PutString("waypoints2", "opp side right");
 		}
