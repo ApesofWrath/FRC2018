@@ -884,6 +884,8 @@ void DriveControllerMother::Controller(double ref_kick,
 			* (double) ((PI) / 180.0); //left should be positive
 
 	SmartDashboard::PutNumber("yaw pos", ahrs->GetYaw());
+	SmartDashboard::PutNumber("Encoder Left", GetLeftVel());
+	SmartDashboard::PutNumber("Encoder Right", GetRightVel());
 
 	double target_yaw_rate = ref_yaw;
 

@@ -105,10 +105,10 @@ public:
 
 	bool wait_for_button, intake_spin_in, intake_spin_out, intake_spin_slow,
 			intake_spin_med, intake_spin_stop, get_cube_ground,
-			get_cube_station, post_intake, raise_to_switch, pop_switch, raise_to_scale_slow,
-			raise_to_scale_med, raise_to_scale_fast, intake_arm_up,
-			intake_arm_mid, intake_arm_down, elevator_up, elevator_mid,
-			elevator_down, raise_to_scale_backwards; //for BOTH state machines
+			get_cube_station, post_intake, raise_to_switch, pop_switch,
+			raise_to_scale_slow, raise_to_scale_med, raise_to_scale_fast,
+			intake_arm_up, intake_arm_mid, intake_arm_down, elevator_up,
+			elevator_mid, elevator_down, raise_to_scale_backwards; //for BOTH state machines
 
 	bool is_heading, is_vision, is_fc; //drive
 	bool is_auto_shift;
@@ -167,15 +167,29 @@ public:
 	void RobotInit() {
 
 		SmartDashboard::PutNumber("targetHeading", 0);
+		SmartDashboard::PutNumber("Actual Heading", 0);
+		SmartDashboard::PutNumber("refYaw", 0);
 
 		SmartDashboard::PutNumber("refLeft", 0);
 		SmartDashboard::PutNumber("refRight", 0);
-		SmartDashboard::PutNumber("refLeftVel", 0);
 		SmartDashboard::PutNumber("actualLeftDis", 0);
 		SmartDashboard::PutNumber("actualRightDis", 0);
+
+		SmartDashboard::PutNumber("refLeftVel", 0);
 		SmartDashboard::PutNumber("actualLeftVel", 0);
-		SmartDashboard::PutNumber("Actual Heading", 0);
-		SmartDashboard::PutNumber("refYaw", 0);
+
+		SmartDashboard::PutNumber("Left 1", 0);
+		SmartDashboard::PutNumber("Left 2", 0);
+		SmartDashboard::PutNumber("Left 3", 0);
+		SmartDashboard::PutNumber("Left 4", 0);
+
+		SmartDashboard::PutNumber("Right 1", 0);
+		SmartDashboard::PutNumber("Right 2", 0);
+		SmartDashboard::PutNumber("Right 3", 0);
+		SmartDashboard::PutNumber("Right 4", 0);
+
+		SmartDashboard::PutNumber("Encoder Left", 0);
+		SmartDashboard::PutNumber("Encoder Right", 0);
 
 		elevator_profiler_ = new ElevatorMotionProfiler(1.15, 5.0, TIME_STEP); //max vel, max accel, timestep
 		intake_profiler_ = new IntakeMotionProfiler(2.0, 10.0, TIME_STEP);
@@ -521,8 +535,8 @@ public:
 
 		wait_for_button = joyOp->GetRawButton(WAIT_FOR_BUTTON);
 		get_cube_ground = joyOp->GetRawButton(GET_CUBE_GROUND);
-		get_cube_station = false; //joyOp->GetRawButton(GET_CUBE_STATION); //not in existencee
-		//post_intake = joyOp->GetRawButton(POST_INTAKE); //taken for medium shot
+		get_cube_station = false;
+		post_intake = false;
 		raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
 		pop_switch = joyOp->GetRawButton(POP_SWITCH);
 		raise_to_scale_med = joyOp->GetRawButton(RAISE_TO_SCALE_MED);
@@ -530,10 +544,11 @@ public:
 		raise_to_scale_fast = joyOp->GetRawButton(RAISE_TO_SCALE_FAST);
 		raise_to_scale_backwards = joyOp->GetRawButton(
 				RAISE_TO_SCALE_BACKWARDS);
-		intake_spin_med = joyOp->GetRawButton(INTAKE_SPIN_MED); //operator switch pop shot
-		//intake_spin_stop = joyThrottle->GetRawButton(INTAKE_SPIN_STOP);
+
+		intake_spin_med = false; //joyOp->GetRawButton(INTAKE_SPIN_MED); //operator switch pop shot
+		intake_spin_stop = false;
 		intake_arm_up = joyOp->GetRawButton(INTAKE_ARM_UP);
-		intake_arm_mid = joyOp->GetRawButton(INTAKE_ARM_MID);
+		intake_arm_mid = false; // joyOp->GetRawButton(INTAKE_ARM_MID);
 		intake_arm_down = joyOp->GetRawButton(INTAKE_ARM_DOWN);
 		elevator_up = joyOp->GetRawButton(ELEVATOR_UP);
 		elevator_mid = joyOp->GetRawButton(ELEVATOR_MID);
