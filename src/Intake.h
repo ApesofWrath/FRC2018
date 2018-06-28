@@ -68,7 +68,7 @@ public:
 	const double MID_ANGLE = 0.55;
 	const double SWITCH_ANGLE = 1.0; //safety for elev
 	const double UP_ANGLE = 1.35; //starting pos -> also the shooting position 1.3
-	const double BACK_SHOT_ANGLE = 2.0; // 120 ish degrees for the flippy back arm shot
+	const double BACK_SHOT_ANGLE = 2.2; // 120 ish degrees for the flippy back arm shot 2.0
 
 	Intake(PowerDistributionPanel *pdp, IntakeMotionProfiler *intake_profiler, Elevator *el_);
 

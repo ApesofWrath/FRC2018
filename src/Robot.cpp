@@ -432,7 +432,7 @@ public:
 			drive_forward->GenerateForward(false);
 
 		} else if (autoSelected == doNothing) {
-
+			drive_controller->set_profile = true; //thread will not call the auton state machine until there is a set profile. this is a workaround
 		} else {
 			drive_forward = new DriveForward(drive_controller, elevator_,
 					intake_, auton_state_machine);
