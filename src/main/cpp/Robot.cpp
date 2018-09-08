@@ -15,17 +15,17 @@
 #include <WPILib.h>
 #include <Joystick.h>
 
-#include <Autonomous.h>
-#include <DriveController.h>
-#include <Intake.h>
-#include <Elevator.h>
-#include <AutonSequences/DriveForward.h>
-#include <AutonSequences/SwitchCenter.h>
-#include <AutonSequences/ScaleSide.h>
-#include <TeleopStateMachine.h>
-#include <AutonStateMachine.h>
-#include <AutonSequences/SwitchSide.h>
-#include <TaskManager.h>
+#include "Autonomous.h"
+#include "DriveController.h"
+#include "Intake.h"
+#include "Elevator.h"
+#include "AutonSequences/DriveForward.h"
+#include "AutonSequences/SwitchCenter.h"
+#include "AutonSequences/ScaleSide.h"
+#include "TeleopStateMachine.h"
+#include "AutonStateMachine.h"
+#include "AutonSequences/SwitchSide.h"
+#include "TaskManager.h"
 
 #define STATEMACHINE 1
 #define CORNELIUS 1 //in every class

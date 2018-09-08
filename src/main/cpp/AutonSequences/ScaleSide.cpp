@@ -5,7 +5,7 @@
  *      Author: DriversStation
  */
 
-#include <AutonSequences/ScaleSide.h>
+#include "ScaleSide.h"
 
 int same_scale_len = 0;
 int added_switch_len = 0;
@@ -644,4 +644,3 @@ void ScaleSide::RunStateMachineOppScaleScale(bool *place_scale_backwards,
 	}
 
 }
-

@@ -8,7 +8,7 @@
 #ifndef SRC_DRIVEFORWARD_H_
 #define SRC_DRIVEFORWARD_H_
 
-#include <Autonomous.h>
+#include "../Autonomous.h"
 
 class DriveForward : public Autonomous {
 public:

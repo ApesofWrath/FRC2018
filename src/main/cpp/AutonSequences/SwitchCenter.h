@@ -8,7 +8,7 @@
 #ifndef SRC_AUTONSEQUENCES_SWITCH_CENTER_H_
 #define SRC_AUTONSEQUENCES_SWITCH_CENTER_H_
 
-#include <Autonomous.h>
+#include "../Autonomous.h"
 
 class SwitchCenter : public Autonomous {
 public:

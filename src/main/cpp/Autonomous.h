@@ -9,18 +9,18 @@
 #define SRC_AUTONOMOUS_H_
 
 #include <WPILib.h>
-#include <Elevator.h>
-#include <Intake.h>
+#include "Elevator.h"
+#include "Intake.h"
 #include <fstream>
 #include <vector>
 #include <list>
-#include <DriveController.h>
+#include "DriveController.h"
 #include <pathfinder.h>
-#include <ElevatorMotionProfiler.h>
+#include "ElevatorMotionProfiler.h"
 #include <thread>
 #include <chrono>
 #include <Timer.h>
-#include <AutonStateMachine.h>
+#include "AutonStateMachine.h"
 
 class Autonomous {
 public:
@@ -39,4 +39,3 @@ public:
 };
 
 #endif /* SRC_AUTONOMOUS_H_ */
-

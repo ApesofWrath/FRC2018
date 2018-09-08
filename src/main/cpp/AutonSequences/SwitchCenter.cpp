@@ -5,7 +5,7 @@
  *      Author: DriversStation
  */
 
-#include <AutonSequences/SwitchCenter.h>
+#include "SwitchCenter.h"
 
 int switch_len = 0;
 

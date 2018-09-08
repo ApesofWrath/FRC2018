@@ -8,7 +8,7 @@
 #ifndef SRC_AUTONSEQUENCES_SWITCHSIDE_H_
 #define SRC_AUTONSEQUENCES_SWITCHSIDE_H_
 
-#include <Autonomous.h>
+#include "../Autonomous.h"
 
 class SwitchSide : public Autonomous {
 public:
