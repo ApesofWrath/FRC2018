@@ -10,15 +10,15 @@
 
 #include "ctre/Phoenix.h"
 #include <WPILib.h>
-#include <Intake.h>
-#include <Elevator.h>
+#include "Intake.h"
+#include "Elevator.h"
 #include <iostream>
 #include <Timer.h>
 #include <thread>
 #include <chrono>
-#include <DriveController.h>
-#include <TeleopStateMachine.h>
-#include <AutonStateMachine.h>
+#include "DriveController.h"
+#include "TeleopStateMachine.h"
+#include "AutonStateMachine.h"
 
 class TaskManager {
 public:

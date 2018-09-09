@@ -5,7 +5,7 @@
  *      Author: DriversStation
  */
 
-#include <IntakeMotionProfiler.h>
+#include "IntakeMotionProfiler.h"
 
 IntakeMotionProfiler::IntakeMotionProfiler(double max_vel, double max_acc,
 		double time_step) {

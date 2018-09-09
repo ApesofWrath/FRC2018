@@ -8,7 +8,7 @@
 //#ifndef SRC_AUTONSEQUENCES_SCALESIDE_H_
 //#define SRC_AUTONSEQUENCES_SCALESIDE_H_
 
-#include <Autonomous.h>
+#include "../Autonomous.h"
 
 class ScaleSide : public Autonomous {
 public:

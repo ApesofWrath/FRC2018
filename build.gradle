@@ -49,3 +49,9 @@ model {
 task wrapper(type: Wrapper) {
     gradleVersion = '4.9'
 }
+
+model {
+    frcUserProgram(NativeExecutableSpec) {
+        lib library: "pathfinder"
+    }
+}

@@ -8,7 +8,7 @@
 #ifndef SRC_DRIVECONTROLLER_H_
 #define SRC_DRIVECONTROLLER_H_
 
-#include <DriveControllerMother.h>
+#include "DriveControllerMother.h"
 
 class DriveController : public DriveControllerMother {
 public:

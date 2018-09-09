@@ -9,7 +9,7 @@
 #ifndef SRC_ELEVATOR_H_
 #define SRC_ELEVATOR_H_
 
-#include <ElevatorMotionProfiler.h>
+#include "ElevatorMotionProfiler.h"
 #include <WPILib.h>
 #include "ctre/Phoenix.h"
 #include <chrono>

@@ -18,8 +18,8 @@
 #include <cmath>
 #include <list>
 #include <DigitalInput.h>
-#include <IntakeMotionProfiler.h>
-#include <Elevator.h>
+#include "IntakeMotionProfiler.h"
+#include "Elevator.h"
 #include <iostream>
 #include <fstream>
 #include <AlgLib/fasttransforms.h>

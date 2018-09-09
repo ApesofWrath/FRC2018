@@ -5,7 +5,7 @@
  *      Author: DriversStation
  */
 
-#include <AutonSequences/SwitchSide.h>
+#include "SwitchSide.h"
 
 int back_switch_len = 0;
 int forward_switch_len = 0;
@@ -179,4 +179,3 @@ void SwitchSide::RunStateMachineSide(bool *place_switch) {
 //	}
 
 }
-
