@@ -41,17 +41,12 @@ model {
 
             // Defining my dependencies. In this case, WPILib (+ friends), CTRE Toolsuite (Talon SRX)
             // and NavX.
-            useLibrary(it, "wpilib", "ctre", "navx")
+
+            useLibrary(it, "wpilib", "ctre", "navx", "pathfinder")
         }
     }
 }
 
 task wrapper(type: Wrapper) {
     gradleVersion = '4.9'
-}
-
-model {
-    frcUserProgram(NativeExecutableSpec) {
-        lib library: "pathfinder"
-    }
 }
