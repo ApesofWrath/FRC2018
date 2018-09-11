@@ -1,10 +1,3 @@
-/*
- * DriveController.cpp
- *
- *  Created on: Jan 3, 2018
- *      Author: maxkwon
- */
-
 #include "DriveControllerMother.h"
 #include <WPILib.h>
 
@@ -883,9 +876,9 @@ void DriveControllerMother::Controller(double ref_kick,
 	double yaw_rate_current = -1.0 * (double) ahrs->GetRate()
 			* (double) ((PI) / 180.0); //left should be positive
 
-	SmartDashboard::PutNumber("yaw pos", ahrs->GetYaw());
-	SmartDashboard::PutNumber("Encoder Left", GetLeftVel());
-	SmartDashboard::PutNumber("Encoder Right", GetRightVel());
+	SmartDashboard::PutNumber("YAW POS", ahrs->GetYaw());
+	SmartDashboard::PutNumber("LEFT ENC VEL", GetLeftVel());
+	SmartDashboard::PutNumber("RIGHT ENC VEL", GetRightVel());
 
 	double target_yaw_rate = ref_yaw;
 
@@ -996,8 +989,8 @@ void DriveControllerMother::Controller(double ref_kick,
 		total_left = -1.0;
 	}
 
-	SmartDashboard::PutNumber("Percent output left", total_left);
-	SmartDashboard::PutNumber("Percent output right", -total_right);
+	SmartDashboard::PutNumber("% OUT LEFT", total_left);
+	SmartDashboard::PutNumber("% OUT RIGHT", -total_right);
 
 	canTalonLeft1->Set(ControlMode::PercentOutput, total_left);
 	canTalonRight1->Set(ControlMode::PercentOutput, -total_right); //negative for Koba and for new drive train
