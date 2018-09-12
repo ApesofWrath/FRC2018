@@ -185,14 +185,18 @@ void Elevator::SetVoltageElevator(double elevator_voltage) {
 	is_at_bottom_e = IsAtBottomElevator(); //reversed. will return true if sensed
 	is_at_top = IsAtTopElevator();
 
+	double el_pos = GetElevatorPosition();
+
+	SmartDashboard::PutNumber("EL POS", el_pos);
+
 	//upper soft limit
-	if (GetElevatorPosition() >= (0.92) && elevator_voltage > 0.0) { //at max height and still trying to move up
+	if(el_pos >= (0.92) && elevator_voltage > 0.0) { //at max height and still trying to move up
 		elevator_voltage = 0.0;
 		SmartDashboard::PutString("ELEVATOR SAFETY", "upper soft");
 	}
 
 	//lower soft limit
-	if (GetElevatorPosition() <= (-0.05) && elevator_voltage < 0.0) { //at max height and still trying to move up
+	if (el_pos <= (-0.05) && elevator_voltage < 0.0) { //at max height and still trying to move up
 		elevator_voltage = 0.0;
 		SmartDashboard::PutString("ELEVATOR SAFETY", "lower soft");
 	}

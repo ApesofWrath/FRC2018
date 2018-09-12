@@ -480,6 +480,8 @@ void Intake::SetVoltageIntake(double voltage_i) {
 
 	double ang_pos = GetAngularPosition();
 
+	SmartDashboard::PutNumber("INT ANG", ang_pos);
+
 	//top soft limits
 	if (elevator_i->GetElevatorPosition() < elevator_safety_position) {
 		if (ang_pos >= (1.6) && voltage_i > 0.0 && is_init_intake) { //at max height and still trying to move up //there is no upper soft limit when initializing
