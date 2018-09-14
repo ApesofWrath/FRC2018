@@ -555,6 +555,8 @@ void Intake::SetVoltageIntake(double voltage_i) {
 
 	voltage_i /= 12.0; //scale from -1 to 1 for the talon
 
+	SmartDashboard::PutNumber("ARM VOLT", voltage_i);
+
 	voltage_i *= -1.0; //set AT END
 
 	talonIntakeArm->Set(ControlMode::PercentOutput, voltage_i);
@@ -586,6 +588,7 @@ double Intake::GetAngularPosition() {
 	//double offset_angle = 1.5; //amount that the arm will stick up in radians// the top angle. greater offset = lower 0
 
 	return ang_pos + offset_angle;//the angular position from the encoder plus the angle when we zero minus the offset for zeroing
+	// 9/13/18: should lower offset_angle by 0.1 or 0.005 in order to make it accurate to the real world
 
 }
 

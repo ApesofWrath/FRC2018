@@ -53,10 +53,11 @@ public:
 	const int SWITCH_STATE_E_H = 5;
 	int elevator_state = INIT_STATE_E_H;
 
-	const double DOWN_POS_E = 0.005;
+	const double DOWN_POS_E = 0.009; //lowest possible height is 0.008
 	const double MID_POS_E = 0.668;
 	const double SWITCH_POS_E = 0.5;
-	const double UP_POS_E = 0.89;
+	const double UP_POS_E = 0.89; //reaches only 0.88 according to the elevator's own readings, but is outputting 1.4 volts
+	//el gains could be a bit more aggressive
 
 	void InitializeElevator();
 
