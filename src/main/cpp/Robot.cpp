@@ -168,30 +168,46 @@ public:
 
 	void RobotInit() {
 
-		SmartDashboard::PutNumber("targetHeading", 0);
-		SmartDashboard::PutNumber("Actual Heading", 0);
-		SmartDashboard::PutNumber("refYaw", 0);
+		// SmartDashboard::PutNumber("targetHeading", 0);
+		// SmartDashboard::PutNumber("Actual Heading", 0);
+		// SmartDashboard::PutNumber("refYaw", 0);
+		//
+		// SmartDashboard::PutNumber("refLeft", 0);
+		// SmartDashboard::PutNumber("refRight", 0);
+		// SmartDashboard::PutNumber("actualLeftDis", 0);
+		// SmartDashboard::PutNumber("actualRightDis", 0);
+		//
+		// SmartDashboard::PutNumber("refLeftVel", 0);
+		// SmartDashboard::PutNumber("actualLeftVel", 0);
+		//
+		// SmartDashboard::PutNumber("Left 1", 0);
+		// SmartDashboard::PutNumber("Left 2", 0);
+		// SmartDashboard::PutNumber("Left 3", 0);
+		// SmartDashboard::PutNumber("Left 4", 0);
+		//
+		// SmartDashboard::PutNumber("Right 1", 0);
+		// SmartDashboard::PutNumber("Right 2", 0);
+		// SmartDashboard::PutNumber("Right 3", 0);
+		// SmartDashboard::PutNumber("Right 4", 0);
+		//
+		// SmartDashboard::PutNumber("Encoder Left", 0);
+		// SmartDashboard::PutNumber("Encoder Right", 0);
 
-		SmartDashboard::PutNumber("refLeft", 0);
-		SmartDashboard::PutNumber("refRight", 0);
-		SmartDashboard::PutNumber("actualLeftDis", 0);
-		SmartDashboard::PutNumber("actualRightDis", 0);
+		SmartDashboard::PutNumber("l_current", 0.0);
+		SmartDashboard::PutNumber("r_current", 0.0);
 
-		SmartDashboard::PutNumber("refLeftVel", 0);
-		SmartDashboard::PutNumber("actualLeftVel", 0);
+		SmartDashboard::PutNumber("ref_left", 0);
+		SmartDashboard::PutNumber("ref_right", 0);
 
-		SmartDashboard::PutNumber("Left 1", 0);
-		SmartDashboard::PutNumber("Left 2", 0);
-		SmartDashboard::PutNumber("Left 3", 0);
-		SmartDashboard::PutNumber("Left 4", 0);
+		SmartDashboard::PutNumber("l_error_vel_t",0);
+		SmartDashboard::PutNumber("r_error_vel_t", 0);
 
-		SmartDashboard::PutNumber("Right 1", 0);
-		SmartDashboard::PutNumber("Right 2", 0);
-		SmartDashboard::PutNumber("Right 3", 0);
-		SmartDashboard::PutNumber("Right 4", 0);
+		SmartDashboard::PutNumber("% OUT LEFT", 0);
+		SmartDashboard::PutNumber("% OUT RIGHT", 0);
 
-		SmartDashboard::PutNumber("Encoder Left", 0);
-		SmartDashboard::PutNumber("Encoder Right", 0);
+		SmartDashboard::PutNumber("D Right Vel", 0);
+		SmartDashboard::PutNumber("P Right Vel", 0);
+
 
 		elevator_profiler_ = new ElevatorMotionProfiler(1.15, 5.0, TIME_STEP); //max vel, max accel, timestep
 		intake_profiler_ = new IntakeMotionProfiler(2.0, 10.0, TIME_STEP);
@@ -217,7 +233,7 @@ public:
 		joyWheel = new Joystick(JOY_WHEEL);
 		joyOp = new Joystick(JOY_OP);
 
-		autonChooser.AddDefault(sideDriveForward, sideDriveForward); //drives backward
+		autonChooser.AddDefault(doNothing, doNothing); //TODO:change back to sideDriveForward  //drives backward
 		autonChooser.AddObject(centerDriveForward, centerDriveForward);
 		autonChooser.AddObject(doNothing, doNothing);
 

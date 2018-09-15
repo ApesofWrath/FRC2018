@@ -644,6 +644,7 @@ void DriveControllerMother::TeleopHDrive(Joystick *JoyThrottle,
 			k_p_left_vel, k_p_kick_vel, k_p_yaw_t, 0.0, k_d_left_vel,
 			k_d_right_vel, k_d_kick_vel, 0.0, 0.0, 0.0);
 
+
 }
 
 void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle, //finds targets for the Controller()
@@ -748,13 +749,13 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 		refYaw -= (2 * PI);
 	}
 
-	SmartDashboard::PutNumber("targetHeading", refYaw);
+// SmartDashboard::PutNumber(":", refYaw);
 
-	SmartDashboard::PutNumber("refLeft", refLeft);
-	SmartDashboard::PutNumber("refRight", refRight);
-	SmartDashboard::PutNumber("refLeftVel", tarVelLeft);
-	SmartDashboard::PutNumber("refRightVel", tarVelRight);
-	SmartDashboard::PutNumber("refYaw", refYaw);
+	// SmartDashboard::PutNumber("refLeft", refLeft);
+	// SmartDashboard::PutNumber("refRight", refRight);
+	// SmartDashboard::PutNumber("refLeftVel", tarVelLeft);
+	// SmartDashboard::PutNumber("refRightVel", tarVelRight);
+	// SmartDashboard::PutNumber("refYaw", refYaw);
 
 	//fps //not needed besides check for jitter
 	double r_current = -((double) canTalonRight1->GetSelectedSensorVelocity(0)
@@ -769,15 +770,15 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	double l_dis = ((double) canTalonLeft1->GetSelectedSensorPosition(0)
 			/ TICKS_PER_FOOT);
 
-	SmartDashboard::PutNumber("actualLeftDis", l_dis);
-//	SmartDashboard::PutNumber("actualRightDis", r_dis);
-	SmartDashboard::PutNumber("actualLeftVel", l_current);
-//	SmartDashboard::PutNumber("actualRightVel", r_current);
+// SmartDashboard::PutNumber("actualLeftDis", l_dis);
+// SmartDashboard::PutNumber("actualRightDis", r_dis);
+// SmartDashboard::PutNumber("actualLeftVel", l_current);
+// SmartDashboard::PutNumber("actualRightVel", r_current);
 
 	double y_dis = -1.0 * ahrs->GetYaw() * (double) (PI / 180); //current theta (yaw) value
 
 //	SmartDashboard::PutNumber("Target Heading", refYaw);
-	SmartDashboard::PutNumber("Actual Heading", y_dis);
+//	SmartDashboard::PutNumber("Actual Heading", y_dis);
 
 	l_error_dis_au = refLeft - l_dis;
 	r_error_dis_au = refRight - r_dis;
@@ -813,9 +814,9 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	I_YAW_DIS = K_I_YAW_DIS * i_yaw;
 	D_YAW_DIS = K_D_YAW_DIS * (y_error_dis_au - yaw_last_error);
 
-	SmartDashboard::PutNumber("P", P_YAW_DIS);
-	SmartDashboard::PutNumber("I", I_YAW_DIS);
-	SmartDashboard::PutNumber("D", D_YAW_DIS);
+	// SmartDashboard::PutNumber("P", P_YAW_DIS);
+	// SmartDashboard::PutNumber("I", I_YAW_DIS);
+	// SmartDashboard::PutNumber("D", D_YAW_DIS);
 
 	double total_right = P_RIGHT_DIS + I_RIGHT_DIS + D_RIGHT_DIS;
 	double total_left = P_LEFT_DIS + I_LEFT_DIS + D_LEFT_DIS;
@@ -855,6 +856,8 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 //		SmartDashboard::PutString("Encoders", "Out");
 //	}
 
+
+
 	Controller(0.0, 0.0, 0.0, targetYawRate, k_p_right_vel_au, k_p_left_vel_au,
 			0.0, k_p_yaw_au, k_d_yaw_au, k_d_left_vel_au, k_d_right_vel_au, 0.0, //sends all 0.0 gains
 			target_rpm_left, target_rpm_right, 0.0);
@@ -876,9 +879,9 @@ void DriveControllerMother::Controller(double ref_kick,
 	double yaw_rate_current = -1.0 * (double) ahrs->GetRate()
 			* (double) ((PI) / 180.0); //left should be positive
 
-	SmartDashboard::PutNumber("YAW POS", ahrs->GetYaw());
-	SmartDashboard::PutNumber("LEFT ENC VEL", GetLeftVel());
-	SmartDashboard::PutNumber("RIGHT ENC VEL", GetRightVel());
+	// SmartDashboard::PutNumber("YAW POS", ahrs->GetYaw());
+	// SmartDashboard::PutNumber("LEFT ENC VEL", GetLeftVel());
+	// SmartDashboard::PutNumber("RIGHT ENC VEL", GetRightVel());
 
 	double target_yaw_rate = ref_yaw;
 
@@ -949,6 +952,15 @@ void DriveControllerMother::Controller(double ref_kick,
 //		SmartDashboard::PutString("Drive Motor Encoders", "Not working");
 //	}
 
+SmartDashboard::PutNumber("l_current", l_current);
+SmartDashboard::PutNumber("r_current", r_current);
+
+SmartDashboard::PutNumber("ref_left", ref_left);
+SmartDashboard::PutNumber("ref_right", ref_right);
+
+SmartDashboard::PutNumber("l_error_vel_t", l_error_vel_t);
+SmartDashboard::PutNumber("r_error_vel_t", r_error_vel_t);
+
 	l_error_vel_t = ref_left - l_current;
 	r_error_vel_t = ref_right - r_current;
 	//kick_error_vel = ref_kick - kick_current;
@@ -964,6 +976,9 @@ void DriveControllerMother::Controller(double ref_kick,
 	D_LEFT_VEL = k_d_left * d_left_vel;
 	D_RIGHT_VEL = k_d_right * d_right_vel;
 	D_KICK_VEL = k_d_kick * d_kick_vel;
+
+	SmartDashboard::PutNumber("D Right Vel", D_RIGHT_VEL);
+	SmartDashboard::PutNumber("P Right Vel", P_RIGHT_VEL);
 
 	if (frc::RobotState::IsAutonomous()) { //only want the feedforward based off the motion profile during autonomous. The root generated ones (in the if() statement) //should already be 0 during auton because we send 0 as refs
 		feed_forward_r = 0;	// will be close to 0  (low error between profile points) for the most part but will get quite aggressive when an error builds,
@@ -1003,6 +1018,8 @@ void DriveControllerMother::Controller(double ref_kick,
 	r_last_error_vel = r_error_vel_t;
 	kick_last_error_vel = kick_error_vel;
 	l_last_current = l_current;
+
+	SmartDashboard::PutNumber("Yaw Error", yaw_error);
 
 }
 
@@ -1161,13 +1178,14 @@ std::vector<std::vector<double> > DriveControllerMother::GetAutonProfile() {
 
 }
 
+//Increments through target points of the motion profile
 void DriveControllerMother::RunAutonDrive() {
 
 	double left_enc = canTalonLeft1->GetSelectedSensorPosition(0);
 	double yaw_pos = ahrs->GetYaw();
 
-	SmartDashboard::PutNumber("enc.", left_enc);
-	SmartDashboard::PutNumber("yaw zeroed", yaw_pos);
+	// SmartDashboard::PutNumber("enc.", left_enc);
+	// SmartDashboard::PutNumber("yaw zeroed", yaw_pos);
 
 	for (int i = 0; i < auton_profile[0].size(); i++) { //looks through each row and then fills drive_ref with the column here, refills each interval with next set of refs
 		drive_ref.at(i) = auton_profile.at(row_index).at(i); //from SetRef()
@@ -1202,7 +1220,7 @@ void DriveControllerMother::RunAutonDrive() {
 		}
 	}
 
-	SmartDashboard::PutNumber("ROW INDEX", row_index);
+//	SmartDashboard::PutNumber("ROW INDEX", row_index);
 }
 
 void DriveControllerMother::RunTeleopDrive(Joystick *JoyThrottle,
