@@ -72,16 +72,6 @@ public:
 
 private:
 
-	const double DOWN_POS_CARR = 0.005;
-	const double MID_POS_CARR = 0.668;
-	const double HPS_POS_CARR = 0.5;
-	const double UP_POS_CARR = 0.89;
-
-	const double DOWN_POS_MS = 0.01;
-	const double MID_POS_MS = 0.01;
-	const double HPS_POS_MS = 0.01;
-	const double UP_POS_MS = 0.01;
-
   void SetVoltage(double elevator_voltage);
 	void SetZeroOffset();
 

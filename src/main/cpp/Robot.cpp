@@ -506,23 +506,23 @@ public:
 
 	void TeleopPeriodic() {
 
-		SmartDashboard::PutNumber("LD 1",
-				drive_controller->canTalonLeft1->GetOutputCurrent());
-		SmartDashboard::PutNumber("LD 2",
-				drive_controller->canTalonLeft2->GetOutputCurrent());
-		SmartDashboard::PutNumber("LD 3",
-				drive_controller->canTalonLeft3->GetOutputCurrent());
-		SmartDashboard::PutNumber("LD 4",
-				drive_controller->canTalonLeft4->GetOutputCurrent());
-
-		SmartDashboard::PutNumber("RD 1",
-				drive_controller->canTalonRight1->GetOutputCurrent());
-		SmartDashboard::PutNumber("RD 2",
-				drive_controller->canTalonRight2->GetOutputCurrent());
-		SmartDashboard::PutNumber("RD 3",
-				drive_controller->canTalonRight3->GetOutputCurrent());
-		SmartDashboard::PutNumber("RD 4",
-				drive_controller->canTalonRight4->GetOutputCurrent());
+		// SmartDashboard::PutNumber("LD 1",
+		// 		drive_controller->canTalonLeft1->GetOutputCurrent());
+		// SmartDashboard::PutNumber("LD 2",
+		// 		drive_controller->canTalonLeft2->GetOutputCurrent());
+		// SmartDashboard::PutNumber("LD 3",
+		// 		drive_controller->canTalonLeft3->GetOutputCurrent());
+		// SmartDashboard::PutNumber("LD 4",
+		// 		drive_controller->canTalonLeft4->GetOutputCurrent());
+		//
+		// SmartDashboard::PutNumber("RD 1",
+		// 		drive_controller->canTalonRight1->GetOutputCurrent());
+		// SmartDashboard::PutNumber("RD 2",
+		// 		drive_controller->canTalonRight2->GetOutputCurrent());
+		// SmartDashboard::PutNumber("RD 3",
+		// 		drive_controller->canTalonRight3->GetOutputCurrent());
+		// SmartDashboard::PutNumber("RD 4",
+		// 		drive_controller->canTalonRight4->GetOutputCurrent());
 
 #if !STATEMACHINE
 		intake_->ManualArm(joyOp);
