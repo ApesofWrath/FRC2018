@@ -9,13 +9,7 @@
 #include "ctre/Phoenix.h"
 #include <WPILib.h>
 
-#define CORNELIUS 1
-
-#if CORNELIUS
 double ff_percent_e = 0.4;
-#else
-double ff_percent_e = 0.75;
-#endif
 
 #define PI 3.14159265
 
@@ -24,7 +18,7 @@ const int DOWN_STATE_E = 1;
 const int MID_STATE_E = 2;
 const int UP_STATE_E = 3;
 const int STOP_STATE_E = 4;
-const int SWITCH_STATE_E = 5;
+const int HPS_STATE_E = 5;
 
 const double free_speed_e = 18730.0; //rad/s
 const double G_e = (20.0 / 1.0); //gear ratio
@@ -48,7 +42,7 @@ int last_elevator_state = 0; //init state
 
 double offset = 0.0;
 double ff = 0.0; //feedforward
-double u_e = 0.0; //this is the input in volts to the motor
+double u_e = 0.0; //this is the output in volts to the motor
 double v_bat_e = 0.0; //this will be the voltage of the battery at every loop
 
 double position_offset_e = 0.0;
@@ -78,7 +72,19 @@ int init_counter = 0;
 int encoder_counter_e = 0;
 
 Elevator::Elevator(PowerDistributionPanel *pdp,
-		ElevatorMotionProfiler *elevator_profiler_) {
+		ElevatorMotionProfiler *elevator_profiler_, bool is_carr) {
+
+	if (is_carr) {
+		down_pos = DOWN_POS_CARR;
+		mid_pos = MID_POS_CARR;
+		hps_pos = HPS_POS_CARR;
+		up_pos = UP_POS_CARR;
+	} else {
+		down_pos = DOWN_POS_MS;
+		mid_pos = MID_POS_MS;
+		hps_pos = HPS_POS_MS;
+		up_pos = UP_POS_MS;
+	}
 
 	hallEffectTop = new DigitalInput(2);
 	hallEffectBottom = new DigitalInput(1);
@@ -114,7 +120,7 @@ Elevator::Elevator(PowerDistributionPanel *pdp,
 void Elevator::InitializeElevator() {
 
 	if (!is_elevator_init) { //don't see hall effect
-		SetVoltageElevator(0.0);
+		SetVoltage(0.0);
 	}
 
 }
@@ -166,7 +172,7 @@ void Elevator::Move() {
 		u_e = (K_e[0][0] * error_e[0][0]) + (K_e[0][1] * error_e[1][0]);
 
 		u_e += ff + offset;
-		SetVoltageElevator(u_e);
+		SetVoltage(u_e);
 
 	}
 
@@ -178,7 +184,7 @@ double Elevator::GetVoltageElevator() {
 
 }
 
-void Elevator::SetVoltageElevator(double elevator_voltage) {
+void Elevator::SetVoltage(double elevator_voltage) {
 
 	SmartDashboard::PutString("ELEVATOR SAFETY", "none");
 
@@ -309,7 +315,7 @@ void Elevator::ManualElevator(Joystick *joyOpElev) {
 
 	double output = (joyOpElev->GetY()) * 0.5 * 12.0; //multiply by voltage because setvoltageelevator takes voltage
 //
-	SetVoltageElevator(output);
+	SetVoltage(output);
 
 }
 
@@ -336,7 +342,7 @@ void Elevator::ElevatorStateMachine() {
 		SmartDashboard::PutString("ELEVATOR.", "DOWN");
 
 		if (last_elevator_state != DOWN_STATE_E) { //first time in state
-			elevator_profiler->SetFinalGoalElevator(DOWN_POS_E);
+			elevator_profiler->SetFinalGoalElevator(down_pos);
 			elevator_profiler->SetInitPosElevator(GetElevatorPosition());
 		}
 		last_elevator_state = DOWN_STATE_E;
@@ -347,7 +353,7 @@ void Elevator::ElevatorStateMachine() {
 		SmartDashboard::PutString("ELEVATOR.", "MID");
 
 		if (last_elevator_state != MID_STATE_E) { //first time in state
-			elevator_profiler->SetFinalGoalElevator(MID_POS_E);
+			elevator_profiler->SetFinalGoalElevator(mid_pos);
 			elevator_profiler->SetInitPosElevator(GetElevatorPosition());
 		}
 		last_elevator_state = MID_STATE_E;
@@ -358,7 +364,7 @@ void Elevator::ElevatorStateMachine() {
 		SmartDashboard::PutString("ELEVATOR.", "UP");
 
 		if (last_elevator_state != UP_STATE_E) { //first time in state
-			elevator_profiler->SetFinalGoalElevator(UP_POS_E);
+			elevator_profiler->SetFinalGoalElevator(up_pos);
 			elevator_profiler->SetInitPosElevator(GetElevatorPosition());
 		}
 		last_elevator_state = UP_STATE_E;
@@ -372,15 +378,15 @@ void Elevator::ElevatorStateMachine() {
 		last_elevator_state = STOP_STATE_E;
 		break;
 
-	case SWITCH_STATE_E:
+	case HPS_STATE_E:
 
 		SmartDashboard::PutString("ELEVATOR.", "SWITCH");
 
-		if (last_elevator_state != SWITCH_STATE_E) {
-			elevator_profiler->SetFinalGoalElevator(SWITCH_POS_E);
+		if (last_elevator_state != HPS_STATE_E) {
+			elevator_profiler->SetFinalGoalElevator(hps_pos);
 			elevator_profiler->SetInitPosElevator(GetElevatorPosition());
 		}
-		last_elevator_state = SWITCH_STATE_E;
+		last_elevator_state = HPS_STATE_E;
 		break;
 
 	}
@@ -433,7 +439,7 @@ void Elevator::EndElevatorThread() {
 
 }
 
-void Elevator::SetZeroOffsetElevator() {
+void Elevator::SetZeroOffset() {
 
 	position_offset_e =
 			talonElevator1->GetSelectedSensorPosition(0);
@@ -443,7 +449,7 @@ bool Elevator::ZeroEncs() {
 
 	if (zeroing_counter_e < 1) {
 		//Great Robotic Actuation and Controls Execution ()
-		SetZeroOffsetElevator();
+		SetZeroOffset();
 		zeroing_counter_e++;
 		return true;
 	} else {

@@ -368,7 +368,7 @@ void Intake::SetStartingPos(double start) { //not used
 void Intake::InitializeIntake() {
 
 	if (!is_init_intake) {
-		SetVoltageIntake(3.5); //offset is changed accordingly //TODO: increase zeroing voltage //2.5
+		SetVoltage(3.5); //offset is changed accordingly //TODO: increase zeroing voltage //2.5
 
 	}
 
@@ -422,7 +422,7 @@ void Intake::ManualArm(Joystick *joyOpArm) {
 
 	output *= 12.0;
 
-	SetVoltageIntake(output);
+	SetVoltage(output);
 
 }
 
@@ -469,12 +469,12 @@ void Intake::Rotate() { //a vector of a pos vector and a vel vector
 		u_i = (K_i[0][0] * error_i[0][0]) + (K_i[0][1] * error_i[1][0])
 				+ (Kv_i * goal_vel * v_bat_i) * ff_percent_i + offset; // for this system the second row of the K matrix is a copy and does not matter.
 
-		SetVoltageIntake(u_i);
+		SetVoltage(u_i);
 	}
 
 }
 
-void Intake::SetVoltageIntake(double voltage_i) {
+void Intake::SetVoltage(double voltage_i) {
 
 	SmartDashboard::PutString("INTAKE SAFETY", "none");
 

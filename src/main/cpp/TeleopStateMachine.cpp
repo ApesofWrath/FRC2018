@@ -181,7 +181,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		SmartDashboard::PutString("STATE", "GET CUBE STATION");
 
 		if (state_elevator) {
-			elevator->elevator_state = elevator->SWITCH_STATE_E_H;
+			elevator->elevator_state = elevator->HPS_STATE_E_H;
 		}
 		if (state_intake_wheel) {
 			intake->intake_wheel_state = intake->IN_STATE_H;

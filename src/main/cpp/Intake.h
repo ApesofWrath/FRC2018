@@ -98,17 +98,11 @@ public:
 	bool ReleasedCube(int shot_type);
 	bool EncodersRunning();
 
-	void SetVoltageIntake(double voltage_i);
-
-	void SetZeroOffset();
-
 	bool ZeroEnc();
 	void ManualArm(Joystick *joyOpArm);
 	void ManualWheels(Joystick *joyOpWheels);
 
 	bool IsAtAngle(double target_ang);
-
-	//std::vector<std::vector<double> > GetNextRef();
 
 	void IntakeWheelStateMachine();
 	void IntakeArmStateMachine();
@@ -116,6 +110,11 @@ public:
 	void StartIntakeThread();
 	void EndIntakeThread();
 	static void IntakeWrapper(Intake *in);
+
+private:
+
+	void SetZeroOffset();
+	void SetVoltage(double voltage_i);
 
 };
 

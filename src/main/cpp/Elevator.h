@@ -16,23 +16,17 @@
 #include <Timer.h>
 #include <thread>
 
-#define CORNELIUS_EL 0
-
-#if CORNELIUS_EL
-//down pos to 0.02
-#else
-//down pos to 0.00
-#endif
-
 class Elevator {
+
+	double down_pos, mid_pos, hps_pos, up_pos;
+
 public:
 
-	Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_);
+	Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_, bool is_carr);
 
 	TalonSRX *talonElevator1, *talonElevator2;
 
-	DigitalInput *hallEffectTop;
-	DigitalInput *hallEffectBottom;
+	DigitalInput *hallEffectTop, *hallEffectBottom;
 
 	std::thread ElevatorThread;
 
@@ -50,13 +44,8 @@ public:
 	const int MID_STATE_E_H = 2;
 	const int UP_STATE_E_H = 3;
 	const int STOP_STATE_E_H = 4;
-	const int SWITCH_STATE_E_H = 5;
+	const int HPS_STATE_E_H = 5; //human player station
 	int elevator_state = INIT_STATE_E_H;
-
-	const double DOWN_POS_E = 0.005;
-	const double MID_POS_E = 0.668;
-	const double SWITCH_POS_E = 0.5;
-	const double UP_POS_E = 0.89;
 
 	void InitializeElevator();
 
@@ -65,11 +54,8 @@ public:
 	void StopElevator();
 
 	double GetVoltageElevator();
-	void SetVoltageElevator(double elevator_voltage);
 
 	void ManualElevator(Joystick *joyOpElev);
-
-	void SetZeroOffsetElevator();
 
 	double GetElevatorPosition();
 	double GetElevatorVelocity();
@@ -83,6 +69,21 @@ public:
 	void StartElevatorThread();
 	static void ElevatorWrapper(Elevator *elevator_);
 	void EndElevatorThread();
+
+private:
+
+	const double DOWN_POS_CARR = 0.005;
+	const double MID_POS_CARR = 0.668;
+	const double HPS_POS_CARR = 0.5;
+	const double UP_POS_CARR = 0.89;
+
+	const double DOWN_POS_MS = 0.01;
+	const double MID_POS_MS = 0.01;
+	const double HPS_POS_MS = 0.01;
+	const double UP_POS_MS = 0.01;
+
+  void SetVoltage(double elevator_voltage);
+	void SetZeroOffset();
 
 };
 

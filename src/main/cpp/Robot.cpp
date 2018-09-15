@@ -198,7 +198,7 @@ public:
 		pdp_ = new PowerDistributionPanel(3);
 
 		drive_controller = new DriveController(TIME_STEP); //inherits from mother class //pass in time step here for auton subclasses
-		elevator_ = new Elevator(pdp_, elevator_profiler_);
+		elevator_ = new Elevator(pdp_, elevator_profiler_, false); //TODO: make overall changes for new stage
 		intake_ = new Intake(pdp_, intake_profiler_, elevator_);
 		teleop_state_machine = new TeleopStateMachine(elevator_, intake_,
 				drive_controller); //actually has both state machines
@@ -630,49 +630,6 @@ public:
 //		}
 //
 //		last_state_test = 0;
-
-		switch (state_test) { //threads are always running
-
-		case 0:
-			intake_->IntakeArmStateMachine(); //init state
-			intake_->IntakeWheelStateMachine();
-			elevator_->ElevatorStateMachine();
-
-			if (intake_->is_init_intake && elevator_->is_elevator_init) { //once initialized, state machines are ou
-				state_test = 0;
-			}
-			last_state_test = 0;
-
-			break;
-
-		case 1:
-			intake_->IntakeArmStateMachine(); //up
-			intake_->IntakeWheelStateMachine();
-			if (std::abs(intake_->GetAngularPosition() - intake_->UP_ANGLE)
-					< 0.1) {
-				state_test = 2;
-			}
-			break;
-
-		case 2:
-			intake_->intake_arm_state = intake_->DOWN_STATE_H;
-			intake_->IntakeArmStateMachine(); //down states
-			intake_->IntakeWheelStateMachine();
-			if (std::abs(intake_->GetAngularPosition() - intake_->DOWN_ANGLE)
-					< 0.1) {
-				state_test = 3;
-			}
-			break;
-
-		case 3:
-			elevator_->elevator_state = elevator_->MID_STATE_E_H;
-			elevator_->ElevatorStateMachine();
-			if (std::abs(
-					elevator_->GetElevatorPosition() - elevator_->MID_POS_E)
-					< 0.1) {
-
-			}
-		}
 
 	} //arm up, elev down
 

@@ -104,7 +104,7 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 	case GET_CUBE_STATION_STATE_A: //human player station
 
 		SmartDashboard::PutString("STATE", "GET CUBE STATION");
-		elevator_a->elevator_state = elevator_a->SWITCH_STATE_E_H;
+		elevator_a->elevator_state = elevator_a->HPS_STATE_E_H;
 		intake_a->intake_wheel_state = intake_a->IN_STATE_H;
 		intake_a->intake_arm_state = intake_a->DOWN_STATE_H;
 		if (intake_a->HaveCube()) {
