@@ -208,14 +208,11 @@ public:
 				auton_state_machine, drive_controller, elevator_, intake_,
 				TIME_STEP);
 
-		//if(drive_controller->ahrs->IsCalibrating())
-		//drive_controller->ahrs->IsConnected()
-
 		joyThrottle = new Joystick(JOY_THROTTLE);
 		joyWheel = new Joystick(JOY_WHEEL);
 		joyOp = new Joystick(JOY_OP);
 
-		autonChooser.AddDefault(sideDriveForward, sideDriveForward); //drives backward
+		autonChooser.AddDefault(doNothing, doNothing); //temporary for testing
 		autonChooser.AddObject(centerDriveForward, centerDriveForward);
 		autonChooser.AddObject(doNothing, doNothing);
 

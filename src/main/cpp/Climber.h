@@ -17,5 +17,3 @@ public:
 };
 
 #endif /* BARREL_H_ */
-
-//compt bot is comp bt for everything

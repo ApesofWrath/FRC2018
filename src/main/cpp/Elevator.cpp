@@ -9,8 +9,6 @@
 #include "ctre/Phoenix.h"
 #include <WPILib.h>
 
-double ff_percent_e;
-
 #define PI 3.14159265
 
 const int INIT_STATE_E = 0;
@@ -21,21 +19,9 @@ const int STOP_STATE_E = 4;
 const int HPS_STATE_E = 5;
 
 const double free_speed_e = 18730.0; //rad/s
-const double G_e; //gear ratio
-
 const double TICKS_PER_ROT_E = 4096.0; //possibly not
-const double PULLEY_DIAMETER; //radius of the pulley in meters
-
-const double MAX_VOLTAGE_E = 12.0; //CANNOT EXCEED abs(12)  //4.0
+const double MAX_VOLTAGE_E = 12.0; //CANNOT EXCEED abs(12)
 const double MIN_VOLTAGE_E = -10.0;
-
-///
-
-const double friction_loss = 0.75; //checked with graph. ff matches ref vel
-
-const double MAX_THEORETICAL_VELOCITY_E = (free_speed_e / G_e) / 60.0
-		* PULLEY_DIAMETER * PI * friction_loss; //m/s //1.87 //1.32
-const double Kv_e = 1 / MAX_THEORETICAL_VELOCITY_E;
 
 const int ELEVATOR_SLEEP_TIME = 0;
 const double ELEVATOR_WAIT_TIME = 0.01; //sec
@@ -48,6 +34,8 @@ double u_e = 0.0; //this is the output in volts to the motor
 double v_bat_e = 0.0; //this will be the voltage of the battery at every loop
 
 double position_offset_e = 0.0;
+
+double PULLEY_DIAMETER, G_e, ff_percent_e, friction_loss, MAX_THEORETICAL_VELOCITY_E, Kv_e; //gear ratio; //radius of the pulley in meters
 
 std::vector<std::vector<double> > K_e, K_up_e, K_down_e, X_e, error_e;
 
@@ -83,7 +71,9 @@ Elevator::Elevator(PowerDistributionPanel *pdp,
 
 		ff_percent_e = 0;
 
-		pulley_diameter = 0;
+		PULLEY_DIAMETER = 0;
+
+		friction_loss = 0;
 
 		down_pos = 0.01;
 		mid_pos = 0.01;
@@ -104,11 +94,13 @@ Elevator::Elevator(PowerDistributionPanel *pdp,
 				{ 0.0 } };
 		error_e = { { 0.0 }, { 0.0 } };
 
-		G_e =  = (20.0 / 1.0);
+		G_e = (20.0 / 1.0);
 
 		ff_percent_e = 0.4;
 
-		PULLEY_DIAMETER = 0.03832; //something
+		PULLEY_DIAMETER = 0.0381; //radius of the pulley in meters
+
+		friction_loss = 0.75;
 
 		down_pos = 0.005;
 		mid_pos = 0.668;
@@ -128,6 +120,11 @@ Elevator::Elevator(PowerDistributionPanel *pdp,
 		talonElevator2->ConfigPeakCurrentDuration(100, 0);
 
 	}
+
+	MAX_THEORETICAL_VELOCITY_E = (free_speed_e / G_e) / 60.0
+			* PULLEY_DIAMETER * PI * friction_loss; //m/s //1.87 //1.32
+
+	Kv_e = 1 / MAX_THEORETICAL_VELOCITY_E;
 
 	talonElevator1->ConfigSelectedFeedbackSensor(QuadEncoder, 0, 0);
 	talonElevator1->EnableCurrentLimit(false);
