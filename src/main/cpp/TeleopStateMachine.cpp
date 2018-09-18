@@ -36,14 +36,15 @@ int last_state = 0;
 
 bool arm_up = true;
 
-Elevator *elevator;
+Elevator *mds, *carr;
 Intake *intake;
 DriveController *driveController;
 
-TeleopStateMachine::TeleopStateMachine(Elevator *elevator_, Intake *intake_,
+TeleopStateMachine::TeleopStateMachine(Elevator *mds_, Elevator *carr_, Intake *intake_,
 		DriveController *drive_controller) {
 
-	elevator = elevator_;
+	mds = mds_;
+	carr = carr_;
 	intake = intake_;
 	driveController = drive_controller;
 
@@ -55,7 +56,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		bool post_intake, bool raise_to_switch, bool pop_switch, bool raise_to_scale_slow,
 		bool raise_to_scale_med, bool raise_to_scale_fast, bool intake_arm_up,
 		bool intake_arm_mid, bool intake_arm_down, bool mds_up, bool mds_mid, bool mds_down,
-		bool raise_to_scale_backwards, bool carr_down, bool carr_mid, bool carr_up)
+	  bool carr_down, bool carr_mid, bool carr_up, bool raise_to_scale_backwards) {
 
 //	std::cout << "tsm: " << raise_to_scale_fast << " " << raise_to_switch << std::endl;
 
@@ -101,13 +102,13 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 	//elevator
 	if (mds_up) {
 		state_mds = false;
-		elevator->mds_state = elevator->UP_STATE_E_H;
+		mds->elevator_state = mds->UP_STATE_E_H;
 	} else if (mds_mid) {
 		state_mds = false;
-		elevator->mds_state = elevator->MID_STATE_E_H;
+		mds->elevator_state = mds->MID_STATE_E_H;
 	} else if (mds_down) {
 		state_mds = false;
-		elevator->mds_state = elevator->DOWN_STATE_E_H;
+		mds->elevator_state = mds->DOWN_STATE_E_H;
 	} else {
 		state_mds = true;
 	}
@@ -119,7 +120,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 	} else if (carr_down) {
 
 	} else {
-		
+
 	}
 
 
@@ -128,14 +129,14 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 	case INIT_STATE:
 
 		SmartDashboard::PutString("STATE", "INIT"); //stay up
-//		if (intake->GetAngularPosition() > 1.7 && elevator->mds_state == elevator_->UP_STATE_H) { //depends on arm being already initialized from auton //this height is from the safety for the elevator in intake's setvoltage()
-//			elevator->mds_state = elevator->UP_STATE_E_H; //there is the safety for the elevator to not go down if the arm is too high (in setvoltagelevator), but that safety will basically just kill the elevator.
+//		if (intake->GetAngularPosition() > 1.7 && mds->elevator_state == elevator_->UP_STATE_H) { //depends on arm being already initialized from auton //this height is from the safety for the elevator in intake's setvoltage()
+//			mds->elevator_state = mds->UP_STATE_E_H; //there is the safety for the elevator to not go down if the arm is too high (in setvoltagelevator), but that safety will basically just kill the elevator.
 //			//since the elevator will be slowly going down, the arm will not be able to go down for the elevator to actually go down. //will need to manually down if this happens
 //		} else {
-		elevator->mds_state = elevator->DOWN_STATE_E_H;
+		mds->elevator_state = mds->DOWN_STATE_E_H;
 		//	}
 		intake->intake_arm_state = intake->UP_STATE_H;
-		//elevator->mds_state = elevator->INIT_STATE_E_H;
+		//mds->elevator_state = mds->INIT_STATE_E_H;
 		//intake->intake_arm_state = intake->INIT_STATE_H;
 		intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
 		state = WAIT_FOR_BUTTON_STATE;
@@ -173,7 +174,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		SmartDashboard::PutString("STATE", "GET CUBE GROUND");
 
 		if (state_mds) {
-			elevator->mds_state = elevator->DOWN_STATE_E_H;
+			mds->elevator_state = mds->DOWN_STATE_E_H;
 		}
 		if (state_intake_wheel) {
 			intake->intake_wheel_state = intake->IN_STATE_H;
@@ -192,7 +193,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		SmartDashboard::PutString("STATE", "GET CUBE STATION");
 
 		if (state_mds) {
-			elevator->mds_state = elevator->HPS_STATE_E_H;
+			mds->elevator_state = mds->HPS_STATE_E_H;
 		}
 		if (state_intake_wheel) {
 			intake->intake_wheel_state = intake->IN_STATE_H;
@@ -214,7 +215,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 				< (intake->UP_ANGLE + 0.05)); //use same check for the entirety of the state
 
 		if (state_mds && is_intake_low_enough) { //last_state == PLACE_SCALE_BACKWARDS_STATE - don't need this in the check since it will only be true the first time //higher elevator heights will trigger the safety and zero the elevator, bringing it down too early
-			elevator->mds_state = elevator->DOWN_STATE_E_H;
+			mds->elevator_state = mds->DOWN_STATE_E_H;
 			//intake->intake_arm_state = intake->UP_STATE_H; //TODO: why is this commented out
 		}
 		if (state_intake_arm) {
@@ -254,8 +255,8 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 				< (intake->SWITCH_ANGLE + 0.05)); //use same check for the entirety of the state
 
 		if (state_mds && is_intake_low_enough) { //start moving elevator down once intake has reached mid angle
-			elevator->mds_state = elevator->DOWN_STATE_E_H;
-			if (elevator->GetElevatorPosition() < 0.7) {
+			mds->elevator_state = mds->DOWN_STATE_E_H;
+			if (mds->GetElevatorPosition() < 0.7) {
 				intake->intake_arm_state = intake->UP_STATE_H;
 				state = WAIT_FOR_BUTTON_STATE;
 			}
@@ -277,9 +278,9 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 			intake->intake_arm_state = intake->UP_STATE_H;
 		}
 		if (state_mds) {
-			elevator->mds_state = elevator->UP_STATE_E_H;
+			mds->elevator_state = mds->UP_STATE_E_H;
 		}
-		if (elevator->GetElevatorPosition() >= 0.84 //&& state_intake_wheel
+		if (mds->GetElevatorPosition() >= 0.84 //&& state_intake_wheel
 		&& !raise_to_scale_slow) { //hold button until ready to shoot, elevator and intake will be in positio
 			intake->intake_wheel_state = intake->SLOW_STATE_H;
 			if (intake->ReleasedCube(intake->SLOW_SCALE)) {
@@ -299,9 +300,9 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 			intake->intake_arm_state = intake->UP_STATE_H;
 		}
 		if (state_mds) {
-			elevator->mds_state = elevator->UP_STATE_E_H;
+			mds->elevator_state = mds->UP_STATE_E_H;
 		}
-		if (elevator->GetElevatorPosition() >= 0.84 //&& state_intake_wheel
+		if (mds->GetElevatorPosition() >= 0.84 //&& state_intake_wheel
 		&& !raise_to_scale_med) { //hold button until ready to shoot, elevator and intake will be in position
 			intake->intake_wheel_state = intake->SLOW_SCALE_STATE_H;
 			if (intake->ReleasedCube(intake->SLOW_SCALE)) {
@@ -320,9 +321,9 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 			intake->intake_arm_state = intake->UP_STATE_H;
 		}
 		if (state_mds) {
-			elevator->mds_state = elevator->UP_STATE_E_H;
+			mds->elevator_state = mds->UP_STATE_E_H;
 		}
-		if (elevator->GetElevatorPosition() >= 0.84 //&& state_intake_wheel
+		if (mds->GetElevatorPosition() >= 0.84 //&& state_intake_wheel
 		&& !raise_to_scale_fast) { //hold button until ready to shoot, elevator and intake will be in position
 			intake->intake_wheel_state = intake->OUT_STATE_H;
 			if (intake->ReleasedCube(intake->SLOW_SCALE)) {
@@ -338,9 +339,9 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		SmartDashboard::PutString("STATE", "SWITCH");
 
 		if (state_mds) {
-			elevator->mds_state = elevator->MID_STATE_E_H;
+			mds->elevator_state = mds->MID_STATE_E_H;
 		}
-		if (state_intake_arm) { //elevator->GetElevatorPosition() >= 0.1 &&
+		if (state_intake_arm) { //mds->GetElevatorPosition() >= 0.1 &&
 			intake->intake_arm_state = intake->MID_STATE_H;
 		}
 		if (std::abs(intake->GetAngularPosition() - intake->MID_ANGLE) <= 0.2 //switch will not shoot if you press a shooting button
@@ -359,9 +360,9 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		SmartDashboard::PutString("STATE", "POP SWITCH");
 
 		if (state_mds) {
-			elevator->mds_state = elevator->DOWN_STATE_E_H;
+			mds->elevator_state = mds->DOWN_STATE_E_H;
 		}
-		if (state_intake_arm) { //elevator->GetElevatorPosition() >= 0.1 &&
+		if (state_intake_arm) { //mds->GetElevatorPosition() >= 0.1 &&
 			intake->intake_arm_state = intake->UP_STATE_H;
 		}
 		if (std::abs(intake->GetAngularPosition() - intake->UP_ANGLE) <= 0.2 //switch will not shoot if you press a shooting button
@@ -379,16 +380,16 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 
 		SmartDashboard::PutString("STATE", "SCALE BACKWARDS");
 
-		if (state_intake_arm && elevator->GetElevatorPosition() >= .85) { //move to the flippy angle when safe
+		if (state_intake_arm && mds->GetElevatorPosition() >= .85) { //move to the flippy angle when safe
 			intake->intake_arm_state = intake->SWITCH_BACK_SHOT_STATE_H;
-		} else if (state_intake_arm && elevator->GetElevatorPosition() < .85) { //move to normal up angle if not safe to go all the way to flippy angle
+		} else if (state_intake_arm && mds->GetElevatorPosition() < .85) { //move to normal up angle if not safe to go all the way to flippy angle
 			intake->intake_arm_state = intake->UP_STATE_H;
 		}
 
 		if (state_mds) {
-			elevator->mds_state = elevator->UP_STATE_E_H;
+			mds->elevator_state = mds->UP_STATE_E_H;
 		}
-		if (elevator->GetElevatorPosition() >= 0.85
+		if (mds->GetElevatorPosition() >= 0.85
 				&& intake->GetAngularPosition() > 1.98 //&& state_intake_wheel
 				&& !raise_to_scale_backwards) { //shoot if the height of the elevator and the angle of the arm is good enough //hold button until ready to shoot, elevator and intake will be in position
 			if (!intake_spin_slow) {

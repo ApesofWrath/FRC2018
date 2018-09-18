@@ -27,7 +27,7 @@ bool is_intake_low_enough_a = false;
 
 int store_last_state = 0;
 
-Elevator *elevator_a;
+Elevator *mds_a, *carr_a;
 Intake *intake_a;
 DriveController *driveController_a;
 
@@ -35,10 +35,11 @@ Timer *autonTimer = new Timer();
 
 std::thread AutonStateMachineThread;
 
-AutonStateMachine::AutonStateMachine(Elevator *elevator_, Intake *intake_,
+AutonStateMachine::AutonStateMachine(Elevator *mds_, Elevator *carr_, Intake *intake_,
 		DriveController *drive_controller) {
 
-	elevator_a = elevator_;
+	mds_a = mds_;
+	carr_a = carr_;
 	intake_a = intake_;
 	driveController_a = drive_controller;
 
@@ -53,7 +54,8 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 		bool intake_spin_stop, bool get_cube_ground, bool get_cube_station,
 		bool post_intake, bool raise_to_switch, bool raise_to_scale,
 		bool intake_arm_up, bool intake_arm_mid, bool intake_arm_down,
-		bool elevator_up, bool elevator_mid, bool elevator_down,
+		bool mds_up, bool mds_mid, bool mds_down, bool carr_up,
+		bool carr_mid, bool carr_down,
 		bool raise_to_scale_backwards) {
 
 	switch (state_a) {
@@ -61,10 +63,10 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 	case INIT_STATE_A:
 		//this always has to run only once
 		SmartDashboard::PutString("STATE", "INIT");
-		elevator_a->elevator_state = elevator_a->INIT_STATE_E_H;
+		mds_a->elevator_state = mds_a->INIT_STATE_E_H;
 		intake_a->intake_arm_state = intake_a->INIT_STATE_H;
 		intake_a->intake_wheel_state = intake_a->STOP_WHEEL_STATE_H;
-		if (elevator_a->is_elevator_init && intake_a->is_init_intake) {
+		if (mds_a->is_elevator_init && intake_a->is_init_intake) {
 			state_a = WAIT_FOR_BUTTON_STATE_A;
 		}
 		last_state_a = INIT_STATE_A;
@@ -92,7 +94,7 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 	case GET_CUBE_GROUND_STATE_A:
 
 		SmartDashboard::PutString("STATE", "GET CUBE GROUND");
-		elevator_a->elevator_state = elevator_a->DOWN_STATE_E_H;
+		mds_a->elevator_state = mds_a->DOWN_STATE_E_H;
 		intake_a->intake_wheel_state = intake_a->IN_STATE_H;
 		intake_a->intake_arm_state = 3;
 		if (intake_a->HaveCube()) {
@@ -104,7 +106,7 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 	case GET_CUBE_STATION_STATE_A: //human player station
 
 		SmartDashboard::PutString("STATE", "GET CUBE STATION");
-		elevator_a->elevator_state = elevator_a->HPS_STATE_E_H;
+		mds_a->elevator_state = mds_a->HPS_STATE_E_H;
 		intake_a->intake_wheel_state = intake_a->IN_STATE_H;
 		intake_a->intake_arm_state = intake_a->DOWN_STATE_H;
 		if (intake_a->HaveCube()) {
@@ -121,7 +123,7 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 //			store_last_state = last_state_a;
 //		}
 
-		elevator_a->elevator_state = elevator_a->DOWN_STATE_E_H;
+		mds_a->elevator_state = mds_a->DOWN_STATE_E_H;
 
 		intake_a->intake_arm_state = intake_a->UP_STATE_H;
 		intake_a->intake_wheel_state = intake_a->STOP_WHEEL_STATE_H;
@@ -147,8 +149,8 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 				< (intake_a->SWITCH_ANGLE + 0.05)); //use same check for the entirety of the state
 
 		if (is_intake_low_enough_a) { //start moving elevator down once intake has reached mid angle
-			elevator_a->elevator_state = elevator_a->DOWN_STATE_E_H;
-			if (elevator_a->GetElevatorPosition() < 0.7) {
+			mds_a->elevator_state = mds_a->DOWN_STATE_E_H;
+			if (mds_a->GetElevatorPosition() < 0.7) {
 				intake_a->intake_arm_state = intake_a->UP_STATE_H;
 				state_a = WAIT_FOR_BUTTON_STATE_A;
 			}
@@ -165,8 +167,8 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 
 		SmartDashboard::PutString("STATE", "SCALE");
 		intake_a->intake_arm_state = intake_a->UP_STATE_H;
-		elevator_a->elevator_state = elevator_a->UP_STATE_E_H;
-		if (elevator_a->GetElevatorPosition() >= 0.55) { //start shooting at 0.6
+		mds_a->elevator_state = mds_a->UP_STATE_E_H;
+		if (mds_a->GetElevatorPosition() >= 0.55) { //start shooting at 0.6
 			intake_a->intake_wheel_state = intake_a->OUT_STATE_H;
 			if (intake_a->ReleasedCube(intake_a->SCALE)) {
 				state_a = POST_INTAKE_SWITCH_STATE_A;
@@ -180,7 +182,7 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 	case PLACE_SWITCH_STATE_A:
 
 		SmartDashboard::PutString("STATE", "SWITCH.");
-		elevator_a->elevator_state = elevator_a->MID_STATE_E_H;
+		mds_a->elevator_state = mds_a->MID_STATE_E_H;
 		intake_a->intake_arm_state = intake_a->MID_STATE_H;
 		if (std::abs(intake_a->GetAngularPosition() - intake_a->MID_ANGLE)
 				<= 0.2) { //start shooting when high enough
@@ -198,7 +200,7 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 
 		SmartDashboard::PutString("STATE", "SCALE BACKWARDS");
 
-		double el_pos = elevator_a->GetElevatorPosition();
+		double el_pos = mds_a->GetElevatorPosition();
 		double arm_pos = intake_a->GetAngularPosition();
 
 		if (el_pos >= .85) { //move to the flippy angle when safe
@@ -206,7 +208,7 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 		} else if (el_pos < .85) { //move to normal up angle if not safe to go all the way to flippy angle
 			intake_a->intake_arm_state = intake_a->UP_STATE_H;
 		}
-		elevator_a->elevator_state = elevator_a->UP_STATE_E_H;
+		mds_a->elevator_state = mds_a->UP_STATE_E_H;
 		if (el_pos >= 0.82
 				&& arm_pos > 1.9 && shoot_cube) { //shoot if the height of the elevator and the angle of the arm is good enough //WAS 1.98
 			intake_a->intake_wheel_state = intake_a->OUT_STATE_H;
@@ -226,11 +228,11 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 
 void AutonStateMachine::Initialize() {
 
-	elevator_a->zeroing_counter_e = 0;
+	mds_a->zeroing_counter_e = 0;
 	intake_a->zeroing_counter_i = 0;
 
 	intake_a->is_init_intake = false;
-	elevator_a->is_elevator_init = false;
+	mds_a->is_elevator_init = false;
 
 	state_a = INIT_STATE_A;
 
