@@ -55,71 +55,99 @@ int encoder_counter_e = 0;
 
 int TOP_HALL, BOT_HALL;
 
-Elevator::Elevator(PowerDistributionPanel *pdp,
-		ElevatorMotionProfiler *elevator_profiler_, bool is_carr) {
+std::string elev_type;
 
-	if (is_carr) { //carr = second stage
+Elevator::Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_, Elevator *mds_) { //carr
 
-		K_down_e =
-				{ {  0, 0 }, { 0, 0 } }; //controller matrix that is calculated in the Python simulation 17.22, 0.94
-		K_up_e = { { 0, 0 }, { 0, 0 } }; //controller matrix that is calculated in the Python simulation
-		X_e = { { 0.0 }, //state matrix filled with the state of the states of the system //not used
-				{ 0.0 } };
-		error_e = { { 0.0 }, { 0.0 } };
+	K_down_e =
+			{ {  0, 0 }, { 0, 0 } }; //controller matrix that is calculated in the Python simulation 17.22, 0.94
+	K_up_e = { { 0, 0 }, { 0, 0 } }; //controller matrix that is calculated in the Python simulation
+	X_e = { { 0.0 }, //state matrix filled with the state of the states of the system //not used
+			{ 0.0 } };
+	error_e = { { 0.0 }, { 0.0 } };
 
-		G_e = 0;
+	G_e = 0;
 
-		ff_percent_e = 0;
+	ff_percent_e = 0;
 
-		PULLEY_DIAMETER = 0;
+	PULLEY_DIAMETER = 0;
 
-		friction_loss = 0;
+	friction_loss = 0;
 
-		down_pos = 0.01;
-		mid_pos = 0.01;
-		hps_pos = 0.01;
-		up_pos = 0.01;
+	down_pos = 0.01;
+	mid_pos = 0.01;
+	hps_pos = 0.01;
+	up_pos = 0.01;
 
-		TOP_HALL = 0;
-		BOT_HALL = 0;
+	TOP_HALL = 0;
+	BOT_HALL = 0;
 
-		talonElevator1 = new TalonSRX(-1);
+	talonElevator1 = new TalonSRX(-1);
 
-	} else { //middle stage = the stage right now
+	elev_type = "CARR";
 
-		K_down_e =
-				{ {  27.89, 4.12 }, { 25.90, 1.57 } }; //controller matrix that is calculated in the Python simulation 17.22, 0.94
-		K_up_e = { { 27.89, 4.12 }, { 22.11, 1.75 } }; //controller matrix that is calculated in the Python simulation
-		X_e = { { 0.0 }, //state matrix filled with the state of the states of the system //not used
-				{ 0.0 } };
-		error_e = { { 0.0 }, { 0.0 } };
+	MAX_THEORETICAL_VELOCITY_E = (free_speed_e / G_e) / 60.0
+			* PULLEY_DIAMETER * PI * friction_loss; //m/s //1.87 //1.32
 
-		G_e = (20.0 / 1.0);
+	Kv_e = 1 / MAX_THEORETICAL_VELOCITY_E;
 
-		ff_percent_e = 0.4;
+	talonElevator1->ConfigSelectedFeedbackSensor(QuadEncoder, 0, 0);
+	talonElevator1->EnableCurrentLimit(false);
+	talonElevator1->ConfigContinuousCurrentLimit(40, 0);
+	talonElevator1->ConfigPeakCurrentLimit(80, 0);
+	talonElevator1->ConfigPeakCurrentDuration(100, 0);
 
-		PULLEY_DIAMETER = 0.0381; //radius of the pulley in meters
+	talonElevator1->ConfigVelocityMeasurementPeriod(
+			VelocityMeasPeriod::Period_10Ms, 0);
+	talonElevator1->ConfigVelocityMeasurementWindow(5, 0); //5 samples for every talon return
 
-		friction_loss = 0.75;
+	talonElevator1->SetControlFramePeriod(ControlFrame::Control_3_General, 5); //set talons every 5ms, default is 10
+	talonElevator1->SetStatusFramePeriod(StatusFrameEnhanced::Status_2_Feedback0, 10, 0); //for getselectedsensor //getselectedsensor defaults to 10ms anyway. don't use getsensorcollection because that defaults to 160ms
 
-		down_pos = 0.005;
-		mid_pos = 0.668;
-		hps_pos = 0.5;
-		up_pos = 0.89;
+	hallEffectTop = new DigitalInput(TOP_HALL);
+	hallEffectBottom = new DigitalInput(BOT_HALL);
 
-		TOP_HALL = 2;
-		BOT_HALL = 1;
+	elevator_profiler = elevator_profiler_;
 
-		talonElevator1 = new TalonSRX(33);
+	pdp_e = pdp;
 
-		talonElevator2 = new TalonSRX(0);
-		talonElevator2->Set(ControlMode::Follower, 33); //re-slaved
-		talonElevator2->EnableCurrentLimit(false);
-		talonElevator2->ConfigContinuousCurrentLimit(40, 0);
-		talonElevator2->ConfigPeakCurrentLimit(80, 0);
-		talonElevator2->ConfigPeakCurrentDuration(100, 0);
+}
 
-	}
+Elevator::Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_) { //mds
+
+	K_down_e =
+			{ {  27.89, 4.12 }, { 25.90, 1.57 } }; //controller matrix that is calculated in the Python simulation 17.22, 0.94
+	K_up_e = { { 27.89, 4.12 }, { 22.11, 1.75 } }; //controller matrix that is calculated in the Python simulation
+	X_e = { { 0.0 }, //state matrix filled with the state of the states of the system //not used
+			{ 0.0 } };
+	error_e = { { 0.0 }, { 0.0 } };
+
+	G_e = (20.0 / 1.0);
+
+	ff_percent_e = 0.4;
+
+	PULLEY_DIAMETER = 0.0381; //radius of the pulley in meters
+
+	friction_loss = 0.75;
+
+	down_pos = 0.005;
+	mid_pos = 0.668;
+	hps_pos = 0.5;
+	up_pos = 0.89;
+
+	TOP_HALL = 2;
+	BOT_HALL = 1;
+
+	talonElevator1 = new TalonSRX(33);
+
+	talonElevator2 = new TalonSRX(0);
+	talonElevator2->Set(ControlMode::Follower, 33); //re-slaved
+	talonElevator2->EnableCurrentLimit(false);
+	talonElevator2->ConfigContinuousCurrentLimit(40, 0);
+	talonElevator2->ConfigPeakCurrentLimit(80, 0);
+	talonElevator2->ConfigPeakCurrentDuration(100, 0);
+
+	elev_type = "MS";
 
 	MAX_THEORETICAL_VELOCITY_E = (free_speed_e / G_e) / 60.0
 			* PULLEY_DIAMETER * PI * friction_loss; //m/s //1.87 //1.32
@@ -217,25 +245,25 @@ double Elevator::GetVoltageElevator() {
 
 void Elevator::SetVoltage(double elevator_voltage) {
 
-	SmartDashboard::PutString("ELEVATOR SAFETY", "none");
+	SmartDashboard::PutString(elev_type + " SAFETY", "none");
 
 	is_at_bottom_e = IsAtBottomElevator();
 	is_at_top = IsAtTopElevator();
 
 	double el_pos = GetElevatorPosition();
 
-	SmartDashboard::PutNumber("EL POS", el_pos);
+	SmartDashboard::PutNumber(elev_type + " POS", el_pos);
 
 	//upper soft limit
 	if(el_pos >= (0.92) && elevator_voltage > 0.0) { //at max height and still trying to move up
 		elevator_voltage = 0.0;
-		SmartDashboard::PutString("ELEVATOR SAFETY", "upper soft");
+		SmartDashboard::PutString(elev_type + " SAFETY", "upper soft");
 	}
 
 	//lower soft limit
 	if (el_pos <= (-0.05) && elevator_voltage < 0.0) { //at max height and still trying to move up
 		elevator_voltage = 0.0;
-		SmartDashboard::PutString("ELEVATOR SAFETY", "lower soft");
+		SmartDashboard::PutString(elev_type + " SAFETY", "lower soft");
 	}
 
 	if (!is_elevator_init) { //changed this to just zero on start up (as it always be at the bottom at the start of the match)
@@ -245,7 +273,7 @@ void Elevator::SetVoltage(double elevator_voltage) {
 	}
 
 	if (is_at_top && elevator_voltage > 0.1) {
-		SmartDashboard::PutString("ELEVATOR SAFETY", "upper hall eff");
+		SmartDashboard::PutString(elev_type + " SAFETY", "upper hall eff");
 		elevator_voltage = 0.0;
 	}
 
@@ -270,16 +298,16 @@ void Elevator::SetVoltage(double elevator_voltage) {
 
 	if (voltage_safety_e) {
 		elevator_voltage = 0.0;
-		SmartDashboard::PutString("ELEVATOR SAFETY", "stall");
+		SmartDashboard::PutString(elev_type + " SAFETY", "stall");
 
 	}
 
 	if(keep_elevator_up) {
 		elevator_voltage = 1.0;
-		SmartDashboard::PutString("ELEVATOR SAFETY", "arm safety");
+		SmartDashboard::PutString(elev_type + " SAFETY", "arm safety");
 	}
 
-	SmartDashboard::PutNumber("El Volt", elevator_voltage);
+	SmartDashboard::PutNumber(elev_type + " Volt", elevator_voltage);
 
 	elevator_voltage /= 12.0;
 
@@ -357,7 +385,7 @@ void Elevator::ElevatorStateMachine() {
 
 	case INIT_STATE_E:
 
-		SmartDashboard::PutString("ELEVATOR.", "INIT");
+		SmartDashboard::PutString(elev_type, "INIT");
 		if (is_elevator_init) {
 			elevator_state = DOWN_STATE_E;
 		} else {
@@ -368,7 +396,7 @@ void Elevator::ElevatorStateMachine() {
 
 	case DOWN_STATE_E:
 
-		SmartDashboard::PutString("ELEVATOR.", "DOWN");
+		SmartDashboard::PutString(elev_type, "DOWN");
 
 		if (last_elevator_state != DOWN_STATE_E) { //first time in state
 			elevator_profiler->SetFinalGoalElevator(down_pos);
@@ -379,7 +407,7 @@ void Elevator::ElevatorStateMachine() {
 
 	case MID_STATE_E:
 
-		SmartDashboard::PutString("ELEVATOR.", "MID");
+		SmartDashboard::PutString(elev_type, "MID");
 
 		if (last_elevator_state != MID_STATE_E) { //first time in state
 			elevator_profiler->SetFinalGoalElevator(mid_pos);
@@ -390,7 +418,7 @@ void Elevator::ElevatorStateMachine() {
 
 	case UP_STATE_E:
 
-		SmartDashboard::PutString("ELEVATOR.", "UP");
+		SmartDashboard::PutString(elev_type, "UP");
 
 		if (last_elevator_state != UP_STATE_E) { //first time in state
 			elevator_profiler->SetFinalGoalElevator(up_pos);
@@ -401,14 +429,14 @@ void Elevator::ElevatorStateMachine() {
 
 	case STOP_STATE_E:
 
-		SmartDashboard::PutString("ELEVATOR.", "STOP");
+		SmartDashboard::PutString(elev_type, "STOP");
 		StopElevator();
 		last_elevator_state = STOP_STATE_E;
 		break;
 
 	case HPS_STATE_E:
 
-		SmartDashboard::PutString("ELEVATOR.", "SWITCH");
+		SmartDashboard::PutString(elev_type, "SWITCH");
 
 		if (last_elevator_state != HPS_STATE_E) {
 			elevator_profiler->SetFinalGoalElevator(hps_pos);

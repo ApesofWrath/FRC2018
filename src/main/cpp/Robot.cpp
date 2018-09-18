@@ -117,7 +117,8 @@ public:
 
 	DriveController *drive_controller;
 	PowerDistributionPanel *pdp_;
-	Elevator *elevator_;
+	Elevator *elevator_, *carr_;
+	Elevator *mds_;
 	Intake *intake_;
 	TeleopStateMachine *teleop_state_machine;
 	AutonStateMachine *auton_state_machine;
@@ -198,7 +199,9 @@ public:
 		pdp_ = new PowerDistributionPanel(3);
 
 		drive_controller = new DriveController(TIME_STEP); //inherits from mother class //pass in time step here for auton subclasses
-		elevator_ = new Elevator(pdp_, elevator_profiler_, false); //TODO: make overall changes for new stage
+
+		elevator_ = new Elevator(pdp_, elevator_profiler_); //TODO: make overall changes for new stage
+		carr_ = new Elevator(pdp_, elevator_profiler_, elevator_);
 		intake_ = new Intake(pdp_, intake_profiler_, elevator_);
 		teleop_state_machine = new TeleopStateMachine(elevator_, intake_,
 				drive_controller); //actually has both state machines

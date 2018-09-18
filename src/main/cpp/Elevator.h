@@ -15,6 +15,7 @@
 #include <chrono>
 #include <Timer.h>
 #include <thread>
+#include <string>
 
 class Elevator {
 
@@ -22,7 +23,8 @@ class Elevator {
 
 public:
 
-	Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_, bool is_carr);
+	Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_); //mds
+	Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_, Elevator *mds_);
 
 	TalonSRX *talonElevator1, *talonElevator2;
 
@@ -47,9 +49,9 @@ public:
 	const int HPS_STATE_E_H = 5; //human player station
 	int elevator_state = INIT_STATE_E_H;
 
-	void InitializeElevator();
+	void InitializeElevator(); //should be able to initialize carr/ms at same time
 
-	void ElevatorStateMachine();
+	void ElevatorStateMachine(); //same for both
 	void Move();
 	void StopElevator();
 
