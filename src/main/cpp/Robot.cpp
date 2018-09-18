@@ -70,9 +70,15 @@ public:
 	const int INTAKE_ARM_DOWN = 15;
 	const int INTAKE_ARM_BACKWARDS = 99; //no manual for this one
 
-	const int ELEVATOR_UP = 3;
-	const int ELEVATOR_MID = 16;
-	const int ELEVATOR_DOWN = 9;
+	const int MDS_UP = 3;
+	const int MDS_MID = 16;
+	const int MDS_DOWN = 9;
+
+	const int CARR_UP = 0;
+	const int CARR_MID = 33;
+	const int CARR_DOWN = 56;
+
+
 	//no human player station height
 
 #else
@@ -96,9 +102,9 @@ public:
 	const int INTAKE_ARM_DOWN = 9;
 	const int INTAKE_ARM_BACKWARDS = 4;//THROTTLE
 
-	const int ELEVATOR_UP = 10;
-	const int ELEVATOR_MID = 11;
-	const int ELEVATOR_DOWN = 12;
+	const int MDS_UP = 10;
+	const int MDS_MID = 11;
+	const int MDS_DOWN = 12;
 	//no human player station height
 
 #endif
@@ -107,8 +113,9 @@ public:
 			intake_spin_med, intake_spin_stop, get_cube_ground,
 			get_cube_station, post_intake, raise_to_switch, pop_switch,
 			raise_to_scale_slow, raise_to_scale_med, raise_to_scale_fast,
-			intake_arm_up, intake_arm_mid, intake_arm_down, elevator_up,
-			elevator_mid, elevator_down, raise_to_scale_backwards; //for BOTH state machines
+			intake_arm_up, intake_arm_mid, intake_arm_down, mds_up,
+			mds_mid, mds_down, raise_to_scale_backwards, carr_down,
+			carr_mid, carr_up; //for BOTH state machines
 
 	bool is_heading, is_vision, is_fc; //drive
 	bool is_auto_shift;
@@ -255,7 +262,7 @@ public:
 				&intake_spin_in, &intake_spin_out, &intake_spin_slow, &intake_spin_stop,
 				&get_cube_ground, &get_cube_station, &post_intake,
 				&raise_to_switch, &raise_to_scale, &intake_arm_up,
-				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
+				&intake_arm_mid, &intake_arm_down, &_up, &elevator_mid,
 				&elevator_down, &raise_to_scale_backwards);
 
 		teleop_state_machine->StartStateMachineThread(
@@ -540,17 +547,21 @@ public:
 		raise_to_scale_med = joyOp->GetRawButton(RAISE_TO_SCALE_MED);
 		raise_to_scale_slow = joyOp->GetRawButton(RAISE_TO_SCALE_SLOW);
 		raise_to_scale_fast = joyOp->GetRawButton(RAISE_TO_SCALE_FAST);
-		raise_to_scale_backwards = joyOp->GetRawButton(
-				RAISE_TO_SCALE_BACKWARDS);
+		raise_to_scale_backwards = joyOp->GetRawButton(RAISE_TO_SCALE_BACKWARDS);
 
 		intake_spin_med = false; //joyOp->GetRawButton(INTAKE_SPIN_MED); //operator switch pop shot
 		intake_spin_stop = false;
 		intake_arm_up = joyOp->GetRawButton(INTAKE_ARM_UP);
 		intake_arm_mid = false; // joyOp->GetRawButton(INTAKE_ARM_MID);
 		intake_arm_down = joyOp->GetRawButton(INTAKE_ARM_DOWN);
-		elevator_up = joyOp->GetRawButton(ELEVATOR_UP);
-		elevator_mid = joyOp->GetRawButton(ELEVATOR_MID);
-		elevator_down = joyOp->GetRawButton(ELEVATOR_DOWN);
+
+		mds_up = joyOp->GetRawButton(MDS_UP);
+		mds_mid = joyOp->GetRawButton(MDS_MID);
+		mds_down = joyOp->GetRawButton(MDS_DOWN);
+
+		carr_up = joyOp->GetRawButton(CARR_UP);
+		carr_mid = joyOp->GetRawButton(CARR_MID);
+		carr_down = joyOp->GetRawButton(CARR_DOWN);
 
 		intake_spin_in = joyThrottle->GetRawButton(INTAKE_SPIN_IN); //these all are manual and can always happen
 		intake_spin_out = joyThrottle->GetRawButton(INTAKE_SPIN_OUT);
@@ -560,6 +571,7 @@ public:
 		is_heading = joyThrottle->GetRawButton(HEADING_BUTTON);
 		is_vision = false;
 		is_fc = false;
+
 
 		if (low_gear) {
 			is_auto_shift = false;
