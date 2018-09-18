@@ -23,8 +23,7 @@ class Elevator {
 
 public:
 
-	Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_); //mds
-	Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_, Elevator *mds_);
+	Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_, bool is_carr);
 
 	TalonSRX *talonElevator1, *talonElevator2;
 

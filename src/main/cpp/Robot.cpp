@@ -200,8 +200,8 @@ public:
 
 		drive_controller = new DriveController(TIME_STEP); //inherits from mother class //pass in time step here for auton subclasses
 
-		elevator_ = new Elevator(pdp_, elevator_profiler_); //TODO: make overall changes for new stage
-		carr_ = new Elevator(pdp_, elevator_profiler_, elevator_);
+		elevator_ = new Elevator(pdp_, elevator_profiler_, false); //TODO: make overall changes for new stage
+		carr_ = new Elevator(pdp_, elevator_profiler_, true);
 		intake_ = new Intake(pdp_, intake_profiler_, elevator_);
 		teleop_state_machine = new TeleopStateMachine(elevator_, intake_,
 				drive_controller); //actually has both state machines
