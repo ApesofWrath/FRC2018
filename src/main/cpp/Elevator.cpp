@@ -57,97 +57,74 @@ int TOP_HALL, BOT_HALL;
 
 std::string elev_type;
 
-Elevator::Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_, Elevator *mds_) { //carr
+Elevator::Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_, bool is_carr) { //carr
 
-	K_down_e =
-			{ {  0, 0 }, { 0, 0 } }; //controller matrix that is calculated in the Python simulation 17.22, 0.94
-	K_up_e = { { 0, 0 }, { 0, 0 } }; //controller matrix that is calculated in the Python simulation
-	X_e = { { 0.0 }, //state matrix filled with the state of the states of the system //not used
-			{ 0.0 } };
-	error_e = { { 0.0 }, { 0.0 } };
+	if (is_carr) { //carr = second stage
 
-	G_e = 0;
+		K_down_e =
+				{ {  0, 0 }, { 0, 0 } }; //controller matrix that is calculated in the Python simulation 17.22, 0.94
+		K_up_e = { { 0, 0 }, { 0, 0 } }; //controller matrix that is calculated in the Python simulation
+		X_e = { { 0.0 }, //state matrix filled with the state of the states of the system //not used
+				{ 0.0 } };
+		error_e = { { 0.0 }, { 0.0 } };
 
-	ff_percent_e = 0;
+		G_e = 0;
 
-	PULLEY_DIAMETER = 0;
+		ff_percent_e = 0;
 
-	friction_loss = 0;
+		PULLEY_DIAMETER = 0;
 
-	down_pos = 0.01;
-	mid_pos = 0.01;
-	hps_pos = 0.01;
-	up_pos = 0.01;
+		friction_loss = 0;
 
-	TOP_HALL = 0;
-	BOT_HALL = 0;
+		down_pos = 0.01;
+		mid_pos = 0.01;
+		hps_pos = 0.01;
+		up_pos = 0.01;
 
-	talonElevator1 = new TalonSRX(-1);
+		TOP_HALL = 0;
+		BOT_HALL = 0;
 
-	elev_type = "CARR";
+		elev_type = "CARR";
 
-	MAX_THEORETICAL_VELOCITY_E = (free_speed_e / G_e) / 60.0
-			* PULLEY_DIAMETER * PI * friction_loss; //m/s //1.87 //1.32
+		talonElevator1 = new TalonSRX(-1);
 
-	Kv_e = 1 / MAX_THEORETICAL_VELOCITY_E;
+	} else { //middle stage = the stage right now
 
-	talonElevator1->ConfigSelectedFeedbackSensor(QuadEncoder, 0, 0);
-	talonElevator1->EnableCurrentLimit(false);
-	talonElevator1->ConfigContinuousCurrentLimit(40, 0);
-	talonElevator1->ConfigPeakCurrentLimit(80, 0);
-	talonElevator1->ConfigPeakCurrentDuration(100, 0);
+		K_down_e =
+				{ {  27.89, 4.12 }, { 25.90, 1.57 } }; //controller matrix that is calculated in the Python simulation 17.22, 0.94
+		K_up_e = { { 27.89, 4.12 }, { 22.11, 1.75 } }; //controller matrix that is calculated in the Python simulation
+		X_e = { { 0.0 }, //state matrix filled with the state of the states of the system //not used
+				{ 0.0 } };
+		error_e = { { 0.0 }, { 0.0 } };
 
-	talonElevator1->ConfigVelocityMeasurementPeriod(
-			VelocityMeasPeriod::Period_10Ms, 0);
-	talonElevator1->ConfigVelocityMeasurementWindow(5, 0); //5 samples for every talon return
+		G_e = (20.0 / 1.0);
 
-	talonElevator1->SetControlFramePeriod(ControlFrame::Control_3_General, 5); //set talons every 5ms, default is 10
-	talonElevator1->SetStatusFramePeriod(StatusFrameEnhanced::Status_2_Feedback0, 10, 0); //for getselectedsensor //getselectedsensor defaults to 10ms anyway. don't use getsensorcollection because that defaults to 160ms
+		ff_percent_e = 0.4;
 
-	hallEffectTop = new DigitalInput(TOP_HALL);
-	hallEffectBottom = new DigitalInput(BOT_HALL);
+		PULLEY_DIAMETER = 0.0381; //radius of the pulley in meters
 
-	elevator_profiler = elevator_profiler_;
+		friction_loss = 0.75;
 
-	pdp_e = pdp;
+		down_pos = 0.005;
+		mid_pos = 0.668;
+		hps_pos = 0.5;
+		up_pos = 0.89;
 
-}
+		TOP_HALL = 2;
+		BOT_HALL = 1;
 
-Elevator::Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_) { //mds
+		elev_type = "MDS";
 
-	K_down_e =
-			{ {  27.89, 4.12 }, { 25.90, 1.57 } }; //controller matrix that is calculated in the Python simulation 17.22, 0.94
-	K_up_e = { { 27.89, 4.12 }, { 22.11, 1.75 } }; //controller matrix that is calculated in the Python simulation
-	X_e = { { 0.0 }, //state matrix filled with the state of the states of the system //not used
-			{ 0.0 } };
-	error_e = { { 0.0 }, { 0.0 } };
+		talonElevator1 = new TalonSRX(33);
 
-	G_e = (20.0 / 1.0);
+		talonElevator2 = new TalonSRX(0);
+		talonElevator2->Set(ControlMode::Follower, 33); //re-slaved
+		talonElevator2->EnableCurrentLimit(false);
+		talonElevator2->ConfigContinuousCurrentLimit(40, 0);
+		talonElevator2->ConfigPeakCurrentLimit(80, 0);
+		talonElevator2->ConfigPeakCurrentDuration(100, 0);
 
-	ff_percent_e = 0.4;
-
-	PULLEY_DIAMETER = 0.0381; //radius of the pulley in meters
-
-	friction_loss = 0.75;
-
-	down_pos = 0.005;
-	mid_pos = 0.668;
-	hps_pos = 0.5;
-	up_pos = 0.89;
-
-	TOP_HALL = 2;
-	BOT_HALL = 1;
-
-	talonElevator1 = new TalonSRX(33);
-
-	talonElevator2 = new TalonSRX(0);
-	talonElevator2->Set(ControlMode::Follower, 33); //re-slaved
-	talonElevator2->EnableCurrentLimit(false);
-	talonElevator2->ConfigContinuousCurrentLimit(40, 0);
-	talonElevator2->ConfigPeakCurrentLimit(80, 0);
-	talonElevator2->ConfigPeakCurrentDuration(100, 0);
-
-	elev_type = "MS";
+	}
 
 	MAX_THEORETICAL_VELOCITY_E = (free_speed_e / G_e) / 60.0
 			* PULLEY_DIAMETER * PI * friction_loss; //m/s //1.87 //1.32
