@@ -43,7 +43,7 @@ DriveController *driveController;
 TeleopStateMachine::TeleopStateMachine(Elevator *mds_, Elevator *carr_, Intake *intake_,
 		DriveController *drive_controller) {
 
-	mds = mds_;
+	mds = mds_;  //current elevator will be middle stage
 	carr = carr_;
 	intake = intake_;
 	driveController = drive_controller;
