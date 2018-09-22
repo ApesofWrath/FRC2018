@@ -31,6 +31,8 @@ public:
 	TalonSRX *talonIntake1, *talonIntake2, *talonIntakeArm;
 	DigitalInput *hallEffectIntake; //for bottom
 
+	Solenoid *intakeSolenoid1, *intakeSolenoid2;
+
 	std::thread IntakeThread;
 
 	std::ofstream currents_file;
@@ -64,6 +66,10 @@ public:
 	const int POP_SWITCH_STATE_H = 5;
 	int intake_wheel_state = STOP_WHEEL_STATE_H;
 
+	const int CLOSE_STATE_H = 0;
+	const int OPEN_STATE_H = 1;
+	int intake_solenoid_state = CLOSE_STATE_H;
+
 	const double DOWN_ANGLE = 0.0; //instead of changing the offset
 	const double MID_ANGLE = 0.55;
 	const double SWITCH_ANGLE = 1.0; //safety for elev
@@ -88,6 +94,8 @@ public:
 	void StopWheels();
 	void StopArm();
 	void Pop();
+	void Open();
+	void Close();
 
 	void Rotate();
 	double GetAngularVelocity();
@@ -106,6 +114,7 @@ public:
 
 	void IntakeWheelStateMachine();
 	void IntakeArmStateMachine();
+	void IntakeSolenoidStateMachine();
 
 	void StartIntakeThread();
 	void EndIntakeThread();

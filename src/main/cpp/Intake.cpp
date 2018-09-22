@@ -45,6 +45,9 @@ const int SLOW_STATE = 3;
 const int SLOW_SCALE_STATE = 4;
 const int POP_SWITCH_STATE = 5;
 
+const int CLOSE_STATE = 0; //solenoid state machine
+const int OPEN_STATE = 1;
+
 const double TICKS_PER_ROT_I = 4096.0;
 const double MAX_VOLTAGE_I = 12.0; //CANNOT EXCEED abs(10)
 const double MIN_VOLTAGE_I = -12.0;
@@ -72,6 +75,7 @@ const double INTAKE_WAIT_TIME = 0.01; //sec
 
 int last_intake_state = 0; //cannot equal the first state or profile will not set the first time
 int last_intake_wheel_state = 3; //current limits first time
+int last_intake_solenoid_state = 0;
 
 double u_i = 0; //this is the input in volts to the motor
 double v_bat_i = 0.0; //will be set to pdp's voltage
@@ -194,6 +198,9 @@ Intake::Intake(PowerDistributionPanel *pdp,
 
 	talonIntakeArm->SetStatusFramePeriod(
 			StatusFrameEnhanced::Status_2_Feedback0, 10, 0);
+
+	intakeSolenoid1 = new Solenoid(0, 2);
+	intakeSolenoid2 = new Solenoid(0, 1);
 
 	pdp_i = pdp;
 
@@ -415,6 +422,21 @@ void Intake::StopWheels() {
 	talonIntake2->Set(ControlMode::PercentOutput, 0.0 + 0.2); //0.15
 
 }
+
+void Intake::Close() {
+
+	intakeSolenoid1->Set(false);
+	intakeSolenoid2->Set(false);
+
+}
+
+void Intake::Open() {
+
+	intakeSolenoid1->Set(true);
+	intakeSolenoid2->Set(true);
+
+}
+
 
 void Intake::ManualArm(Joystick *joyOpArm) {
 
@@ -753,6 +775,26 @@ void Intake::IntakeWheelStateMachine() {
 		break;
 
 	}
+
+}
+
+void Intake::IntakeSolenoidStateMachine() {
+
+	switch(intake_solenoid_state) {
+
+	case CLOSE_STATE:
+		SmartDashboard::PutString("IS", "CLOSE");
+		Close();
+		last_intake_solenoid_state = CLOSE_STATE;
+		break;
+
+	case OPEN_STATE:
+		SmartDashboard::PutString("IS", "OPEN");
+		Open();
+		last_intake_solenoid_state = OPEN_STATE;
+		break;
+
+}
 
 }
 
