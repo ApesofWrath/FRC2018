@@ -78,7 +78,6 @@ public:
 	const int CARR_MID = 33;
 	const int CARR_DOWN = 56;
 
-
 	//no human player station height
 
 #else
@@ -198,7 +197,7 @@ public:
 		SmartDashboard::PutNumber("Encoder Left", 0);
 		SmartDashboard::PutNumber("Encoder Right", 0);
 
-		elevator_profiler_ = new ElevatorMotionProfiler(1.15, 5.0, TIME_STEP); //max vel, max accel, timestep
+		elevator_profiler_ = new ElevatorMotionProfiler(1.15, 5.0, TIME_STEP); //max vel, max accel, timestep //same for both carr and mds
 		intake_profiler_ = new IntakeMotionProfiler(2.0, 10.0, TIME_STEP);
 
 		compressor_ = new Compressor(3); //commenting these out breaks the code
@@ -206,7 +205,7 @@ public:
 
 		drive_controller = new DriveController(TIME_STEP); //inherits from mother class //pass in time step here for auton subclasses
 
-		mds_ = new Elevator(pdp_, elevator_profiler_, false); //TODO: make overall changes for new stage
+		mds_ = new Elevator(pdp_, elevator_profiler_, false);
 		carr_ = new Elevator(pdp_, elevator_profiler_, true);
 		intake_ = new Intake(pdp_, intake_profiler_, carr_);
 		teleop_state_machine = new TeleopStateMachine(mds_, carr_, intake_,

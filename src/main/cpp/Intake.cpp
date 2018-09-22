@@ -64,7 +64,7 @@ const double OUTTAKE_INTAKE_CURRENT = 20.0;
 const double OUTTAKE_CORR_VALUE = 1000.0;
 const double INTAKE_CORR_VALUE = 1800.0;
 
-const double ZERO_CURRENT = 4.0; //3.0;
+const double ZEROING_CURRENT = 4.0; //3.0;
 
 const double PCL_WHEELS = 30.0; //peak current limit
 const double CCL_WHEELS = 10.0; //continuous current limit
@@ -101,6 +101,9 @@ bool first_time_at_bottom = false;
 bool voltage_safety = false;
 
 std::vector<double> volts = { };
+
+double current_pos = 0.0;
+double current_vel = 0.0;
 
 const int sample_window_intake = 40;
 const int sample_window_outtake = 50;
@@ -170,8 +173,8 @@ Intake::Intake(PowerDistributionPanel *pdp,
 
 	hallEffectIntake = new DigitalInput(0);
 
-	talonIntake1 = new TalonSRX(17);
-	talonIntake2 = new TalonSRX(25);
+	talonIntake1 = new TalonSRX(-17);
+	talonIntake2 = new TalonSRX(-25);
 
 	talonIntake1->EnableCurrentLimit(true);
 	talonIntake2->EnableCurrentLimit(true);
@@ -182,7 +185,7 @@ Intake::Intake(PowerDistributionPanel *pdp,
 	talonIntake1->ConfigPeakCurrentDuration(PCD_WHEELS, 0);
 	talonIntake2->ConfigPeakCurrentDuration(PCD_WHEELS, 0);
 
-	talonIntakeArm = new TalonSRX(55);
+	talonIntakeArm = new TalonSRX(-55);
 
 	talonIntakeArm->ConfigSelectedFeedbackSensor(QuadEncoder, 0, 0);
 	talonIntakeArm->EnableCurrentLimit(true);
@@ -223,115 +226,6 @@ Intake::Intake(PowerDistributionPanel *pdp,
 		currents_outtake_r[i] = 0.0;
 		currents_outtake_l[i] = 0.0;
 	}
-
-//	master_scale = {10.3750000000000,
-//		12.7500000000000,
-//		23.3750000000000,
-//		35.6250000000000,
-//		46.5000000000000,
-//		48.3750000000000,
-//		44.0,
-//		44.0,
-//		40.5000000000000,
-//		40.5000000000000,
-//		34.7500000000000,
-//		29.3750000000000,
-//		24.5000000000000,
-//		24.5000000000000,
-//		17.7500000000000,
-//		15.8750000000000,
-//		14.1250000000000
-//	};
-
-//	double master_switch_arr[] = { 2.62500000000000, 2.62500000000000,
-//			4.25000000000000, 5.50000000000000, 7.12500000000000,
-//			8.12500000000000, 8.25000000000000, 8.37500000000000,
-//			8.37500000000000, 8, 7.50000000000000, 6.75000000000000,
-//			6.50000000000000, 6.37500000000000, 6.25000000000000,
-//			6.25000000000000, 6.37500000000000, 6.25000000000000,
-//			5.87500000000000, 5.25000000000000, 4.62500000000000,
-//			4.25000000000000, 3.75000000000000, 3.50000000000000,
-//			3.25000000000000, 3.12500000000000, 3.25000000000000,
-//			3.37500000000000, 3.12500000000000, 2.75000000000000,
-//			2.75000000000000, 2.75000000000000, 2.50000000000000,
-//			2.50000000000000, 2.50000000000000, 2.50000000000000,
-//			2.50000000000000, 2.50000000000000, 2.12500000000000,
-//			2.50000000000000, 2.50000000000000, 2.12500000000000,
-//			2.12500000000000, 2.12500000000000, 2.12500000000000,
-//			2.12500000000000, 2.12500000000000, 2.12500000000000,
-//			2.12500000000000, 2.12500000000000 };
-////
-//	master_switch[0] = 10.3750000000000;
-//	master_switch[1] = 12.7500000000000;
-//	master_switch[2] = 23.3750000000000;
-//	master_switch[3] = 35.6250000000000;
-//	master_switch[4] = 46.5000000000000;
-//	master_switch[5] = 48.3750000000000;
-//	master_switch[6] = 44;
-//	master_switch[7] = 44;
-//	master_switch[8] = 40.5000000000000;
-//	master_switch[9] = 40.5000000000000;
-//	master_switch[10] = 34.7500000000000;
-//	master_switch[11] = 29.3750000000000;
-//	master_switch[12] = 24.5000000000000;
-//	master_switch[13] = 24.5000000000000;
-//	master_switch[14] = 17.7500000000000;
-//	master_switch[15] = 15.8750000000000;
-//	master_switch[16] = 14.1250000000000;
-//	master_switch[17] = 12.750000000000;
-//	master_switch[18] = 11.750000000000;
-//	master_switch[19] = 10.8750000000000;
-//	master_switch[20] = 9.62500000000000;
-//	master_switch[21] = 9.0000000000;
-//	master_switch[22] = 8.50000000000;
-//	master_switch[23] = 8.250000000000;
-//	master_switch[24] = 8.0000000000;
-//	master_switch[25] = 8.2500000000000;
-//	master_switch[26] = 7.870000000000;
-//	master_switch[27] = 7.870000000000;
-//	master_switch[28] = 8.0000000000;
-//	master_switch[29] = 8.250000000000;
-////
-//	master_slow[0] = 10.3750000000000;
-//	master_slow[1] = 12.7500000000000;
-//	master_slow[2] = 23.3750000000000;
-//	master_slow[3] = 35.6250000000000;
-//	master_slow[4] = 46.5000000000000;
-//	master_slow[5] = 48.3750000000000;
-//	master_slow[6] = 44;
-//	master_slow[7] = 44;
-//	master_slow[8] = 40.5000000000000;
-//	master_slow[9] = 40.5000000000000;
-//	master_slow[10] = 34.7500000000000;
-//	master_slow[11] = 29.3750000000000;
-//	master_slow[12] = 24.5000000000000;
-//	master_slow[13] = 24.5000000000000;
-//	master_slow[14] = 17.7500000000000;
-//	master_slow[15] = 15.8750000000000;
-//	master_slow[16] = 14.1250000000000;
-//	master_slow[17] = 12.750000000000;
-//	master_slow[18] = 11.750000000000;
-//	master_slow[19] = 10.8750000000000;
-//	master_slow[20] = 9.62500000000000;
-//	master_slow[21] = 9.0000000000;
-//	master_slow[22] = 8.50000000000;
-//	master_slow[23] = 8.250000000000;
-//	master_slow[24] = 8.0000000000;
-//	master_slow[25] = 8.2500000000000;
-//	master_slow[26] = 7.870000000000;
-//	master_slow[27] = 7.870000000000;
-//	master_slow[28] = 8.0000000000;
-//	master_slow[29] = 8.250000000000;
-
-	//master_switch.setcontent(50, master_switch_arr);
-//
-//	for (int i = 2; i < arr_len; i++) {
-//		master_scale[i] = 0.0;
-//		master_slow_scale[i] = 0.0;
-//		master_switch[i] = 0.0;
-//		master_slow_back[i] = 0.0;
-//		master_back[i] = 0.0;
-//	}
 
 }
 
@@ -458,8 +352,8 @@ void Intake::Rotate() { //a vector of a pos vector and a vel vector
 		std::vector<std::vector<double> > ref_intake =
 				intake_profiler->GetNextRefIntake();
 
-		double current_pos = GetAngularPosition();
-		double current_vel = GetAngularVelocity();
+		current_pos = ref_intake[0][0]; //GetAngularPosition();
+		current_vel = ref_intake[1][0];//GetAngularVelocity();
 
 		///	SmartDashboard::PutNumber("IntakeActualVel", current_vel);
 		//	SmartDashboard::PutNumber("IntakeActualPos", current_pos);
@@ -498,24 +392,38 @@ void Intake::Rotate() { //a vector of a pos vector and a vel vector
 
 void Intake::SetVoltage(double voltage_i) {
 
-	SmartDashboard::PutString("INTAKE SAFETY", "none");
-
 	double ang_pos = GetAngularPosition();
 
-	SmartDashboard::PutNumber("INT ANG", ang_pos);
+	SmartDashboard::PutNumber("ARM ANG", ang_pos);
+
+	if (std::abs(GetAngularVelocity()) <= 0.05 && std::abs(voltage_i) > 3.0) { //outputting current, not moving, should be movingGetAngularVelocity()
+		encoder_counter++;
+	} else {
+		encoder_counter = 0;
+	}
+	if (encoder_counter > 10) {
+		voltage_safety = true;
+	} else {
+		voltage_safety = false;
+	}
 
 	//top soft limits
-	if (elevator_i->GetElevatorPosition() < elevator_safety_position) {
-		if (ang_pos >= (1.6) && voltage_i > 0.0 && is_init_intake) { //at max height and still trying to move up //there is no upper soft limit when initializing
+	if ((elevator_i->GetElevatorPosition() < elevator_safety_position) && (ang_pos >= (1.6) && voltage_i > 0.0 && is_init_intake)) { //arm trying to shoot back but elev not high enough //there is no upper soft limit when initializing
 			voltage_i = 0.0;
-			SmartDashboard::PutString("INTAKE SAFETY", "top soft limit");
-		}
-	} else {
-		if (ang_pos >= (INTAKE_BACKWARDS_SOFT_LIMIT) && voltage_i > 0.0
-				&& is_init_intake) { //at max height and still trying to move up //no upper soft limit when initializing
+			SmartDashboard::PutString("ARM SAFETY", "top soft limit");
+	} else if (ang_pos >= (INTAKE_BACKWARDS_SOFT_LIMIT) && voltage_i > 0.0	&& is_init_intake) { //at max ang and still trying to move back //no upper soft limit when initializing
 			voltage_i = 0.0;
-			SmartDashboard::PutString("INTAKE SAFETY", "top soft limit");
-		}
+			SmartDashboard::PutString("ARM SAFETY", "top soft limit");
+	} else if (voltage_i < 0.0 && ang_pos < -0.1) {
+		voltage_i = 0.0;
+		SmartDashboard::PutString("ARM SAFETY", "bottom soft limit");
+	} else if (voltage_safety) {
+			SmartDashboard::PutString("INTAKE SAFETY", "stall");
+			voltage_i = 0.0;
+	} else if (ang_pos < .1 && voltage_i < 1.5) { //may not need this
+			voltage_i = 0.0;
+		} else  {
+			SmartDashboard::PutString("ARM SAFETY", "none");
 	}
 
 	//zero height moves up sometimes. this will make sure the arm goes all the way down every time
@@ -525,12 +433,13 @@ void Intake::SetVoltage(double voltage_i) {
 
 	//safety to make sure that the elevator doesn't go down when the arm is up
 	if (ang_pos > 1.7 && elevator_i->GetVoltageElevator() < 0.0) { //checking and changing u_e
-		elevator_i->keep_elevator_up = true;
+		elevator_i->keep_elevator_up = true; //this variable used as a safety in SetVoltage in elev
 	} else {
 		elevator_i->keep_elevator_up = false;
 	}
 
-	if (talonIntakeArm->GetOutputCurrent() > ZERO_CURRENT) { //probably don't need this current check
+	//only 1 count for current trip
+	if (talonIntakeArm->GetOutputCurrent() > ZEROING_CURRENT) {
 		counter_i++;
 		if (counter_i > 1) {
 			if (ZeroEnc()) { //successfully zeroed enc one time
@@ -540,39 +449,12 @@ void Intake::SetVoltage(double voltage_i) {
 	} else {
 		counter_i = 0;
 	}
-	if (voltage_i < 0.0 && ang_pos < -0.1) {
-		voltage_i = 0.0;
-		SmartDashboard::PutString("INTAKE SAFETY", "bottom soft limit");
-	}
 
 	//voltage limit
 	if (voltage_i > MAX_VOLTAGE_I) {
 		voltage_i = MAX_VOLTAGE_I;
 	} else if (voltage_i < MIN_VOLTAGE_I) {
 		voltage_i = MIN_VOLTAGE_I;
-	}
-
-	if (std::abs(GetAngularVelocity()) <= 0.05 && std::abs(voltage_i) > 3.0) { //outputting current, not moving, should be movingGetAngularVelocity()
-		encoder_counter++;
-	} else {
-		encoder_counter = 0;
-	}
-
-	if (encoder_counter > 10) {
-		voltage_safety = true;
-	} else {
-		voltage_safety = false;
-	}
-
-	if (voltage_safety) {
-		SmartDashboard::PutString("INTAKE SAFETY", "stall");
-		voltage_i = 0.0;
-	}
-
-	if (ang_pos < .1 && voltage_i < 1.5) {
-
-		voltage_i = 0.0;
-
 	}
 
 	voltage_i /= 12.0; //scale from -1 to 1 for the talon
@@ -621,7 +503,7 @@ bool Intake::IsAtBottomIntake() {
 
 bool Intake::IsAtAngle(double target_ang) {
 
-	if (std::abs(GetAngularPosition() - target_ang) < 0.1) {
+	if (std::abs(current_pos - target_ang) < 0.1) { //TODO: this is a hack
 		return true;
 	}
 	return false;

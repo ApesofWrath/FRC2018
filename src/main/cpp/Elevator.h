@@ -20,6 +20,7 @@
 class Elevator {
 
 	double down_pos, mid_pos, hps_pos, up_pos;
+	bool is_carr_;
 
 public:
 

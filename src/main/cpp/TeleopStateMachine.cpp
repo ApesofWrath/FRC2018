@@ -357,11 +357,11 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		SmartDashboard::PutString("STATE", "SWITCH");
 
 		if (state_carr) {
-			carr->elevator_state = carr->MID_STATE_E_H;
+			mds->elevator_state = mds->MID_STATE_E_H;
 		}
-		if (state_mds && carr->IsAtPos(carr->MID_POS_CARR)) {
-			mds->elevator_state = mds->DOWN_STATE_E_H;
-		}
+		// if (state_mds && carr->IsAtPos(carr->MID_POS_CARR)) {
+		// 	mds->elevator_state = mds->DOWN_STATE_E_H;
+		// }
 		if (state_intake_arm) {
 			intake->intake_arm_state = intake->MID_STATE_H;
 		}
