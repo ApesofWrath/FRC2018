@@ -48,6 +48,18 @@ public:
 	const int HPS_STATE_E_H = 5; //human player station
 	int elevator_state = INIT_STATE_E_H;
 
+	const double DOWN_POS_MDS = 0.005;
+	const double MID_POS_MDS = 0.668;
+	const double HPS_POS_MDS = 0.5;
+	const double UP_POS_MDS = 0.89;
+
+	const double DOWN_POS_CARR = 0.01;
+	const double MID_POS_CARR = 0.01;
+	const double HPS_POS_CARR = 0.01;
+	const double UP_POS_CARR = 0.01;
+
+	const double SAFE_CARR_HEIGHT = 0.2; //TODO: actually determine this //carr height at which ms can start moving down
+
 	void InitializeElevator(); //should be able to initialize carr/ms at same time
 
 	void ElevatorStateMachine(); //same for both
@@ -64,6 +76,7 @@ public:
 	bool IsAtBottomElevator();
 	bool IsAtTopElevator();
 	bool ElevatorEncodersRunning();
+	bool IsAtPos(double target_pos);
 
 	bool ZeroEncs();
 

@@ -64,9 +64,10 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 		//this always has to run only once
 		SmartDashboard::PutString("STATE", "INIT");
 		mds_a->elevator_state = mds_a->INIT_STATE_E_H;
+		carr_a->elevator_state = carr_a->INIT_STATE_E_H;
 		intake_a->intake_arm_state = intake_a->INIT_STATE_H;
 		intake_a->intake_wheel_state = intake_a->STOP_WHEEL_STATE_H;
-		if (mds_a->is_elevator_init && intake_a->is_init_intake) {
+		if (mds_a->is_elevator_init && carr_a->is_elevator_init && intake_a->is_init_intake) {
 			state_a = WAIT_FOR_BUTTON_STATE_A;
 		}
 		last_state_a = INIT_STATE_A;
@@ -229,10 +230,12 @@ void AutonStateMachine::StateMachineAuton(bool wait_for_button,
 void AutonStateMachine::Initialize() {
 
 	mds_a->zeroing_counter_e = 0;
+	carr_a->zeroing_counter_e = 0;
 	intake_a->zeroing_counter_i = 0;
 
 	intake_a->is_init_intake = false;
 	mds_a->is_elevator_init = false;
+	carr_a->is_elevator_init = false;
 
 	state_a = INIT_STATE_A;
 

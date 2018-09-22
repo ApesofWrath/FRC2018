@@ -76,10 +76,10 @@ Elevator::Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator
 
 		friction_loss = 0;
 
-		down_pos = 0.01;
-		mid_pos = 0.01;
-		hps_pos = 0.01;
-		up_pos = 0.01;
+		down_pos = DOWN_POS_CARR;
+		mid_pos = MID_POS_CARR;
+		hps_pos = HPS_POS_CARR;
+		up_pos = UP_POS_CARR;
 
 		TOP_HALL = 0;
 		BOT_HALL = 0;
@@ -105,10 +105,10 @@ Elevator::Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator
 
 		friction_loss = 0.75;
 
-		down_pos = 0.005;
-		mid_pos = 0.668;
-		hps_pos = 0.5;
-		up_pos = 0.89;
+		down_pos = DOWN_POS_MDS;
+		mid_pos = MID_POS_MDS;
+		hps_pos = HPS_POS_MDS;
+		up_pos = UP_POS_MDS;
 
 		TOP_HALL = 2;
 		BOT_HALL = 1;
@@ -336,6 +336,15 @@ bool Elevator::IsAtTopElevator() {
 	} else {
 		return false;
 	}
+}
+
+bool Elevator::IsAtPos(double target_pos) {
+
+	if (std::abs(GetElevatorPosition() - target_pos) < 0.2) {
+		return true;
+	}
+	return false;
+
 }
 
 void Elevator::ManualElevator(Joystick *joyOpElev) {
