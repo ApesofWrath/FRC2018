@@ -9,7 +9,7 @@ deploy {
     targets {
         target("roborio", edu.wpi.first.gradlerio.frc.RoboRIO) {
             // Team can be overridden by command line, for use with VSCode
-            team = getTeamOrDefault(5333)
+            team = getTeamOrDefault(668)
         }
     }
     artifacts {

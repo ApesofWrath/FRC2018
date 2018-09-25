@@ -461,6 +461,8 @@ public:
 
 	void AutonomousPeriodic() {
 
+
+std::cout << "HERE" << std::endl;
 		SmartDashboard::PutNumber("Left 1",
 				drive_controller->canTalonLeft1->GetOutputCurrent());
 		SmartDashboard::PutNumber("Left 2",
