@@ -58,7 +58,7 @@ int encoder_counter_e = 0;
 
 int TOP_HALL, BOT_HALL;
 
-std::string elev_type, elev_state, elev_safety;
+std::string elev_type, elev_safety, elev_state;
 
 Elevator::Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_, bool is_carr) { //carr
 
@@ -90,6 +90,8 @@ Elevator::Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator
 		BOT_HALL = 0;
 
 		elev_type = "CARR";
+		SmartDashboard::PutString("el" + elev_type, "carr");
+			SmartDashboard::PutNumber("el c" + elev_type, is_carr_);
 
 		talonElevator1 = new TalonSRX(-20);
 
@@ -119,6 +121,8 @@ Elevator::Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator
 		BOT_HALL = 1;
 
 		elev_type = "MDS";
+		SmartDashboard::PutString("el" + elev_type, "mds");
+			SmartDashboard::PutNumber("el e" + elev_type, is_carr_);
 
 		talonElevator1 = new TalonSRX(-5);//33
 
@@ -223,6 +227,10 @@ double Elevator::GetVoltageElevator() {
 
 	return u_e;
 
+}
+
+std::string Elevator::GetElevatorState() {
+	return elev_state;
 }
 
 void Elevator::SetVoltage(double elevator_voltage) {

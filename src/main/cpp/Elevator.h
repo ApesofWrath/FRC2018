@@ -32,6 +32,8 @@ public:
 
 	std::thread ElevatorThread;
 
+	std::string GetElevatorState();
+
 	PowerDistributionPanel *pdp_e;
 
 	bool is_elevator_init = false;

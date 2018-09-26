@@ -127,6 +127,9 @@ void TaskManager::ThreadWrapper(TaskManager *task_manager,
 
 		SmartDashboard::PutNumber("TIME", threadTimer->Get());
 
+		std::cout << "MDS: " << mds_t->GetElevatorState() << std::endl;
+		std::cout << "CARR: " << carr_t->GetElevatorState() << std::endl;
+
 	}
 
 }

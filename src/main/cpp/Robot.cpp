@@ -45,8 +45,6 @@ public:
 	const int HIGH_GEAR_BUTTON = 6;
 	const int HEADING_BUTTON = 9;
 
-#if BUTTONBOX
-
 	const int WAIT_FOR_BUTTON = 13;
 
 	const int GET_CUBE_GROUND = 14;
@@ -74,39 +72,11 @@ public:
 	const int MDS_MID = 16;
 	const int MDS_DOWN = 9;
 
-	const int CARR_UP = 0;
-	const int CARR_MID = 33;
-	const int CARR_DOWN = 56;
+	const int CARR_UP = -1;
+	const int CARR_MID = -2;
+	const int CARR_DOWN = -3;
 
 	//no human player station height
-
-#else
-
-	const int WAIT_FOR_BUTTON = 1;
-
-	const int GET_CUBE_GROUND = 2;
-	const int GET_CUBE_STATION = 3;
-	const int POST_INTAKE = 4;
-	const int RAISE_TO_SWITCH = 5;
-	const int RAISE_TO_SCALE = 6;
-	const int RAISE_TO_SCALE_BACKWARDS = 3; //THROTTLE
-
-	const int INTAKE_SPIN_IN = 9;//THROTTLE
-	const int INTAKE_SPIN_OUT = 10;//THROTTLE
-	const int INTAKE_SPIN_STOP = 11;//THROTTLE
-	//no slow
-
-	const int INTAKE_ARM_UP = 7;
-	const int INTAKE_ARM_MID = 8;
-	const int INTAKE_ARM_DOWN = 9;
-	const int INTAKE_ARM_BACKWARDS = 4;//THROTTLE
-
-	const int MDS_UP = 10;
-	const int MDS_MID = 11;
-	const int MDS_DOWN = 12;
-	//no human player station height
-
-#endif
 
 	bool wait_for_button, intake_spin_in, intake_spin_out, intake_spin_slow,
 			intake_spin_med, intake_spin_stop, get_cube_ground,
@@ -172,27 +142,27 @@ public:
 
 	void RobotInit() {
 
-		SmartDashboard::PutNumber("targetHeading", 0);
-		SmartDashboard::PutNumber("Actual Heading", 0);
-		SmartDashboard::PutNumber("refYaw", 0);
-
-		SmartDashboard::PutNumber("refLeft", 0);
-		SmartDashboard::PutNumber("refRight", 0);
-		SmartDashboard::PutNumber("actualLeftDis", 0);
-		SmartDashboard::PutNumber("actualRightDis", 0);
-
-		SmartDashboard::PutNumber("refLeftVel", 0);
-		SmartDashboard::PutNumber("actualLeftVel", 0);
-
-		SmartDashboard::PutNumber("Left 1", 0);
-		SmartDashboard::PutNumber("Left 2", 0);
-		SmartDashboard::PutNumber("Left 3", 0);
-		SmartDashboard::PutNumber("Left 4", 0);
-
-		SmartDashboard::PutNumber("Right 1", 0);
-		SmartDashboard::PutNumber("Right 2", 0);
-		SmartDashboard::PutNumber("Right 3", 0);
-		SmartDashboard::PutNumber("Right 4", 0);
+		// SmartDashboard::PutNumber("targetHeading", 0);
+		 SmartDashboard::PutNumber("Actual Heading", 0);
+		// SmartDashboard::PutNumber("refYaw", 0);
+		//
+		// SmartDashboard::PutNumber("refLeft", 0);
+		// SmartDashboard::PutNumber("refRight", 0);
+		// SmartDashboard::PutNumber("actualLeftDis", 0);
+		// SmartDashboard::PutNumber("actualRightDis", 0);
+		//
+		// SmartDashboard::PutNumber("refLeftVel", 0);
+		// SmartDashboard::PutNumber("actualLeftVel", 0);
+		//
+		// SmartDashboard::PutNumber("Left 1", 0);
+		// SmartDashboard::PutNumber("Left 2", 0);
+		// SmartDashboard::PutNumber("Left 3", 0);
+		// SmartDashboard::PutNumber("Left 4", 0);
+		//
+		// SmartDashboard::PutNumber("Right 1", 0);
+		// SmartDashboard::PutNumber("Right 2", 0);
+		// SmartDashboard::PutNumber("Right 3", 0);
+		// SmartDashboard::PutNumber("Right 4", 0);
 
 		SmartDashboard::PutNumber("Encoder Left", 0);
 		SmartDashboard::PutNumber("Encoder Right", 0);
@@ -428,23 +398,23 @@ public:
 
 	void AutonomousPeriodic() {
 
-		SmartDashboard::PutNumber("Left 1",
-				drive_controller->canTalonLeft1->GetOutputCurrent());
-		SmartDashboard::PutNumber("Left 2",
-				drive_controller->canTalonLeft2->GetOutputCurrent());
-		SmartDashboard::PutNumber("Left 3",
-				drive_controller->canTalonLeft3->GetOutputCurrent());
-		SmartDashboard::PutNumber("Left 4",
-				drive_controller->canTalonLeft4->GetOutputCurrent());
-
-		SmartDashboard::PutNumber("Right 1",
-				drive_controller->canTalonRight1->GetOutputCurrent());
-		SmartDashboard::PutNumber("Right 2",
-				drive_controller->canTalonRight2->GetOutputCurrent());
-		SmartDashboard::PutNumber("Right 3",
-				drive_controller->canTalonRight3->GetOutputCurrent());
-		SmartDashboard::PutNumber("Right 4",
-				drive_controller->canTalonRight4->GetOutputCurrent());
+		// SmartDashboard::PutNumber("Left 1",
+		// 		drive_controller->canTalonLeft1->GetOutputCurrent());
+		// SmartDashboard::PutNumber("Left 2",
+		// 		drive_controller->canTalonLeft2->GetOutputCurrent());
+		// SmartDashboard::PutNumber("Left 3",
+		// 		drive_controller->canTalonLeft3->GetOutputCurrent());
+		// SmartDashboard::PutNumber("Left 4",
+		// 		drive_controller->canTalonLeft4->GetOutputCurrent());
+		//
+		// SmartDashboard::PutNumber("Right 1",
+		// 		drive_controller->canTalonRight1->GetOutputCurrent());
+		// SmartDashboard::PutNumber("Right 2",
+		// 		drive_controller->canTalonRight2->GetOutputCurrent());
+		// SmartDashboard::PutNumber("Right 3",
+		// 		drive_controller->canTalonRight3->GetOutputCurrent());
+		// SmartDashboard::PutNumber("Right 4",
+		// 		drive_controller->canTalonRight4->GetOutputCurrent());
 
 		if (sameScaleOneState) { //same side
 			scale_side->RunStateMachineSameScale(&raise_to_scale_backwards,
@@ -490,6 +460,8 @@ public:
 	}
 
 	void TeleopPeriodic() {
+
+
 
 		// SmartDashboard::PutNumber("LD 1",
 		// 		drive_controller->canTalonLeft1->GetOutputCurrent());

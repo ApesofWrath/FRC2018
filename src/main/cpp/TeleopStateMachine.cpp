@@ -60,6 +60,8 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 		bool intake_arm_mid, bool intake_arm_down, bool mds_up, bool mds_mid, bool mds_down,
 	  bool carr_down, bool carr_mid, bool carr_up, bool raise_to_scale_backwards) {
 
+		//	std::cout << "mds: " << mds_up << std::endl;
+
 	if (wait_for_button) { //can always return to wait for button state
 		state = WAIT_FOR_BUTTON_STATE;
 	}
@@ -104,12 +106,15 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 	//middle stage
 	if (mds_up) {
 		state_mds = false;
+		//	std::cout << "mds up in MANUAL" << std::endl;
 		mds->elevator_state = mds->UP_STATE_E_H;
 	} else if (mds_mid) {
 		state_mds = false;
+	//		std::cout << "mds mid in MANUAL" << std::endl;
 		mds->elevator_state = mds->MID_STATE_E_H;
 	} else if (mds_down) {
 		state_mds = false;
+	//		std::cout << "mds down in MANUAL" << std::endl;
 		mds->elevator_state = mds->DOWN_STATE_E_H;
 	} else {
 		state_mds = true;
@@ -118,12 +123,15 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 	//carriage
 	if (carr_up) {
 		state_carr = false;
+
 		carr->elevator_state = carr->UP_STATE_E_H;
 	} else if (carr_mid) {
 		state_carr = false;
+	//	std::cout << "carr mid in MANUAL" << std::endl;
 		carr->elevator_state = carr->MID_STATE_E_H;
 	} else if (carr_down) {
 		state_carr = false;
+	//	std::cout << "carr mid in MANUAL" << std::endl;
 		carr->elevator_state = carr->DOWN_STATE_E_H;
 	} else {
 		state_carr = true;
@@ -312,6 +320,7 @@ void TeleopStateMachine::StateMachine(bool wait_for_button, bool intake_spin_in,
 			intake->intake_arm_state = intake->UP_STATE_H;
 		}
 		if (state_carr) {
+		//		std::cout << "carr up in STATE" << std::endl;
 			carr->elevator_state = carr->UP_STATE_E_H;
 		}
 		if (state_mds && is_carr_low_enough) {

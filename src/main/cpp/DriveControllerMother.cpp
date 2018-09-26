@@ -777,7 +777,7 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	double y_dis = -1.0 * ahrs->GetYaw() * (double) (PI / 180); //current theta (yaw) value
 
 //	SmartDashboard::PutNumber("Target Heading", refYaw);
-	SmartDashboard::PutNumber("Actual Heading", y_dis);
+SmartDashboard::PutNumber("Actual Heading", y_dis);
 
 	l_error_dis_au = refLeft - l_dis;
 	r_error_dis_au = refRight - r_dis;
@@ -876,9 +876,9 @@ void DriveControllerMother::Controller(double ref_kick,
 	double yaw_rate_current = -1.0 * (double) ahrs->GetRate()
 			* (double) ((PI) / 180.0); //left should be positive
 
-	SmartDashboard::PutNumber("YAW POS", ahrs->GetYaw());
-	SmartDashboard::PutNumber("LEFT ENC VEL", GetLeftVel());
-	SmartDashboard::PutNumber("RIGHT ENC VEL", GetRightVel());
+//	SmartDashboard::PutNumber("YAW POS", ahrs->GetYaw());
+	//SmartDashboard::PutNumber("LEFT ENC VEL", GetLeftVel());
+//	SmartDashboard::PutNumber("RIGHT ENC VEL", GetRightVel());
 
 	double target_yaw_rate = ref_yaw;
 
