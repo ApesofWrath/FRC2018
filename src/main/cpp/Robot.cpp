@@ -462,24 +462,24 @@ public:
 	void AutonomousPeriodic() {
 
 
-std::cout << "HERE" << std::endl;
-		SmartDashboard::PutNumber("Left 1",
-				drive_controller->canTalonLeft1->GetOutputCurrent());
-		SmartDashboard::PutNumber("Left 2",
-				drive_controller->canTalonLeft2->GetOutputCurrent());
-		SmartDashboard::PutNumber("Left 3",
-				drive_controller->canTalonLeft3->GetOutputCurrent());
-		SmartDashboard::PutNumber("Left 4",
-				drive_controller->canTalonLeft4->GetOutputCurrent());
-
-		SmartDashboard::PutNumber("Right 1",
-				drive_controller->canTalonRight1->GetOutputCurrent());
-		SmartDashboard::PutNumber("Right 2",
-				drive_controller->canTalonRight2->GetOutputCurrent());
-		SmartDashboard::PutNumber("Right 3",
-				drive_controller->canTalonRight3->GetOutputCurrent());
-		SmartDashboard::PutNumber("Right 4",
-				drive_controller->canTalonRight4->GetOutputCurrent());
+//std::cout << "HERE" << std::endl;
+		// SmartDashboard::PutNumber("Left 1",
+		// 		drive_controller->canTalonLeft1->GetOutputCurrent());
+		// SmartDashboard::PutNumber("Left 2",
+		// 		drive_controller->canTalonLeft2->GetOutputCurrent());
+		// SmartDashboard::PutNumber("Left 3",
+		// 		drive_controller->canTalonLeft3->GetOutputCurrent());
+		// SmartDashboard::PutNumber("Left 4",
+		// 		drive_controller->canTalonLeft4->GetOutputCurrent());
+		//
+		// SmartDashboard::PutNumber("Right 1",
+		// 		drive_controller->canTalonRight1->GetOutputCurrent());
+		// SmartDashboard::PutNumber("Right 2",
+		// 		drive_controller->canTalonRight2->GetOutputCurrent());
+		// SmartDashboard::PutNumber("Right 3",
+		// 		drive_controller->canTalonRight3->GetOutputCurrent());
+		// SmartDashboard::PutNumber("Right 4",
+		// 		drive_controller->canTalonRight4->GetOutputCurrent());
 
 		if (sameScaleOneState) { //same side
 			scale_side->RunStateMachineSameScale(&raise_to_scale_backwards,
@@ -526,23 +526,23 @@ std::cout << "HERE" << std::endl;
 
 	void TeleopPeriodic() {
 
-		SmartDashboard::PutNumber("LD 1",
-				drive_controller->canTalonLeft1->GetOutputCurrent());
-		SmartDashboard::PutNumber("LD 2",
-				drive_controller->canTalonLeft2->GetOutputCurrent());
-		SmartDashboard::PutNumber("LD 3",
-				drive_controller->canTalonLeft3->GetOutputCurrent());
-		SmartDashboard::PutNumber("LD 4",
-				drive_controller->canTalonLeft4->GetOutputCurrent());
-
-		SmartDashboard::PutNumber("RD 1",
-				drive_controller->canTalonRight1->GetOutputCurrent());
-		SmartDashboard::PutNumber("RD 2",
-				drive_controller->canTalonRight2->GetOutputCurrent());
-		SmartDashboard::PutNumber("RD 3",
-				drive_controller->canTalonRight3->GetOutputCurrent());
-		SmartDashboard::PutNumber("RD 4",
-				drive_controller->canTalonRight4->GetOutputCurrent());
+		// SmartDashboard::PutNumber("LD 1",
+		// 		drive_controller->canTalonLeft1->GetOutputCurrent());
+		// SmartDashboard::PutNumber("LD 2",
+		// 		drive_controller->canTalonLeft2->GetOutputCurrent());
+		// SmartDashboard::PutNumber("LD 3",
+		// 		drive_controller->canTalonLeft3->GetOutputCurrent());
+		// SmartDashboard::PutNumber("LD 4",
+		// 		drive_controller->canTalonLeft4->GetOutputCurrent());
+		//
+		// SmartDashboard::PutNumber("RD 1",
+		// 		drive_controller->canTalonRight1->GetOutputCurrent());
+		// SmartDashboard::PutNumber("RD 2",
+		// 		drive_controller->canTalonRight2->GetOutputCurrent());
+		// SmartDashboard::PutNumber("RD 3",
+		// 		drive_controller->canTalonRight3->GetOutputCurrent());
+		// SmartDashboard::PutNumber("RD 4",
+		// 		drive_controller->canTalonRight4->GetOutputCurrent());
 
 #if !STATEMACHINE
 		intake_->ManualArm(joyOp);
@@ -563,8 +563,7 @@ std::cout << "HERE" << std::endl;
 		raise_to_scale_med = joyOp->GetRawButton(RAISE_TO_SCALE_MED);
 		raise_to_scale_slow = joyOp->GetRawButton(RAISE_TO_SCALE_SLOW);
 		raise_to_scale_fast = joyOp->GetRawButton(RAISE_TO_SCALE_FAST);
-		raise_to_scale_backwards = joyOp->GetRawButton(
-				RAISE_TO_SCALE_BACKWARDS);
+		raise_to_scale_backwards = 0; //joyOp->GetRawButton(RAISE_TO_SCALE_BACKWARDS);
 
 		intake_spin_med = false; //joyOp->GetRawButton(INTAKE_SPIN_MED); //operator switch pop shot
 		intake_spin_stop = false;
