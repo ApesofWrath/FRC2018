@@ -168,7 +168,7 @@ public:
 
 	void RobotInit() {
 
-		// SmartDashboard::PutNumber("targetHeading", 0);
+		SmartDashboard::PutNumber("YAW POS", 0);
 		// SmartDashboard::PutNumber("Actual Heading", 0);
 		// SmartDashboard::PutNumber("refYaw", 0);
 		//

@@ -16,7 +16,7 @@
 #if CORNELIUS
 double ff_percent_i = 0.6;
 double offset_angle = 1.65;
-double SLOW_SPEED = 0.25;
+double SLOW_SPEED = 0.28; //from 0.25
 //down angle 0.02
 #else
 double ff_percent_i = 0.6;
@@ -777,7 +777,7 @@ bool Intake::HaveCube() {
 
 	if (start_counting) {
 		have_cube_wait++;
-		if (have_cube_wait == 25) { //wait until it has the cube securely in the intake
+		if (have_cube_wait == 40) { //wait until it has the cube securely in the intake //25
 			have_cube_wait = 0;
 			start_counting = false;
 			for (int i = 0; i < (sample_window_intake - 1); i++) { //to index 18

@@ -879,7 +879,7 @@ void DriveControllerMother::Controller(double ref_kick,
 	double yaw_rate_current = -1.0 * (double) ahrs->GetRate()
 			* (double) ((PI) / 180.0); //left should be positive
 
-	// SmartDashboard::PutNumber("YAW POS", ahrs->GetYaw());
+	 SmartDashboard::PutNumber("YAW POS", ahrs->GetYaw());
 	// SmartDashboard::PutNumber("LEFT ENC VEL", GetLeftVel());
 	// SmartDashboard::PutNumber("RIGHT ENC VEL", GetRightVel());
 
@@ -1031,7 +1031,11 @@ void DriveControllerMother::ZeroAll(bool stop_motors) {
 
 	ZeroI();
 	ZeroEncs();
-	//ZeroYaw();
+	ZeroYaw();
+
+	// while (std::abs(-1.0 * ahrs->GetYaw() * (double) (PI / 180)) > 0.1) {
+	// 	ZeroYaw();
+	// }
 
 	zeroing_counter++;
 
