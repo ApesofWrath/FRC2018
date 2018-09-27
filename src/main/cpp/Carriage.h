@@ -9,6 +9,10 @@ public:
 	const double HPS_POS = 0.01;
 	const double UP_POS = 0.01;
 
+	Carriage(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_) : Elevator(pdp, elevator_profiler_, true) {
+
+	}
+
 private:
 
 

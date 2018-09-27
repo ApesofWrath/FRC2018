@@ -9,6 +9,9 @@ public:
 	const double HPS_POS = 0.5;
 	const double UP_POS = 0.89;
 
+	MiddleStage(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_) : Elevator(pdp, elevator_profiler_, false) {
+
+	}
 
 private:
 

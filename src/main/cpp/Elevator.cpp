@@ -90,8 +90,6 @@ Elevator::Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator
 		BOT_HALL = 0;
 
 		elev_type = "CARR";
-		SmartDashboard::PutString("el" + elev_type, "carr");
-			SmartDashboard::PutNumber("el c" + elev_type, is_carr_);
 
 		talonElevator1 = new TalonSRX(-20);
 
@@ -121,8 +119,6 @@ Elevator::Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator
 		BOT_HALL = 1;
 
 		elev_type = "MDS";
-		SmartDashboard::PutString("el" + elev_type, "mds");
-			SmartDashboard::PutNumber("el e" + elev_type, is_carr_);
 
 		talonElevator1 = new TalonSRX(-5);//33
 
