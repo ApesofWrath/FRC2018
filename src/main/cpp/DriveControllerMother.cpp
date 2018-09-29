@@ -777,7 +777,7 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	double y_dis = -1.0 * ahrs->GetYaw() * (double) (PI / 180); //current theta (yaw) value
 
 //	SmartDashboard::PutNumber("Target Heading", refYaw);
-SmartDashboard::PutNumber("Actual Heading", y_dis);
+  SmartDashboard::PutNumber("Actual Heading", y_dis);
 
 	l_error_dis_au = refLeft - l_dis;
 	r_error_dis_au = refRight - r_dis;
@@ -855,9 +855,9 @@ SmartDashboard::PutNumber("Actual Heading", y_dis);
 //		SmartDashboard::PutString("Encoders", "Out");
 //	}
 
-	Controller(0.0, 0.0, 0.0, targetYawRate, k_p_right_vel_au, k_p_left_vel_au,
-			0.0, k_p_yaw_au, k_d_yaw_au, k_d_left_vel_au, k_d_right_vel_au, 0.0, //sends all 0.0 gains
-			target_rpm_left, target_rpm_right, 0.0);
+	// Controller(0.0, 0.0, 0.0, targetYawRate, k_p_right_vel_au, k_p_left_vel_au,
+	// 		0.0, k_p_yaw_au, k_d_yaw_au, k_d_left_vel_au, k_d_right_vel_au, 0.0, //sends all 0.0 gains
+	// 		target_rpm_left, target_rpm_right, 0.0);
 
 	l_last_error = l_error_dis_au;
 	r_last_error = r_error_dis_au;
@@ -1014,7 +1014,7 @@ void DriveControllerMother::ZeroAll(bool stop_motors) {
 
 	ZeroI();
 	ZeroEncs();
-	//ZeroYaw();
+	ZeroYaw();
 
 	zeroing_counter++;
 

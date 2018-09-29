@@ -38,11 +38,12 @@ int last_state = 0;
 
 bool arm_up = true;
 
-Elevator *mds, *carr;
+MiddleStage *mds;
+Carriage *carr;
 Intake *intake;
 DriveController *driveController;
 
-TeleopStateMachine::TeleopStateMachine(Elevator *mds_, Elevator *carr_, Intake *intake_,
+TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intake *intake_,
 		DriveController *drive_controller) {
 
 	mds = mds_;  //current elevator will be middle stage

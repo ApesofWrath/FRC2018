@@ -11,7 +11,8 @@
 #include "ctre/Phoenix.h"
 #include <WPILib.h>
 #include "Intake.h"
-#include "Elevator.h"
+#include "MiddleStage.h"
+#include "Carriage.h"
 #include <iostream>
 #include <Timer.h>
 #include <thread>
@@ -23,7 +24,7 @@
 class TaskManager {
 public:
 
-	TaskManager(TeleopStateMachine *tsm, AutonStateMachine *ausm, DriveController *dc, Elevator *mds, Elevator *carr, Intake *in, double thread_time);
+	TaskManager(TeleopStateMachine *tsm, AutonStateMachine *ausm, DriveController *dc, MiddleStage *mds, Carriage *carr, Intake *in, double thread_time);
 
 	double thread_time_step;
 

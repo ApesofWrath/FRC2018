@@ -11,7 +11,8 @@
 #include "ctre/Phoenix.h"
 #include <WPILib.h>
 #include "Intake.h"
-#include "Elevator.h"
+#include "MiddleStage.h"
+#include "Carriage.h"
 #include <iostream>
 #include <Timer.h>
 #include <thread>
@@ -21,7 +22,7 @@
 class TeleopStateMachine {
 public:
 
-	TeleopStateMachine(Elevator *mds_, Elevator *carr_, Intake *intake_, DriveController *drive_controller);
+	TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intake *intake_, DriveController *drive_controller);
 
 	void StateMachine(bool wait_for_button, bool intake_spin_in,
 			bool intake_spin_out, bool intake_spin_slow, bool intake_spin_med, bool intake_spin_stop, bool get_cube_ground,

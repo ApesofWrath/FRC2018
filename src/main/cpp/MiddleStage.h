@@ -1,18 +1,18 @@
+#ifndef MIDDLESTAGE_H
+#define MIDDLESTAGE_H
+
 #include "Elevator.h"
 
 class MiddleStage : public Elevator {
 
 public:
 
-	const double DOWN_POS = 0.005;
-	const double MID_POS = 0.668;
-	const double HPS_POS = 0.5;
-	const double UP_POS = 0.89;
-
-	MiddleStage(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_) : Elevator(pdp, elevator_profiler_, false) {
+	MiddleStage(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_, bool is_carr) : Elevator(pdp, elevator_profiler_, false) {
 
 	}
 
 private:
 
 };
+
+#endif

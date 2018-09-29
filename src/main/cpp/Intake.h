@@ -19,7 +19,7 @@
 #include <list>
 #include <DigitalInput.h>
 #include "IntakeMotionProfiler.h"
-#include "Elevator.h"
+#include "Carriage.h"
 #include <iostream>
 #include <fstream>
 #include "AlgLib/fasttransforms.h"
@@ -76,7 +76,7 @@ public:
 	const double UP_ANGLE = 1.35; //starting pos -> also the shooting position 1.3
 	const double BACK_SHOT_ANGLE = 2.2; // 120 ish degrees for the flippy back arm shot 2.0
 
-	Intake(PowerDistributionPanel *pdp, IntakeMotionProfiler *intake_profiler, Elevator *el_);
+	Intake(PowerDistributionPanel *pdp, IntakeMotionProfiler *intake_profiler, Carriage *carr_);
 
 	void InitializeIntake();
 	void SetStartingPos(double start);

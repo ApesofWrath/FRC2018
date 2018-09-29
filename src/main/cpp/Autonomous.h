@@ -9,7 +9,8 @@
 #define SRC_AUTONOMOUS_H_
 
 #include <WPILib.h>
-#include "Elevator.h"
+#include "MiddleStage.h"
+#include "Carriage.h"
 #include "Intake.h"
 #include <fstream>
 #include <vector>
@@ -26,11 +27,12 @@ class Autonomous {
 public:
 
 	DriveController *drive_controller;
-	Elevator *elevator_;
+	MiddleStage *mds_;
+	Carriage *carr_;
 	Intake *intake_;
 	AutonStateMachine *auton_state_machine;
 
-	Autonomous(DriveController *dc, Elevator *el, Intake *in, AutonStateMachine *ausm);
+	Autonomous(DriveController *dc, MiddleStage *mds, Carriage *carr, Intake *in, AutonStateMachine *ausm);
 
 	double time_step_auton;
 

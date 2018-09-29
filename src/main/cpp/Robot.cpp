@@ -219,13 +219,13 @@ public:
 		drive_controller = new DriveController(TIME_STEP); //inherits from mother class //pass in time step here for auton subclasses
 		mds_ = new MiddleStage(pdp_, elevator_profiler_, false);
 		carr_ = new Carriage(pdp_, elevator_profiler_, true);
-		intake_ = new Intake(pdp_, intake_profiler_, elevator_);
-		teleop_state_machine = new TeleopStateMachine(elevator_, intake_,
+		intake_ = new Intake(pdp_, intake_profiler_, carr_);
+		teleop_state_machine = new TeleopStateMachine(mds_, carr_, intake_,
 				drive_controller); //actually has both state machines
-		auton_state_machine = new AutonStateMachine(elevator_, intake_,
+		auton_state_machine = new AutonStateMachine(mds_, carr_, intake_,
 				drive_controller);
 		task_manager = new TaskManager(teleop_state_machine,
-				auton_state_machine, drive_controller, elevator_, intake_,
+				auton_state_machine, drive_controller, mds_, carr_, intake_,
 				TIME_STEP);
 
 		//if(drive_controller->ahrs->IsCalibrating())
@@ -267,27 +267,7 @@ public:
 				joyThrottle, joyWheel, &is_heading);
 
 #else
-		intake_->StartIntakeThread(); //controllers
-		elevator_->StartElevatorThread();
 
-		drive_controller->StartDriveThreads(joyThrottle, joyWheel, &is_heading,//both auton and teleop drive
-				&is_vision, &is_fc);//auton drive will not start until profile for auton is sent through
-
-		auton_state_machine->StartAutonStateMachineThread(
-				&wait_for_button,//both auton and teleop state machines
-				&intake_spin_in, &intake_spin_out, &intake_spin_slow, &intake_spin_stop,
-				&get_cube_ground, &get_cube_station, &post_intake,
-				&raise_to_switch, &raise_to_scale, &intake_arm_up,
-				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
-				&elevator_down, &raise_to_scale_backwards);
-
-		teleop_state_machine->StartStateMachineThread(
-				&wait_for_button,//both auton and teleop state machines
-				&intake_spin_in, &intake_spin_out, &intake_spin_slow, &intake_spin_stop,
-				&get_cube_ground, &get_cube_station, &post_intake,
-				&raise_to_switch, &raise_to_scale, &intake_arm_up,
-				&intake_arm_mid, &intake_arm_down, &elevator_up, &elevator_mid,
-				&elevator_down, &raise_to_scale_backwards);
 #endif
 	}
 
@@ -335,12 +315,12 @@ public:
 		/////////////////////////////////////////////////////////////////////////
 
 		if (autoSelected == centerCubeSwitch) {
-			switch_center = new SwitchCenter(drive_controller, elevator_,
+			switch_center = new SwitchCenter(drive_controller, mds_, carr_,
 					intake_, auton_state_machine);
 			switch_center->GenerateSwitch(leftSwitch, false);
 			switchCenterOneState = true;
 
-		} else if (autoSelected == leftCubeScale) {
+/*		}  else if (autoSelected == leftCubeScale) {
 			if (leftScale) {
 				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
 						auton_state_machine);
@@ -450,11 +430,11 @@ public:
 			drive_forward = new DriveForward(drive_controller, elevator_,
 					intake_, auton_state_machine);
 			drive_forward->GenerateForward(false);
-
+*/
 		} else if (autoSelected == doNothing) {
 			drive_controller->set_profile = true; //thread will not call the auton state machine until there is a set profile. this is a workaround
 		} else {
-			drive_forward = new DriveForward(drive_controller, elevator_,
+			drive_forward = new DriveForward(drive_controller, mds_, carr_,
 					intake_, auton_state_machine);
 			drive_forward->GenerateForward(false); // risky, assuming start backward
 		}
@@ -462,26 +442,6 @@ public:
 	}
 
 	void AutonomousPeriodic() {
-
-
-std::cout << "HERE" << std::endl;
-		SmartDashboard::PutNumber("Left 1",
-				drive_controller->canTalonLeft1->GetOutputCurrent());
-		SmartDashboard::PutNumber("Left 2",
-				drive_controller->canTalonLeft2->GetOutputCurrent());
-		SmartDashboard::PutNumber("Left 3",
-				drive_controller->canTalonLeft3->GetOutputCurrent());
-		SmartDashboard::PutNumber("Left 4",
-				drive_controller->canTalonLeft4->GetOutputCurrent());
-
-		SmartDashboard::PutNumber("Right 1",
-				drive_controller->canTalonRight1->GetOutputCurrent());
-		SmartDashboard::PutNumber("Right 2",
-				drive_controller->canTalonRight2->GetOutputCurrent());
-		SmartDashboard::PutNumber("Right 3",
-				drive_controller->canTalonRight3->GetOutputCurrent());
-		SmartDashboard::PutNumber("Right 4",
-				drive_controller->canTalonRight4->GetOutputCurrent());
 
 		if (sameScaleOneState) { //same side
 			scale_side->RunStateMachineSameScale(&raise_to_scale_backwards,
@@ -528,28 +488,10 @@ std::cout << "HERE" << std::endl;
 
 	void TeleopPeriodic() {
 
-		SmartDashboard::PutNumber("LD 1",
-				drive_controller->canTalonLeft1->GetOutputCurrent());
-		SmartDashboard::PutNumber("LD 2",
-				drive_controller->canTalonLeft2->GetOutputCurrent());
-		SmartDashboard::PutNumber("LD 3",
-				drive_controller->canTalonLeft3->GetOutputCurrent());
-		SmartDashboard::PutNumber("LD 4",
-				drive_controller->canTalonLeft4->GetOutputCurrent());
-
-		SmartDashboard::PutNumber("RD 1",
-				drive_controller->canTalonRight1->GetOutputCurrent());
-		SmartDashboard::PutNumber("RD 2",
-				drive_controller->canTalonRight2->GetOutputCurrent());
-		SmartDashboard::PutNumber("RD 3",
-				drive_controller->canTalonRight3->GetOutputCurrent());
-		SmartDashboard::PutNumber("RD 4",
-				drive_controller->canTalonRight4->GetOutputCurrent());
-
 #if !STATEMACHINE
 		intake_->ManualArm(joyOp);
 		//	intake_->ManualWheels(joyOp);
-		elevator_->ManualElevator(joyThrottle);
+	//	elevator_->ManualElevator(joyThrottle);
 
 #else
 
@@ -605,15 +547,6 @@ std::cout << "HERE" << std::endl;
 
 	void TestPeriodic() {
 
-		SmartDashboard::PutNumber("enc l",
-				drive_controller->canTalonLeft1->GetSelectedSensorPosition(0));
-
-		SmartDashboard::PutNumber("enc r",
-				drive_controller->canTalonRight1->GetSelectedSensorPosition(0));
-
-		SmartDashboard::PutNumber("EL POS", elevator_->GetElevatorPosition());
-		SmartDashboard::PutNumber("ARM POS", intake_->GetAngularPosition());
-
 //		drive_controller->canTalonLeft1->Set(ControlMode::PercentOutput, 1.0);
 //		drive_controller->canTalonRight1->Set(ControlMode::PercentOutput, 1.0);
 //
@@ -653,48 +586,7 @@ std::cout << "HERE" << std::endl;
 //
 //		last_state_test = 0;
 
-		switch (state_test) { //threads are always running
 
-		case 0:
-			intake_->IntakeArmStateMachine(); //init state
-			intake_->IntakeWheelStateMachine();
-			elevator_->ElevatorStateMachine();
-
-			if (intake_->is_init_intake && elevator_->is_elevator_init) { //once initialized, state machines are ou
-				state_test = 0;
-			}
-			last_state_test = 0;
-
-			break;
-
-		case 1:
-			intake_->IntakeArmStateMachine(); //up
-			intake_->IntakeWheelStateMachine();
-			if (std::abs(intake_->GetAngularPosition() - intake_->UP_ANGLE)
-					< 0.1) {
-				state_test = 2;
-			}
-			break;
-
-		case 2:
-			intake_->intake_arm_state = intake_->DOWN_STATE_H;
-			intake_->IntakeArmStateMachine(); //down states
-			intake_->IntakeWheelStateMachine();
-			if (std::abs(intake_->GetAngularPosition() - intake_->DOWN_ANGLE)
-					< 0.1) {
-				state_test = 3;
-			}
-			break;
-
-		case 3:
-			elevator_->elevator_state = elevator_->MID_STATE_E_H;
-			elevator_->ElevatorStateMachine();
-			if (std::abs(
-					elevator_->GetElevatorPosition() - elevator_->MID_POS_E)
-					< 0.1) {
-
-			}
-		}
 
 	} //arm up, elev down
 

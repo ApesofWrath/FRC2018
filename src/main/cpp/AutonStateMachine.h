@@ -11,7 +11,8 @@
 #include "ctre/Phoenix.h"
 #include <WPILib.h>
 #include "Intake.h"
-#include "Elevator.h"
+#include "MiddleStage.h"
+#include "Carriage.h"
 #include <iostream>
 #include <Timer.h>
 #include <thread>
@@ -37,7 +38,7 @@ public:
 
 	int shoot_counter;
 
-	AutonStateMachine(Elevator *mds_, Elevator *carr_, Intake *intake_,
+	AutonStateMachine(MiddleStage *mds_, Carriage *carr_, Intake *intake_,
 			DriveController *drive_controller);
 
 	void StateMachineAuton(bool wait_for_button, bool intake_spin_in,

@@ -13,7 +13,7 @@
 class SwitchSide : public Autonomous {
 public:
 
-	SwitchSide(DriveController *dc, Elevator *el, Intake *in, AutonStateMachine *ausm) : Autonomous(dc, el, in, ausm) {
+	SwitchSide(DriveController *dc, MiddleStage *mds, Carriage *carr, Intake *in, AutonStateMachine *ausm) : Autonomous(dc, mds, carr, in, ausm) {
 
 	}
 

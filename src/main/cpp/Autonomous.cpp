@@ -7,22 +7,15 @@
 
 #include "Autonomous.h"
 
-#define CORNELIUS 1
-
-#if CORNELIUS
-
-#else
-
-#endif
-
 bool has_started_shoot = false;
 
 //The naming convention for the auton subclasses are PLACE TO SCORE and STARTING POSITION
 
-Autonomous::Autonomous(DriveController *dc, Elevator *el, Intake *in, AutonStateMachine *ausm) { //TODO: can now use inherited objects, take out middleperson functions
+Autonomous::Autonomous(DriveController *dc, MiddleStage *mds, Carriage *carr, Intake *in, AutonStateMachine *ausm) { //TODO: can now use inherited objects, take out middleperson functions
 
 	drive_controller = dc;
-	elevator_ = el;
+	mds_ = mds;
+	carr_ = carr;
 	intake_ = in;
 	auton_state_machine = ausm;
 

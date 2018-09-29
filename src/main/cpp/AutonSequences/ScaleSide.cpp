@@ -388,7 +388,7 @@ void ScaleSide::RunStateMachineSameScaleSwitch(bool *place_scale_backwards, //do
 	//added check for state to stop profile
 	if (((drive_index >= same_scale_len
 			&& auton_state_machine->shoot_counter == 0)
-			|| (elevator_->GetElevatorPosition() > 0.3 //elevator going down
+			|| (carr_->GetElevatorPosition() > 0.3 //elevator going down
 			&& auton_state_machine->shoot_counter == 1))
 			|| auton_state_machine->state_a
 					== auton_state_machine->POST_INTAKE_SCALE_STATE_A_H
@@ -445,7 +445,7 @@ void ScaleSide::RunStateMachineOppScaleSwitch(bool *place_scale_backwards, bool 
 	//added check for state to stop profile
 	if (((drive_index >= opp_scale_len
 			&& auton_state_machine->shoot_counter == 0)
-			|| (elevator_->GetElevatorPosition() > 0.3 //elevator going down
+			|| (carr_->GetElevatorPosition() > 0.3 //elevator going down
 			&& auton_state_machine->shoot_counter == 1))
 			|| auton_state_machine->state_a
 					== auton_state_machine->POST_INTAKE_SCALE_STATE_A_H
@@ -527,7 +527,7 @@ void ScaleSide::RunStateMachineSameScaleScale(bool *place_scale_backwards, //sta
 	if ((drive_index >= same_scale_len
 			&& auton_state_machine->shoot_counter == 0)
 			||
-			(elevator_->GetElevatorPosition() > 0.3 && elevator_->elevator_state == elevator_->DOWN_STATE_E_H//elevator going down
+			(carr_->GetElevatorPosition() > 0.3 && carr_->elevator_state == carr_->DOWN_STATE_E_H//elevator going down
 			&& auton_state_machine->shoot_counter == 1) //when shoot counter is 0, will be going up to shoot first cube and will not stop drive. once shot first cube and everything is coming down, will stop drive. once everything is coming back up, will stop drive
 			|| auton_state_machine->state_a
 					== auton_state_machine->POST_INTAKE_SCALE_STATE_A_H
@@ -605,7 +605,7 @@ void ScaleSide::RunStateMachineOppScaleScale(bool *place_scale_backwards,
 
 	if ((drive_index >= opp_scale_len
 			&& auton_state_machine->shoot_counter == 0)
-			|| (elevator_->GetElevatorPosition() > 0.3 //elevator going down
+			|| (carr_->GetElevatorPosition() > 0.3 //elevator going down
 			&& auton_state_machine->shoot_counter == 1) //when shoot counter is 0, will be going up to shoot first cube and will not stop drive. once shot first cube and everything is coming down, will stop drive. once everything is coming back up, will stop drive
 			|| auton_state_machine->state_a
 					== auton_state_machine->POST_INTAKE_SCALE_STATE_A_H

@@ -27,7 +27,8 @@ bool is_intake_low_enough_a = false;
 
 int store_last_state = 0;
 
-Elevator *mds_a, *carr_a;
+MiddleStage *mds_a;
+Carriage *carr_a;
 Intake *intake_a;
 DriveController *driveController_a;
 
@@ -35,7 +36,7 @@ Timer *autonTimer = new Timer();
 
 std::thread AutonStateMachineThread;
 
-AutonStateMachine::AutonStateMachine(Elevator *mds_, Elevator *carr_, Intake *intake_,
+AutonStateMachine::AutonStateMachine(MiddleStage *mds_, Carriage *carr_, Intake *intake_,
 		DriveController *drive_controller) {
 
 	mds_a = mds_;

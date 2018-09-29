@@ -91,7 +91,6 @@ std::vector<std::vector<double> > error_i = { { 0.0 }, { 0.0 } };
 Timer *intakeTimer = new Timer();
 
 PowerDistributionPanel *pdp_i;
-Elevator *elevator_i;
 
 double starting_pos = 0.0;
 bool start_counting = false;
@@ -160,16 +159,17 @@ int have_cube_wait = 0;
 int position_offset = 0;
 
 IntakeMotionProfiler *intake_profiler;
+Carriage *carr_i;
 
 int current_counter_first = 0;
 bool cube_in = false;
 
 Intake::Intake(PowerDistributionPanel *pdp,
-		IntakeMotionProfiler *intake_profiler_, Elevator *el_) {
+		IntakeMotionProfiler *intake_profiler_, Carriage *carr_) {
 
 	intake_profiler = intake_profiler_;
 
-	elevator_i = el_;
+	carr_i = carr_;
 
 	hallEffectIntake = new DigitalInput(0);
 
@@ -408,7 +408,7 @@ void Intake::SetVoltage(double voltage_i) {
 	}
 
 	//top soft limits
-	if ((elevator_i->GetElevatorPosition() < elevator_safety_position) && (ang_pos >= (1.6) && voltage_i > 0.0 && is_init_intake)) { //arm trying to shoot back but elev not high enough //there is no upper soft limit when initializing
+	if ((carr_i->GetElevatorPosition() < elevator_safety_position) && (ang_pos >= (1.6) && voltage_i > 0.0 && is_init_intake)) { //arm trying to shoot back but elev not high enough //there is no upper soft limit when initializing
 			voltage_i = 0.0;
 			SmartDashboard::PutString("ARM SAFETY", "top soft limit");
 	} else if (ang_pos >= (INTAKE_BACKWARDS_SOFT_LIMIT) && voltage_i > 0.0	&& is_init_intake) { //at max ang and still trying to move back //no upper soft limit when initializing
@@ -432,10 +432,10 @@ void Intake::SetVoltage(double voltage_i) {
 	}
 
 	//safety to make sure that the elevator doesn't go down when the arm is up
-	if (ang_pos > 1.7 && elevator_i->GetVoltageElevator() < 0.0) { //checking and changing u_e
-		elevator_i->keep_elevator_up = true; //this variable used as a safety in SetVoltage in elev
+	if (ang_pos > 1.7 && carr_i->GetVoltageElevator() < 0.0) { //checking and changing u_e
+		carr_i->keep_elevator_up = true; //this variable used as a safety in SetVoltage in elev
 	} else {
-		elevator_i->keep_elevator_up = false;
+		carr_i->keep_elevator_up = false;
 	}
 
 	//only 1 count for current trip

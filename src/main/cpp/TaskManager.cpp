@@ -14,11 +14,12 @@ std::thread Thread;
 TeleopStateMachine *teleop_state_machine;
 AutonStateMachine *auton_state_machine;
 DriveController *drive_controller;
-Elevator *mds_t, *carr_t;
+MiddleStage *mds_t;
+Carriage *carr_t;
 Intake *intake_t;
 
 TaskManager::TaskManager(TeleopStateMachine *tsm, AutonStateMachine *ausm,
-		DriveController *dc, Elevator *mds, Elevator *carr, Intake *in, double thread_time_dt) {
+		DriveController *dc, MiddleStage *mds, Carriage *carr, Intake *in, double thread_time_dt) {
 
 	teleop_state_machine = tsm;
 	auton_state_machine = ausm;
@@ -126,9 +127,6 @@ void TaskManager::ThreadWrapper(TaskManager *task_manager,
 		std::this_thread::sleep_for(std::chrono::microseconds((int) wait_time));
 
 		SmartDashboard::PutNumber("TIME", threadTimer->Get());
-
-		std::cout << "MDS: " << mds_t->GetElevatorState() << std::endl;
-		std::cout << "CARR: " << carr_t->GetElevatorState() << std::endl;
 
 	}
 

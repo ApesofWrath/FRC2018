@@ -5,16 +5,16 @@
  *      Author: DriversStation
  */
 
-//#ifndef SRC_AUTONSEQUENCES_SCALESIDE_H_
-//#define SRC_AUTONSEQUENCES_SCALESIDE_H_
+#ifndef SRC_AUTONSEQUENCES_SCALESIDE_H_
+#define SRC_AUTONSEQUENCES_SCALESIDE_H_
 
 #include "../Autonomous.h"
 
 class ScaleSide : public Autonomous {
 public:
 
-	ScaleSide(DriveController *dc_, Elevator *el_, Intake *in_, AutonStateMachine *ausm) :
-			Autonomous(dc_, el_, in_, ausm) {
+	ScaleSide(DriveController *dc_, MiddleStage *mds_, Carriage *carr_, Intake *in_, AutonStateMachine *ausm) :
+			Autonomous(dc_, mds_, carr_, in_, ausm) {
 
 	}
 
@@ -39,4 +39,4 @@ public:
 
 };
 
-//#endif /* SCALE_H_ */
+#endif /* SCALE_H_ */
