@@ -62,6 +62,7 @@ public:
 	const double UP_POS_CARR = 0.01;
 
 	const double SAFE_CARR_HEIGHT = 0.2; //TODO: actually determine this //carr height at which ms can start moving down
+	const double SAFE_MDS_HEIGHT = 0.2;
 
 	void InitializeElevator(); //should be able to initialize carr/ms at same time
 

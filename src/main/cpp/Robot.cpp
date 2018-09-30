@@ -81,7 +81,6 @@ public:
 	const int CARR_MID = 33;
 	const int CARR_DOWN = 56;
 
-
 	bool wait_for_button, intake_spin_in, intake_spin_out, intake_spin_slow,
 			intake_spin_med, intake_spin_stop, get_cube_ground,
 			get_cube_station, post_intake, raise_to_switch, pop_switch,
