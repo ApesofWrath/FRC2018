@@ -748,14 +748,6 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 		refYaw -= (2 * PI);
 	}
 
-	SmartDashboard::PutNumber("targetHeading", refYaw);
-
-	SmartDashboard::PutNumber("refLeft", refLeft);
-	SmartDashboard::PutNumber("refRight", refRight);
-	SmartDashboard::PutNumber("refLeftVel", tarVelLeft);
-	SmartDashboard::PutNumber("refRightVel", tarVelRight);
-	SmartDashboard::PutNumber("refYaw", refYaw);
-
 	//fps //not needed besides check for jitter
 	double r_current = -((double) canTalonRight1->GetSelectedSensorVelocity(0)
 			/ (double) TICKS_PER_FOOT) * MINUTE_CONVERSION / 60;
@@ -845,19 +837,9 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 		target_rpm_right = -MAX_FPS;
 	}
 
-//	std::cout << "yep " << target_rpm_right << "  " << target_rpm_left << "  " << targetYawRate  << "  " << tarVelLeft <<  "   " << tarVelRight << std::endl;
-//target rpm right, left
-
-//	if (canTalonRight1->GetSelectedSensorPosition(0) == -1.0 || canTalonLeft1->GetSelectedSensorPosition(0) == -1.0) { //if ever read -1.0 from encoders, don't drive for the rest of auton
-//		target_rpm_left = 0.0;
-//		target_rpm_right = 0.0;
-//		targetYawRate = 0.0;
-//		SmartDashboard::PutString("Encoders", "Out");
-//	}
-
-	// Controller(0.0, 0.0, 0.0, targetYawRate, k_p_right_vel_au, k_p_left_vel_au,
-	// 		0.0, k_p_yaw_au, k_d_yaw_au, k_d_left_vel_au, k_d_right_vel_au, 0.0, //sends all 0.0 gains
-	// 		target_rpm_left, target_rpm_right, 0.0);
+	Controller(0.0, 0.0, 0.0, targetYawRate, k_p_right_vel_au, k_p_left_vel_au,
+			0.0, k_p_yaw_au, k_d_yaw_au, k_d_left_vel_au, k_d_right_vel_au, 0.0, //sends all 0.0 gains
+			target_rpm_left, target_rpm_right, 0.0);
 
 	l_last_error = l_error_dis_au;
 	r_last_error = r_error_dis_au;

@@ -35,7 +35,7 @@ public:
 	//std::thread AutonThread;
 
 	AHRS *ahrs;
-
+	
 	bool continue_profile = true;
 	bool set_profile = false;
 

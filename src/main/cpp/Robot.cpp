@@ -47,8 +47,6 @@ public:
 	const int HIGH_GEAR_BUTTON = 6;
 	const int HEADING_BUTTON = 9;
 
-#if BUTTONBOX
-
 	const int WAIT_FOR_BUTTON = 13;
 
 	const int GET_CUBE_GROUND = 14;
@@ -72,45 +70,22 @@ public:
 	const int INTAKE_ARM_DOWN = 15;
 	const int INTAKE_ARM_BACKWARDS = 99; //no manual for this one
 
-	const int ELEVATOR_UP = 3;
-	const int ELEVATOR_MID = 16;
-	const int ELEVATOR_DOWN = 9;
-	//no human player station height
+	const int MDS_UP = 3;
+	const int MDS_MID = 16;
+	const int MDS_DOWN = 9;
 
-#else
+	const int CARR_UP = 0;
+	const int CARR_MID = 33;
+	const int CARR_DOWN = 56;
 
-	const int WAIT_FOR_BUTTON = 1;
-
-	const int GET_CUBE_GROUND = 2;
-	const int GET_CUBE_STATION = 3;
-	const int POST_INTAKE = 4;
-	const int RAISE_TO_SWITCH = 5;
-	const int RAISE_TO_SCALE = 6;
-	const int RAISE_TO_SCALE_BACKWARDS = 3; //THROTTLE
-
-	const int INTAKE_SPIN_IN = 9;//THROTTLE
-	const int INTAKE_SPIN_OUT = 10;//THROTTLE
-	const int INTAKE_SPIN_STOP = 11;//THROTTLE
-	//no slow
-
-	const int INTAKE_ARM_UP = 7;
-	const int INTAKE_ARM_MID = 8;
-	const int INTAKE_ARM_DOWN = 9;
-	const int INTAKE_ARM_BACKWARDS = 4;//THROTTLE
-
-	const int ELEVATOR_UP = 10;
-	const int ELEVATOR_MID = 11;
-	const int ELEVATOR_DOWN = 12;
-	//no human player station height
-
-#endif
 
 	bool wait_for_button, intake_spin_in, intake_spin_out, intake_spin_slow,
 			intake_spin_med, intake_spin_stop, get_cube_ground,
 			get_cube_station, post_intake, raise_to_switch, pop_switch,
 			raise_to_scale_slow, raise_to_scale_med, raise_to_scale_fast,
-			intake_arm_up, intake_arm_mid, intake_arm_down, elevator_up,
-			elevator_mid, elevator_down, raise_to_scale_backwards; //for BOTH state machines
+			intake_arm_up, intake_arm_mid, intake_arm_down, mds_up,
+				mds_mid, mds_down, raise_to_scale_backwards, carr_down,
+				carr_mid, carr_up; //for BOTH state machines
 
 	bool is_heading, is_vision, is_fc; //drive
 	bool is_auto_shift;
@@ -241,10 +216,6 @@ public:
 
 		autonChooser.AddObject(centerCubeSwitch, centerCubeSwitch);
 
-//		autonChooser.AddObject(leftCubeSwitch, leftCubeSwitch); //these do NOT exist yet
-//		autonChooser.AddObject(rightCubeSwitch, rightCubeSwitch);
-//		autonChooser.AddObject(centerCubeSwitchSwitch, centerCubeSwitchSwitch);
-
 		autonChooser.AddObject(leftCubeScale, leftCubeScale);
 		autonChooser.AddObject(rightCubeScale, rightCubeScale);
 		autonChooser.AddObject(leftCubeScaleScale, leftCubeScaleScale);
@@ -254,7 +225,6 @@ public:
 
 		frc::SmartDashboard::PutData("Auto Modes", &autonChooser);
 
-#if TESTING
 		//starting threads in robot init so that they only are created once
 		task_manager->StartThread(
 				&wait_for_button, //both auton and teleop state machines
@@ -262,13 +232,9 @@ public:
 				&intake_spin_med, &intake_spin_stop, &get_cube_ground,
 				&get_cube_station, &post_intake, &raise_to_switch, &pop_switch,
 				&raise_to_scale_slow, &raise_to_scale_med, &raise_to_scale_fast,
-				&intake_arm_up, &intake_arm_mid, &intake_arm_down, &elevator_up,
-				&elevator_mid, &elevator_down, &raise_to_scale_backwards,
-				joyThrottle, joyWheel, &is_heading);
+				&intake_arm_up, &intake_arm_mid, &intake_arm_down, &mds_up, &mds_mid, &mds_down, &carr_up,
+				&carr_mid, &carr_down, &raise_to_scale_backwards, joyThrottle, joyWheel, &is_heading);
 
-#else
-
-#endif
 	}
 
 	void AutonomousInit() override {
@@ -286,12 +252,10 @@ public:
 		for (int i = 0; i < 2000; i++) { //FMS data may not come immediately
 			gameData =
 					frc::DriverStation::GetInstance().GetGameSpecificMessage();
-			if (gameData.length() > 0) { //sizeof(gameData) / sizeof(gameData[0]
-				//std::cout << "BREAK" << std::endl;
+			if (gameData.length() > 0) {
 				break;//leave for loop early
 			}
 
-			//std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		} //will stop checking after 15 counts, but does not necessarily mean data has been received
 
 		autoSelected = autonChooser.GetSelected();
@@ -308,8 +272,7 @@ public:
 				leftScale = false;
 			}
 		} else { //still have not received FMS data
-			autoSelected = sideDriveForward; //regardless of auton chooser //centerDriveForward
-			//std::cout << "DEFAULT" << std::endl;
+			autoSelected = sideDriveForward; //regardless of auton chooser
 		}
 
 		/////////////////////////////////////////////////////////////////////////
@@ -420,19 +383,20 @@ public:
 				scale_side->GenerateOppScale(false, false, false);
 				oppScaleOneState = true;
 			}
-
+*/
 		} else if (autoSelected == centerDriveForward) { //depends on starting robot backwards when on side, and forwards when in middle
-			drive_forward = new DriveForward(drive_controller, elevator_,
+			drive_forward = new DriveForward(drive_controller, mds_, carr_,
 					intake_, auton_state_machine);
 			drive_forward->GenerateForward(true);
 
 		} else if (autoSelected == sideDriveForward) { //depends on starting robot backwards when on side, and forwards when in middle
-			drive_forward = new DriveForward(drive_controller, elevator_,
+			drive_forward = new DriveForward(drive_controller, mds_, carr_,
 					intake_, auton_state_machine);
 			drive_forward->GenerateForward(false);
-*/
+
 		} else if (autoSelected == doNothing) {
 			drive_controller->set_profile = true; //thread will not call the auton state machine until there is a set profile. this is a workaround
+			drive_controller->StopProfile(true);
 		} else {
 			drive_forward = new DriveForward(drive_controller, mds_, carr_,
 					intake_, auton_state_machine);
@@ -480,20 +444,13 @@ public:
 	void TeleopInit() {
 
 		compressor_->SetClosedLoopControl(true);
-		//teleop_state_machine->Initialize(); //only initialize in auton state machine
+		//teleop_state_machine->Initialize();
 		drive_controller->ZeroAll(true);
 		drive_controller->ShiftDown();
 
 	}
 
 	void TeleopPeriodic() {
-
-#if !STATEMACHINE
-		intake_->ManualArm(joyOp);
-		//	intake_->ManualWheels(joyOp);
-	//	elevator_->ManualElevator(joyThrottle);
-
-#else
 
 		bool low_gear = joyWheel->GetRawButton(LOW_GEAR_BUTTON);
 		bool high_gear = joyWheel->GetRawButton(HIGH_GEAR_BUTTON);
@@ -515,9 +472,12 @@ public:
 		intake_arm_up = joyOp->GetRawButton(INTAKE_ARM_UP);
 		intake_arm_mid = false; // joyOp->GetRawButton(INTAKE_ARM_MID);
 		intake_arm_down = joyOp->GetRawButton(INTAKE_ARM_DOWN);
-		elevator_up = joyOp->GetRawButton(ELEVATOR_UP);
-		elevator_mid = joyOp->GetRawButton(ELEVATOR_MID);
-		elevator_down = joyOp->GetRawButton(ELEVATOR_DOWN);
+		mds_up = joyOp->GetRawButton(MDS_UP);
+		mds_mid = joyOp->GetRawButton(MDS_MID);
+		mds_down = joyOp->GetRawButton(MDS_DOWN);
+ 		carr_up = joyOp->GetRawButton(CARR_UP);
+		carr_mid = joyOp->GetRawButton(CARR_MID);
+		carr_down = joyOp->GetRawButton(CARR_DOWN);
 
 		intake_spin_in = joyThrottle->GetRawButton(INTAKE_SPIN_IN); //these all are manual and can always happen
 		intake_spin_out = joyThrottle->GetRawButton(INTAKE_SPIN_OUT);
@@ -538,7 +498,6 @@ public:
 			is_auto_shift = true;
 		}
 
-#endif
 	}
 
 	void DisabledInit() override { //between auton and teleop
@@ -570,22 +529,6 @@ public:
 //		SmartDashboard::PutNumber("Left 1 Vel", drive_controller->GetLeftVel());
 //		SmartDashboard::PutNumber("Right 1 Vel",
 //				drive_controller->GetRightVel());
-//
-//		if (last_state_test != 0) {
-//			timerTest->Start();
-//		}
-//
-//		if (timerTest->HasPeriodPassed(3)
-//				&& std::abs(drive_controller->GetLeftVel()) > 0.0
-//				&& std::abs(drive_controller->GetRightVel()) > 0.0) { //first one not needed //550, 1250 //JUST LOOK AT CURRENTS
-//
-//			state_test = 1;
-//			timerTest->Reset();
-//
-//		}
-//
-//		last_state_test = 0;
-
 
 
 	} //arm up, elev down
