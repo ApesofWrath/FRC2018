@@ -74,6 +74,9 @@ public:
 	const int MDS_MID = 16;
 	const int MDS_DOWN = 9;
 
+	const int OPEN_INTAKE = -1;
+	const int CLOSE_INTAKE = -1;
+
 	const int CARR_UP = 0;
 	const int CARR_MID = 33;
 	const int CARR_DOWN = 56;
@@ -84,7 +87,7 @@ public:
 			get_cube_station, post_intake, raise_to_switch, pop_switch,
 			raise_to_scale_slow, raise_to_scale_med, raise_to_scale_fast,
 			intake_arm_up, intake_arm_mid, intake_arm_down, mds_up,
-				mds_mid, mds_down, raise_to_scale_backwards, carr_down,
+				mds_mid, mds_down, open_intake, close_intake, raise_to_scale_backwards, carr_down,
 				carr_mid, carr_up; //for BOTH state machines
 
 	bool is_heading, is_vision, is_fc; //drive
@@ -232,7 +235,7 @@ public:
 				&intake_spin_med, &intake_spin_stop, &get_cube_ground,
 				&get_cube_station, &post_intake, &raise_to_switch, &pop_switch,
 				&raise_to_scale_slow, &raise_to_scale_med, &raise_to_scale_fast,
-				&intake_arm_up, &intake_arm_mid, &intake_arm_down, &mds_up, &mds_mid, &mds_down, &carr_up,
+				&intake_arm_up, &intake_arm_mid, &intake_arm_down, &mds_up, &mds_mid, &mds_down, &open_intake, &close_intake, &carr_up,
 				&carr_mid, &carr_down, &raise_to_scale_backwards, joyThrottle, joyWheel, &is_heading);
 
 	}
@@ -475,6 +478,8 @@ public:
 		mds_up = joyOp->GetRawButton(MDS_UP);
 		mds_mid = joyOp->GetRawButton(MDS_MID);
 		mds_down = joyOp->GetRawButton(MDS_DOWN);
+		open_intake = joyOp->GetRawButton(OPEN_INTAKE);
+		close_intake = joyOp->GetRawButton(CLOSE_INTAKE);
  		carr_up = joyOp->GetRawButton(CARR_UP);
 		carr_mid = joyOp->GetRawButton(CARR_MID);
 		carr_down = joyOp->GetRawButton(CARR_DOWN);

@@ -37,6 +37,7 @@ const int DOWN_STATE = 3;
 const int STOP_ARM_STATE = 4;
 const int SWITCH_STATE = 5;
 const int SWITCH_BACK_SHOT_STATE = 6;
+const int LOW_BACK_SHOT_STATE = 7;
 
 const int STOP_WHEEL_STATE = 0; //wheel state machine
 const int IN_STATE = 1;
@@ -202,20 +203,14 @@ Intake::Intake(PowerDistributionPanel *pdp,
 	talonIntakeArm->SetStatusFramePeriod(
 			StatusFrameEnhanced::Status_2_Feedback0, 10, 0);
 
-	intakeSolenoid1 = new Solenoid(0, 2);
-	intakeSolenoid2 = new Solenoid(0, 1);
+  intakeSolenoid1 = new DoubleSolenoid(0, 0, 0); //pcm id, forward channel, reverse channel
+  intakeSolenoid2 = new DoubleSolenoid(0, 0, 0);
 
 	pdp_i = pdp;
 
 	currents_intake.setlength(arr_len);
 	currents_outtake_r.setlength(arr_len);
 	currents_outtake_l.setlength(arr_len);
-
-//	master_slow_scale.setlength(arr_len);
-//	master_switch.setlength(arr_len);
-//	master_back.setlength(arr_len);
-//	master_slow_back.setlength(arr_len);
-//	master_scale.setlength(arr_len);
 
 	corr_intake.setlength(arr_len - 2);
 	corr_outtake_r.setlength(arr_len - 2);
@@ -319,15 +314,15 @@ void Intake::StopWheels() {
 
 void Intake::Close() {
 
-	intakeSolenoid1->Set(false);
-	intakeSolenoid2->Set(false);
+	intakeSolenoid1->Set(DoubleSolenoid::Value::kReverse);
+	intakeSolenoid2->Set(DoubleSolenoid::Value::kReverse);
 
 }
 
 void Intake::Open() {
 
-	intakeSolenoid1->Set(true);
-	intakeSolenoid2->Set(true);
+	intakeSolenoid1->Set(DoubleSolenoid::Value::kForward);
+	intakeSolenoid2->Set(DoubleSolenoid::Value::kForward);
 
 }
 
@@ -587,13 +582,21 @@ void Intake::IntakeArmStateMachine() {
 		break;
 
 	case SWITCH_BACK_SHOT_STATE:
-		SmartDashboard::PutString("IA", "DOWN");
+		SmartDashboard::PutString("IA", "HIGH BACK");
 		if (last_intake_state != SWITCH_BACK_SHOT_STATE) {
 			intake_profiler->SetFinalGoalIntake(BACK_SHOT_ANGLE);
 			intake_profiler->SetInitPosIntake(GetAngularPosition());
 		}
 		last_intake_state = SWITCH_BACK_SHOT_STATE;
 		break;
+
+	case LOW_BACK_SHOT_STATE:
+		SmartDashboard::PutString("IA", "LOW BACK");
+		if (last_intake_state != LOW_BACK_SHOT_STATE) {
+			intake_profiler->SetFinalGoalIntake(LOW_BACK_SHOT_ANGLE);
+			intake_profiler->SetInitPosIntake(GetAngularPosition());
+		}
+		last_intake_state = LOW_BACK_SHOT_STATE;
 	}
 
 }

@@ -45,7 +45,7 @@ public:
 			bool intake_spin_out, bool intake_spin_slow, bool intake_spin_stop,
 			bool get_cube_ground, bool get_cube_station, bool post_intake,
 			bool raise_to_switch, bool raise_to_scale, bool intake_arm_up,
-			bool intake_arm_mid, bool intake_arm_down, bool mds_up, bool mds_mid, bool mds_down, bool carr_up,
+			bool intake_arm_mid, bool intake_arm_down, bool mds_up, bool mds_mid, bool mds_down, bool open_intake, bool close_intake, bool carr_up,
 			bool carr_mid, bool carr_down,
 			bool raise_to_scale_backwards);
 

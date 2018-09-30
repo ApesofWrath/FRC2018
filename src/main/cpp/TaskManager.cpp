@@ -36,7 +36,7 @@ void TaskManager::StartThread(bool *wait_for_button, bool *intake_spin_in,
 		bool *intake_spin_out, bool *intake_spin_slow, bool *intake_spin_med, bool *intake_spin_stop,
 		bool *get_cube_ground, bool *get_cube_station, bool *post_intake,
 		bool *raise_to_switch, bool *pop_switch, bool *raise_to_scale_slow, bool *raise_to_scale_med, bool *raise_to_scale_fast, bool *intake_arm_up,
-		bool *intake_arm_mid, bool *intake_arm_down, bool *mds_up, bool *mds_mid, bool *mds_down, bool *carr_up,
+		bool *intake_arm_mid, bool *intake_arm_down, bool *mds_up, bool *mds_mid, bool *mds_down, bool *open_intake, bool *close_intake, bool *carr_up,
 		bool *carr_mid, bool *carr_down, bool *raise_to_scale_backwards,
 		Joystick *JoyThrottle, Joystick *JoyWheel, bool *is_heading) {
 
@@ -45,7 +45,7 @@ void TaskManager::StartThread(bool *wait_for_button, bool *intake_spin_in,
 			wait_for_button, intake_spin_in, intake_spin_out, intake_spin_slow, intake_spin_med,
 			intake_spin_stop, get_cube_ground, get_cube_station, post_intake,
 			raise_to_switch, pop_switch, raise_to_scale_slow, raise_to_scale_med, raise_to_scale_fast, intake_arm_up, intake_arm_mid,
-			intake_arm_down, mds_up, mds_mid, mds_down, carr_up,
+			intake_arm_down, mds_up, mds_mid, mds_down, open_intake, close_intake, carr_up,
 			carr_mid, carr_down,
 			raise_to_scale_backwards, is_heading);
 	Thread.detach();
@@ -58,7 +58,7 @@ void TaskManager::ThreadWrapper(TaskManager *task_manager,
 		bool *intake_spin_stop, bool *get_cube_ground, bool *get_cube_station,
 		bool *post_intake, bool *raise_to_switch, bool *pop_switch, bool *raise_to_scale_slow, bool *raise_to_scale_med, bool *raise_to_scale_fast,
 		bool *intake_arm_up, bool *intake_arm_mid, bool *intake_arm_down,
-		bool *mds_up, bool *mds_mid, bool *mds_down, bool *carr_up,
+		bool *mds_up, bool *mds_mid, bool *mds_down, bool *open_intake, bool *close_intake, bool *carr_up,
 		bool *carr_mid, bool *carr_down,
 		bool *raise_to_scale_backwards, bool *is_heading) {
 
@@ -88,7 +88,7 @@ void TaskManager::ThreadWrapper(TaskManager *task_manager,
 					(bool) *post_intake, (bool) *raise_to_switch,
 					(bool) *raise_to_scale_med, (bool) *intake_arm_up, //raise to scale med
 					(bool) *intake_arm_mid, (bool) *intake_arm_down,
-					(bool) *mds_up, (bool) *mds_mid, (bool) *mds_down, (bool) *carr_up,
+					(bool) *mds_up, (bool) *mds_mid, (bool) *mds_down, (bool) *open_intake, (bool) *close_intake, (bool) *carr_up,
 					(bool) *carr_mid, (bool) *carr_down, (bool) *raise_to_scale_backwards);
 
 		} else if (frc::RobotState::IsEnabled()
@@ -112,7 +112,7 @@ void TaskManager::ThreadWrapper(TaskManager *task_manager,
 					(bool) *post_intake, (bool) *raise_to_switch, (bool) *pop_switch,
 					(bool) *raise_to_scale_slow, (bool) *raise_to_scale_med, (bool) *raise_to_scale_fast, (bool) *intake_arm_up,
 					(bool) *intake_arm_mid, (bool) *intake_arm_down,
-					(bool) *mds_up, (bool) *mds_mid, (bool) *mds_down, (bool) *carr_up,
+					(bool) *mds_up, (bool) *mds_mid, (bool) *mds_down, (bool) *open_intake, (bool) *close_intake, (bool) *carr_up,
 					(bool) *carr_mid, (bool) *carr_down, (bool) *raise_to_scale_backwards);
 
 		}

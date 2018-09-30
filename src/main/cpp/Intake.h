@@ -10,6 +10,7 @@
 #define SRC_INTAKE_H_
 
 #include <WPILib.h>
+#include <DoubleSolenoid.h>
 #include "ctre/Phoenix.h"
 #include <Timer.h>
 #include <thread>
@@ -31,7 +32,7 @@ public:
 	TalonSRX *talonIntake1, *talonIntake2, *talonIntakeArm;
 	DigitalInput *hallEffectIntake; //for bottom
 
-	Solenoid *intakeSolenoid1, *intakeSolenoid2;
+	DoubleSolenoid *intakeSolenoid1, *intakeSolenoid2;
 
 	std::thread IntakeThread;
 
@@ -56,6 +57,7 @@ public:
 	const int STOP_ARM_STATE_H = 4;
 	const int SWITCH_STATE_H = 5; //not used
 	const int SWITCH_BACK_SHOT_STATE_H = 6; //new for the flippy back arm
+	const int LOW_BACK_SHOT_STATE_H = 7;
 	int intake_arm_state = INIT_STATE_H;
 
 	const int STOP_WHEEL_STATE_H = 0; //wheel state machine
@@ -75,6 +77,7 @@ public:
 	const double SWITCH_ANGLE = 1.0; //safety for elev
 	const double UP_ANGLE = 1.35; //starting pos -> also the shooting position 1.3
 	const double BACK_SHOT_ANGLE = 2.2; // 120 ish degrees for the flippy back arm shot 2.0
+	const double LOW_BACK_SHOT_ANGLE = 2.5; //just try
 
 	Intake(PowerDistributionPanel *pdp, IntakeMotionProfiler *intake_profiler, Carriage *carr_);
 
