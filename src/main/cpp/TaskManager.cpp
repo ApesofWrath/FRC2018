@@ -80,6 +80,7 @@ void TaskManager::ThreadWrapper(TaskManager *task_manager,
 			intake_t->IntakeWheelStateMachine();
 			mds_t->ElevatorStateMachine();
 			carr_t->ElevatorStateMachine();
+			intake_t->IntakeSolenoidStateMachine();
 
 			auton_state_machine->StateMachineAuton((bool) *wait_for_button,
 					(bool) *intake_spin_in, (bool) *intake_spin_out,
@@ -104,6 +105,7 @@ void TaskManager::ThreadWrapper(TaskManager *task_manager,
 			intake_t->IntakeWheelStateMachine();
 			mds_t->ElevatorStateMachine();
 			carr_t->ElevatorStateMachine();
+			intake_t->IntakeSolenoidStateMachine();
 
 			teleop_state_machine->StateMachine((bool) *wait_for_button,
 					(bool) *intake_spin_in, (bool) *intake_spin_out,

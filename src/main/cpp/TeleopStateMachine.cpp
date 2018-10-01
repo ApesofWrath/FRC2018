@@ -323,9 +323,9 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 			if (is_mds_low_enough && state_carr) {
 				carr->elevator_state = carr->UP_STATE_E_H;
 			}
-			if (!raise_to_scale_low && carr->IsAtPos(up_pos) && intake->IsAtAngle(UP_ANGLE)) {
+			if (!raise_to_scale_low && carr->IsAtPos(carr->UP_POS_CARR) && intake->IsAtAngle(intake->UP_ANGLE)) {
 				shot_type = intake->SLOW_SCALE;
-				state = SHOOT_STATE;
+				//state = SHOOT_STATE;
 			}
 			last_state = SCALE_LOW_STATE;
 			break;
@@ -343,12 +343,12 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 			if (state_mds) {
 				mds->elevator_state = mds->MID_STATE_E_H;
 			}
-			if (mds->IsAtPos(mid_pos) && state_carr) {
+			if (mds->IsAtPos(mds->MID_POS_MDS) && state_carr) {
 				carr->elevator_state = carr->UP_STATE_E_H;
 			}
-			if (!raise_to_scale_mid && carr->IsAtPos(up_pos) && intake->IsAtAngle(UP_ANGLE)) {
+			if (!raise_to_scale_mid && carr->IsAtPos(carr->UP_POS_CARR) && intake->IsAtAngle(intake->UP_ANGLE)) {
 				shot_type = intake->SLOW_SCALE;
-				state = SHOOT_STATE;
+				//state = SHOOT_STATE;
 			}
 			last_state = SCALE_MID_STATE;
 			break;
@@ -366,12 +366,12 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 			if (state_mds) {
 				mds->elevator_state = mds->UP_STATE_E_H;
 			}
-			if (mds->IsAtPos(up_pos) && state_carr) {
+			if (mds->IsAtPos(mds->UP_POS_MDS) && state_carr) {
 				carr->elevator_state = carr->UP_STATE_E_H;
 			}
-			if (!raise_to_scale_high && carr->IsAtPos(up_pos) && intake->IsAtAngle(UP_ANGLE)) {
+			if (!raise_to_scale_high && carr->IsAtPos(carr->UP_POS_CARR) && intake->IsAtAngle(intake->UP_ANGLE)) {
 				shot_type = intake->SLOW_SCALE;
-				state = SHOOT_STATE;
+				//state = SHOOT_STATE;
 			}
 			last_state = SCALE_HIGH_STATE;
 			break;
@@ -392,9 +392,9 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 			if (state_intake_arm) {
 				intake->intake_arm_state = intake->MID_STATE_H;
 			}
-			if (!raise_to_switch && carr->IsAtPos(carr->MID_POS_CARR) && intake->IsAtAngle(MID_ANGLE)) {
+			if (!raise_to_switch && carr->IsAtPos(carr->MID_POS_CARR) && intake->IsAtAngle(intake->MID_ANGLE)) {
 				shot_type = intake->SWITCH;
-				state = SHOOT_STATE;
+				//state = SHOOT_STATE;
 			}
 			last_state = SWITCH_STATE;
 			break;
@@ -415,7 +415,7 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 			if (std::abs(intake->GetAngularPosition() - intake->UP_ANGLE) <= 0.2 //switch will not shoot if you press a shooting button
 			&& state_intake_wheel && is_mds_low_enough && !pop_switch) { //hold button until ready to shoot, elevator and intake will be in position //state_intake_wheel means you let go of intake_spin_mid
 				shot_type = intake->SWITCH;
-				state = SHOOT_STATE;
+				//state = SHOOT_STATE; //TODO: replace
 			}
 			last_state = SWITCH_STATE;
 			break;
@@ -440,7 +440,7 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 			&& intake->GetAngularPosition() > 1.98 //&& state_intake_wheel
 			&& !raise_to_scale_backwards) { //shoot if the height of the elevator and the angle of the arm is good enough //hold button until ready to shoot, elevator and intake will be in position
 				shot_type = intake->BACK;
-				state = SHOOT_STATE;
+				//state = SHOOT_STATE;
 			}
 			last_state = SCALE_HIGH_BACK_STATE;
 			break;
@@ -465,7 +465,7 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 			&& intake->GetAngularPosition() > 1.98 //&& state_intake_wheel
 			&& !raise_to_scale_backwards) { //shoot if the height of the elevator and the angle of the arm is good enough //hold button until ready to shoot, elevator and intake will be in position
 				shot_type = intake->BACK;
-				state = SHOOT_STATE;
+				//state = SHOOT_STATE;
 			}
 			last_state = SCALE_LOW_BACK_STATE;
 			break;
@@ -477,7 +477,7 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 					intake->intake_wheel_state = intake->POP_SWITCH_STATE_H;
 				}
 				if (intake->ReleasedCube(shot_type)) {
-					state = POST_INTAKE_SWITCH_STATE;
+				//	state = POST_INTAKE_SWITCH_STATE;
 				}
 
 			break;

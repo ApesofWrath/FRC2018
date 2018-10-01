@@ -348,7 +348,7 @@ void Intake::Rotate() { //a vector of a pos vector and a vel vector
 		std::vector<std::vector<double> > ref_intake =
 				intake_profiler->GetNextRefIntake();
 
-		current_pos = ref_intake[0][0]; //GetAngularPosition();
+		current_pos = ref_intake[0][0]; //GetAngularPosition(); //TODO: put this back
 		current_vel = ref_intake[1][0];//GetAngularVelocity();
 
 		///	SmartDashboard::PutNumber("IntakeActualVel", current_vel);
