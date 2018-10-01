@@ -7,7 +7,8 @@ class Carriage : public Elevator {
 
 public:
 
-	Carriage(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_, bool is_carr) : Elevator(pdp, elevator_profiler_, true) {
+	Carriage(ElevatorMotionProfiler *elevator_profiler_) : Elevator(elevator_profiler_, { {  0, 0 }, { 0, 0 } }, { { 0, 0 }, { 0, 0 } }, 0, 0, 0, 0,
+						DOWN_POS_CARR, MID_POS_CARR, HPS_POS_CARR, UP_POS_CARR, 0, 0, "CARR", -20, 0) {
 
 	}
 

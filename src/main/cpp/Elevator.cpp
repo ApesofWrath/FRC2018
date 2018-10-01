@@ -60,18 +60,20 @@ int TOP_HALL, BOT_HALL;
 
 std::string elev_type, elev_safety, elev_state;
 
-Elevator::Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_, bool is_carr) { //carr
+Elevator::Elevator(ElevatorMotionProfiler *elevator_profiler_, std::vector<std::vector<double> > K_down_e, std::vector<std::vector<double> > K_up_e,
+				double down_pos, double mid_pos, double hps_pos, double up_pos, double G_e, double ff_percent_e, double pulley_diameter,
+				double friction_loss, int TOP_HALL, int BOT_HALL, std::string elev_type, int TALON_ID_1, int TALON_ID_2) { //carr
 
-	is_carr_ = is_carr;
 
-	if (is_carr) { //carr = second stage
+	X_e = { { 0.0 }, //state matrix filled with the state of the states of the system //not used
+	{ 0.0 } };
+	error_e = { { 0.0 }, { 0.0 } };
+
+	//if () { //carr = second stage
 
 		K_down_e =
 		{ {  0, 0 }, { 0, 0 } }; //controller matrix that is calculated in the Python simulation 17.22, 0.94
 		K_up_e = { { 0, 0 }, { 0, 0 } }; //controller matrix that is calculated in the Python simulation
-		X_e = { { 0.0 }, //state matrix filled with the state of the states of the system //not used
-		{ 0.0 } };
-		error_e = { { 0.0 }, { 0.0 } };
 
 		G_e = 0;
 
@@ -93,14 +95,11 @@ Elevator::Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator
 
 		talonElevator1 = new TalonSRX(-20);
 
-	} else { //middle stage = the stage right now
+	//} else { //middle stage = the stage right now
 
 		K_down_e =
 		{ {  27.89, 4.12 }, { 25.90, 1.57 } }; //controller matrix that is calculated in the Python simulation 17.22, 0.94
 		K_up_e = { { 27.89, 4.12 }, { 22.11, 1.75 } }; //controller matrix that is calculated in the Python simulation
-		X_e = { { 0.0 }, //state matrix filled with the state of the states of the system //not used
-		{ 0.0 } };
-		error_e = { { 0.0 }, { 0.0 } };
 
 		G_e = (20.0 / 1.0);
 
@@ -129,7 +128,9 @@ Elevator::Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator
 		talonElevator2->ConfigPeakCurrentLimit(80, 0);
 		talonElevator2->ConfigPeakCurrentDuration(100, 0);
 
-	}
+//	}
+
+
 
 	MAX_THEORETICAL_VELOCITY_E = (free_speed_e / G_e) / 60.0
 	* PULLEY_DIAMETER * PI * friction_loss; //m/s //1.87 //1.32
@@ -153,8 +154,6 @@ Elevator::Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator
 		hallEffectBottom = new DigitalInput(BOT_HALL);
 
 		elevator_profiler = elevator_profiler_;
-
-		pdp_e = pdp;
 
 	}
 

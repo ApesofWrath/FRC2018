@@ -194,8 +194,8 @@ public:
 		pdp_ = new PowerDistributionPanel(3);
 
 		drive_controller = new DriveController(TIME_STEP); //inherits from mother class //pass in time step here for auton subclasses
-		mds_ = new MiddleStage(pdp_, elevator_profiler_, false);
-		carr_ = new Carriage(pdp_, elevator_profiler_, true);
+		mds_ = new MiddleStage(elevator_profiler_);
+		carr_ = new Carriage(elevator_profiler_);
 		intake_ = new Intake(pdp_, intake_profiler_, carr_);
 		teleop_state_machine = new TeleopStateMachine(mds_, carr_, intake_,
 				drive_controller); //actually has both state machines

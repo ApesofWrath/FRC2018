@@ -24,7 +24,9 @@ class Elevator {
 
 public:
 
-	Elevator(PowerDistributionPanel *pdp, ElevatorMotionProfiler *elevator_profiler_, bool is_carr);
+	Elevator(ElevatorMotionProfiler *elevator_profiler_, std::vector<std::vector<double> > K_down_e, std::vector<std::vector<double> > K_up_e,
+					double down_pos, double mid_pos, double hps_pos, double up_pos, double G_e, double ff_percent_e, double pulley_diameter,
+					double friction_loss, int TOP_HALL, int BOT_HALL, std::string elev_type, int TALON_ID_1, int TALON_ID_2);
 
 	TalonSRX *talonElevator1, *talonElevator2;
 
@@ -33,8 +35,6 @@ public:
 	std::thread ElevatorThread;
 
 	std::string GetElevatorState();
-
-	PowerDistributionPanel *pdp_e;
 
 	bool is_elevator_init = false;
 	bool keep_elevator_up = false; //used in intake for safety
