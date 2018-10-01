@@ -719,99 +719,25 @@ bool Intake::HaveCube() {
 }
 
 bool Intake::ReleasedCube(int shot_type) { //forward scale or backwards scale. is irrelevant for switch
-//75 for fast, 1 for slow
+
 	time_counter++; //depends on calling this function when need to start the timer
 
-//	for (int i = 0; i < (sample_window_outtake - 2); i++) { //to index 18
-//		currents_outtake_r[i] = currents_outtake_r[i + 1];
-//		currents_outtake_l[i] = currents_outtake_l[i + 1];
-//	}
-//
-//	///std::cout << "in the method" << std::endl;
-//
-//	currents_outtake_r[sample_window_outtake - 1] =
-//			talonIntake1->GetOutputCurrent();
-//	currents_outtake_l[sample_window_outtake - 1] =
-//			talonIntake2->GetOutputCurrent();
-
 	if (shot_type == SCALE) { //scale, backwards intake_arm_state == OUT_STATE && forward
-//		alglib::corrr1d(currents_outtake_r, arr_len, master_switch, arr_len,
-//				corr_outtake_r);
-//		alglib::corrr1d(currents_outtake_l, arr_len, master_switch, arr_len,
-//				corr_outtake_l);
-//		for (int i = 0; i < (arr_len - 2); i++) {
-//			corr_outtake_r[i] = 0.0;
-//			corr_outtake_l[i] = 0.0;
-//		}
 		TIME_LIMIT = 42;
 	} else if (shot_type == SWITCH) { //switch intake_arm_state == SLOW_STATE && forward
-		//std::cout << "switch" << std::endl;
-//		for (int i = 0; i < (arr_len - 2); i++) {
-//			corr_outtake_r[i] = 0.0;
-//			corr_outtake_l[i] = 0.0;
-//		}
 		TIME_LIMIT = 42;
-//		alglib::corrr1d(currents_outtake_r, arr_len, master_scale, arr_len,
-//				corr_outtake_r);
-//		alglib::corrr1d(currents_outtake_l, arr_len, master_scale, arr_len,
-//				corr_outtake_l);
 	} else if (shot_type == SLOW_SCALE) {
-//		alglib::corrr1d(currents_outtake_r, arr_len, master_slow_scale, arr_len,
-//				corr_outtake_r);
-//		alglib::corrr1d(currents_outtake_l, arr_len, master_slow_scale, arr_len,
-//				corr_outtake_l);
-//		for (int i = 0; i < (arr_len - 2); i++) {
-//			corr_outtake_r[i] = 0.0;
-//			corr_outtake_l[i] = 0.0;
-//		}
 		TIME_LIMIT = 50;
 	} else if (shot_type == BACK) {
-//		alglib::corrr1d(currents_outtake_r, arr_len, master_scale, arr_len, //back
-//				corr_outtake_r);
-//		alglib::corrr1d(currents_outtake_l, arr_len, master_scale, arr_len,
-//				corr_outtake_l);
-//		for (int i = 0; i < (arr_len - 2); i++) {
-//			corr_outtake_r[i] = 0.0;
-//			corr_outtake_l[i] = 0.0;
-//		}
-
 		TIME_LIMIT = 15; //is slow //30
 	} else if (shot_type == SLOW_BACK) {
-//		alglib::corrr1d(currents_outtake_r, arr_len, master_scale, arr_len, //slow_back
-//				corr_outtake_r);
-//		alglib::corrr1d(currents_outtake_l, arr_len, master_scale, arr_len,
-//				corr_outtake_l);
-//		for (int i = 0; i < (arr_len - 2); i++) {
-//			corr_outtake_r[i] = 0.0;
-//			corr_outtake_l[i] = 0.0;
-//		}
-
 		TIME_LIMIT = 50;
 	}
 
-	//std::cout << "corr: " << FindMaximum(corr_outtake_r) << ", "<< FindMaximum(corr_outtake_l) << std::endl;
-
-//	corr_val_now_r = corr_outtake_r[(int) (arr_len / 2)]; //FindMaximum(corr_outtake_r); //returns how correlated the actual currents are with the master currents. since the master dataset ends
-//	corr_val_now_l = corr_outtake_l[(int) (arr_len / 2)]; //FindMaximum(corr_outtake_l); //returns how correlated the actual currents are with the master currents. since the master dataset ends
-
-	//std::cout << "corr val: " << (corr_val_now_r - last_corr_val_r) << std::endl;
-
-	if ( //((last_corr_val_l > corr_val_now_l || last_corr_val_r > corr_val_now_r)) //if the arrays match close enough (corr_val_now_r > OUTTAKE_CORR_VALUE
-	//|| corr_val_now_l > OUTTAKE_CORR_VALUE)
-	///&&
-	(time_counter > TIME_LIMIT)) {
-		//	std::cout << "last corr val: " << last_corr_val_r << std::endl;
-//		for (int i = 0; i < (sample_window_outtake - 1); i++) {
-//			currents_outtake_r[i] = 0.0;
-//			currents_outtake_l[i] = 0.0;
-//		}
+	if (time_counter > TIME_LIMIT) {
 		time_counter = 0;
-//		last_corr_val_r = 0.0;
-//		last_corr_val_l = 0.0;
 		return true;
 	} else {
-//		last_corr_val_r = corr_val_now_r;
-//		last_corr_val_l = corr_val_now_l;
 		return false;
 	}
 
