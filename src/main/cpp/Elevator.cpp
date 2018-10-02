@@ -38,9 +38,9 @@ double position_offset_e = 0.0;
 double current_pos_e = 0.0;
 double current_vel_e = 0.0;
 
-double PULLEY_DIAMETER, G_e, ff_percent_e, friction_loss, MAX_THEORETICAL_VELOCITY_E, Kv_e; //gear ratio; //radius of the pulley in meters
+double MAX_THEORETICAL_VELOCITY_E, Kv_e; //gear ratio; //radius of the pulley in meters
 
-std::vector<std::vector<double> > K_e, K_up_e, K_down_e, X_e, error_e;
+std::vector<std::vector<double>> X_e, error_e;
 
 ElevatorMotionProfiler *elevator_profiler;
 
@@ -56,165 +56,133 @@ bool voltage_safety_e = false;
 int init_counter = 0;
 int encoder_counter_e = 0;
 
-int TOP_HALL, BOT_HALL;
-
 std::string elev_type, elev_safety, elev_state;
 
-Elevator::Elevator(ElevatorMotionProfiler *elevator_profiler_, std::vector<std::vector<double> > K_down_e, std::vector<std::vector<double> > K_up_e,
-				double down_pos, double mid_pos, double hps_pos, double up_pos, double G_e, double ff_percent_e, double pulley_diameter,
-				double friction_loss, int TOP_HALL, int BOT_HALL, std::string elev_type, int TALON_ID_1, int TALON_ID_2) { //carr
+std::vector<std::vector<double>> K_down_e, K_up_e, K_e;
+double down_pos, mid_pos, hps_pos, up_pos, G_e, ff_percent_e, PULLEY_DIAMETER, friction_loss;
+int TOP_HALL, BOT_HALL, TALON_ID_1, TALON_ID_2;
 
+Elevator::Elevator(ElevatorMotionProfiler *elevator_profiler_, std::vector<std::vector<double> > K_down_e_, std::vector<std::vector<double> > K_up_e_,
+	double down_pos_, double mid_pos_, double hps_pos_, double up_pos_, double G_e_, double ff_percent_e_, double PULLEY_DIAMETER_,
+	double friction_loss_, int TOP_HALL_, int BOT_HALL_, std::string elev_type_, int TALON_ID_1_, int TALON_ID_2_) { //carr
 
-	X_e = { { 0.0 }, //state matrix filled with the state of the states of the system //not used
-	{ 0.0 } };
-	error_e = { { 0.0 }, { 0.0 } };
+		X_e = { { 0.0 }, //state matrix filled with the state of the states of the system //not used
+		{ 0.0 } };
+		error_e = { { 0.0 }, { 0.0 } };
 
-	//if () { //carr = second stage
+		K_down_e = K_down_e_;
+		K_up_e = K_up_e_;
 
-		K_down_e =
-		{ {  0, 0 }, { 0, 0 } }; //controller matrix that is calculated in the Python simulation 17.22, 0.94
-		K_up_e = { { 0, 0 }, { 0, 0 } }; //controller matrix that is calculated in the Python simulation
+		G_e = G_e_;
 
-		G_e = 0;
+		ff_percent_e = ff_percent_e_;
 
-		ff_percent_e = 0;
+		PULLEY_DIAMETER = PULLEY_DIAMETER_;
 
-		PULLEY_DIAMETER = 0;
+		friction_loss = friction_loss_;
 
-		friction_loss = 0;
+		down_pos = down_pos_;
+		mid_pos = mid_pos_;
+		hps_pos = hps_pos_;
+		up_pos = up_pos_;
 
-		down_pos = DOWN_POS_CARR;
-		mid_pos = MID_POS_CARR;
-		hps_pos = HPS_POS_CARR;
-		up_pos = UP_POS_CARR;
+		TOP_HALL = TOP_HALL_;
+		BOT_HALL = BOT_HALL_;
 
-		TOP_HALL = 0;
-		BOT_HALL = 0;
+		elev_type = elev_type_;
 
-		elev_type = "CARR";
+		talonElevator1 = new TalonSRX(TALON_ID_1);
+		talonElevator1->ConfigSelectedFeedbackSensor(QuadEncoder, 0, 0);
+		talonElevator1->EnableCurrentLimit(false);
+		talonElevator1->ConfigContinuousCurrentLimit(40, 0);
+		talonElevator1->ConfigPeakCurrentLimit(80, 0);
+		talonElevator1->ConfigPeakCurrentDuration(100, 0);
 
-		talonElevator1 = new TalonSRX(-20);
+		talonElevator1->ConfigVelocityMeasurementPeriod(
+			VelocityMeasPeriod::Period_10Ms, 0);
+			talonElevator1->ConfigVelocityMeasurementWindow(5, 0); //5 samples for every talon return
+			talonElevator1->SetControlFramePeriod(ControlFrame::Control_3_General, 5); //set talons every 5ms, default is 10
+			talonElevator1->SetStatusFramePeriod(StatusFrameEnhanced::Status_2_Feedback0, 10, 0); //for getselectedsensor //getselectedsensor defaults to 10ms anyway. don't use getsensorcollection because that defaults to 160ms
 
-	//} else { //middle stage = the stage right now
+			if (TALON_ID_2 >= 0) {
+				talonElevator2 = new TalonSRX(TALON_ID_2); //0
+				talonElevator2->Set(ControlMode::Follower, TALON_ID_1); //re-slaved
+				talonElevator2->EnableCurrentLimit(false);
+				talonElevator2->ConfigContinuousCurrentLimit(40, 0);
+				talonElevator2->ConfigPeakCurrentLimit(80, 0);
+				talonElevator2->ConfigPeakCurrentDuration(100, 0);
+			}
 
-		K_down_e =
-		{ {  27.89, 4.12 }, { 25.90, 1.57 } }; //controller matrix that is calculated in the Python simulation 17.22, 0.94
-		K_up_e = { { 27.89, 4.12 }, { 22.11, 1.75 } }; //controller matrix that is calculated in the Python simulation
+			MAX_THEORETICAL_VELOCITY_E = (free_speed_e / G_e) / 60.0
+			* PULLEY_DIAMETER * PI * friction_loss; //m/s //1.87 //1.32
 
-		G_e = (20.0 / 1.0);
+			Kv_e = 1 / MAX_THEORETICAL_VELOCITY_E;
 
-		ff_percent_e = 0.4;
+			hallEffectTop = new DigitalInput(TOP_HALL);
+			hallEffectBottom = new DigitalInput(BOT_HALL);
 
-		PULLEY_DIAMETER = 0.0381; //radius of the pulley in meters
+			elevator_profiler = elevator_profiler_;
 
-		friction_loss = 0.75;
+		}
 
-		down_pos = DOWN_POS_MDS;
-		mid_pos = MID_POS_MDS;
-		hps_pos = HPS_POS_MDS;
-		up_pos = UP_POS_MDS;
+		void Elevator::InitializeElevator() {
 
-		TOP_HALL = 2;
-		BOT_HALL = 1;
-
-		elev_type = "MDS";
-
-		talonElevator1 = new TalonSRX(-5);//33
-
-		talonElevator2 = new TalonSRX(-2); //0
-		talonElevator2->Set(ControlMode::Follower, -5); //re-slaved
-		talonElevator2->EnableCurrentLimit(false);
-		talonElevator2->ConfigContinuousCurrentLimit(40, 0);
-		talonElevator2->ConfigPeakCurrentLimit(80, 0);
-		talonElevator2->ConfigPeakCurrentDuration(100, 0);
-
-//	}
-
-
-
-	MAX_THEORETICAL_VELOCITY_E = (free_speed_e / G_e) / 60.0
-	* PULLEY_DIAMETER * PI * friction_loss; //m/s //1.87 //1.32
-
-	Kv_e = 1 / MAX_THEORETICAL_VELOCITY_E;
-
-	talonElevator1->ConfigSelectedFeedbackSensor(QuadEncoder, 0, 0);
-	talonElevator1->EnableCurrentLimit(false);
-	talonElevator1->ConfigContinuousCurrentLimit(40, 0);
-	talonElevator1->ConfigPeakCurrentLimit(80, 0);
-	talonElevator1->ConfigPeakCurrentDuration(100, 0);
-
-	talonElevator1->ConfigVelocityMeasurementPeriod(
-		VelocityMeasPeriod::Period_10Ms, 0);
-		talonElevator1->ConfigVelocityMeasurementWindow(5, 0); //5 samples for every talon return
-
-		talonElevator1->SetControlFramePeriod(ControlFrame::Control_3_General, 5); //set talons every 5ms, default is 10
-		talonElevator1->SetStatusFramePeriod(StatusFrameEnhanced::Status_2_Feedback0, 10, 0); //for getselectedsensor //getselectedsensor defaults to 10ms anyway. don't use getsensorcollection because that defaults to 160ms
-
-		hallEffectTop = new DigitalInput(TOP_HALL);
-		hallEffectBottom = new DigitalInput(BOT_HALL);
-
-		elevator_profiler = elevator_profiler_;
+			if (!is_elevator_init) { //don't see hall effect
+			SetVoltage(0.0);
+		}
 
 	}
 
-	void Elevator::InitializeElevator() {
+	void Elevator::StopElevator() {
 
-		if (!is_elevator_init) { //don't see hall effect
-		SetVoltage(0.0);
-	}
-
-}
-
-void Elevator::StopElevator() {
-
-	talonElevator1->Set(ControlMode::PercentOutput, 0.0);
-	//	talonElevator2->Set(ControlMode::PercentOutput, 0.0); //is either slaved or dne
-
-}
-
-void Elevator::Move() {
-
-	if (elevator_state != STOP_STATE_E_H && elevator_state != INIT_STATE_E_H) {
-
-		std::vector<std::vector<double> > ref_elevator =
-		elevator_profiler->GetNextRefElevator();
-
-		current_pos_e = ref_elevator[0][0];//GetElevatorPosition(); //TAKE THIS BACK OUT
-		current_vel_e = ref_elevator[1][0];//GetElevatorVelocity();
-
-		///	SmartDashboard::PutNumber("Actual Vel", current_vel_e);
-		//	SmartDashboard::PutNumber("Actual Pos", current_pos_e);
-
-		double goal_pos = ref_elevator[0][0];
-		goal_vel_e = ref_elevator[1][0];
-
-		//	SmartDashboard::PutNumber("Goal Vel", goal_vel_e);
-		//	SmartDashboard::PutNumber("Goal Pos", goal_pos);
-
-		error_e[0][0] = goal_pos - current_pos_e;
-		error_e[1][0] = goal_vel_e - current_vel_e;
-
-		v_bat_e = 12.0;
-
-		if (elevator_profiler->GetFinalGoalElevator()
-		< elevator_profiler->GetInitPosElevator()) { //can't be the next goal in case we get ahead of the profiler
-		K_e = K_down_e;
-		ff = (Kv_e * goal_vel_e * v_bat_e) * 0.55;
-		offset = 1.0; //dampen
-	} else {
-		offset = 1.0;
-		K_e = K_up_e;
-
-		ff = (Kv_e * goal_vel_e * v_bat_e) * ff_percent_e;
+		talonElevator1->Set(ControlMode::PercentOutput, 0.0);
+		//	talonElevator2->Set(ControlMode::PercentOutput, 0.0); //is either slaved or dne
 
 	}
 
-	u_e = (K_e[0][0] * error_e[0][0]) + (K_e[0][1] * error_e[1][0]);
+	void Elevator::Move() {
 
-	u_e += ff + offset;
-	SetVoltage(u_e);
+		if (elevator_state != STOP_STATE_E_H && elevator_state != INIT_STATE_E_H) {
 
-}
+			std::vector<std::vector<double> > ref_elevator =
+			elevator_profiler->GetNextRefElevator();
+
+			current_pos_e = ref_elevator[0][0];//GetElevatorPosition(); //TAKE THIS BACK OUT
+			current_vel_e = ref_elevator[1][0];//GetElevatorVelocity();
+
+			///	SmartDashboard::PutNumber("Actual Vel", current_vel_e);
+			//	SmartDashboard::PutNumber("Actual Pos", current_pos_e);
+
+			double goal_pos = ref_elevator[0][0];
+			goal_vel_e = ref_elevator[1][0];
+
+			//	SmartDashboard::PutNumber("Goal Vel", goal_vel_e);
+			//	SmartDashboard::PutNumber("Goal Pos", goal_pos);
+
+			error_e[0][0] = goal_pos - current_pos_e;
+			error_e[1][0] = goal_vel_e - current_vel_e;
+
+			v_bat_e = 12.0;
+
+			if (elevator_profiler->GetFinalGoalElevator()
+			< elevator_profiler->GetInitPosElevator()) { //can't be the next goal in case we get ahead of the profiler
+			K_e = K_down_e;
+			ff = (Kv_e * goal_vel_e * v_bat_e) * 0.55;
+			offset = 1.0; //dampen
+		} else {
+			offset = 1.0;
+			K_e = K_up_e;
+
+			ff = (Kv_e * goal_vel_e * v_bat_e) * ff_percent_e;
+
+		}
+
+		u_e = (K_e[0][0] * error_e[0][0]) + (K_e[0][1] * error_e[1][0]);
+
+		u_e += ff + offset;
+		SetVoltage(u_e);
+
+	}
 
 }
 
@@ -226,6 +194,10 @@ double Elevator::GetVoltageElevator() {
 
 std::string Elevator::GetElevatorState() {
 	return elev_state;
+}
+
+double Elevator::GetGearRatio() {
+	return G_e;
 }
 
 void Elevator::SetVoltage(double elevator_voltage) {
@@ -247,7 +219,7 @@ void Elevator::SetVoltage(double elevator_voltage) {
 		voltage_safety_e = false;
 	}
 
-//TODO: may need to change order
+	//TODO: may need to change order
 	if (el_pos >= (0.92) && elevator_voltage > 0.0) { //upper soft limit
 		elevator_voltage = 0.0;
 		elev_safety = "upper soft";

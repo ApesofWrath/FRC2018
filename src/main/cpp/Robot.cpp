@@ -18,7 +18,8 @@
 #include "Autonomous.h"
 #include "DriveController.h"
 #include "Intake.h"
-#include "Elevator.h"
+#include "MiddleStage.h"
+#include "Carriage.h"
 #include "AutonSequences/DriveForward.h"
 #include "AutonSequences/SwitchCenter.h"
 #include "AutonSequences/ScaleSide.h"
@@ -186,7 +187,6 @@ public:
 		SmartDashboard::PutNumber("D Right Vel", 0);
 		SmartDashboard::PutNumber("P Right Vel", 0);
 
-
 		elevator_profiler_ = new ElevatorMotionProfiler(1.15, 5.0, TIME_STEP); //max vel, max accel, timestep
 		intake_profiler_ = new IntakeMotionProfiler(2.0, 10.0, TIME_STEP);
 
@@ -204,9 +204,6 @@ public:
 		task_manager = new TaskManager(teleop_state_machine,
 				auton_state_machine, drive_controller, mds_, carr_, intake_,
 				TIME_STEP);
-
-		//if(drive_controller->ahrs->IsCalibrating())
-		//drive_controller->ahrs->IsConnected()
 
 		joyThrottle = new Joystick(JOY_THROTTLE);
 		joyWheel = new Joystick(JOY_WHEEL);
@@ -454,6 +451,8 @@ public:
 
 	void TeleopPeriodic() {
 
+		std::cout << "y: " << mds_->GetGearRatio() << "  " << carr_->GetGearRatio() << std::endl;
+
 		bool low_gear = joyWheel->GetRawButton(LOW_GEAR_BUTTON);
 		bool high_gear = joyWheel->GetRawButton(HIGH_GEAR_BUTTON);
 
@@ -509,6 +508,7 @@ public:
 	}
 
 	void TestPeriodic() {
+		//
 
 //		drive_controller->canTalonLeft1->Set(ControlMode::PercentOutput, 1.0);
 //		drive_controller->canTalonRight1->Set(ControlMode::PercentOutput, 1.0);
