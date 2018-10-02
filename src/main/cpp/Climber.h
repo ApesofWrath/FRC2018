@@ -23,6 +23,8 @@ public:
 void ClimberStateMachine();
 void Move();
 
+double GetVoltageElevator();
+
 double GetClimberPosition();
 
 void StartClimberThread();
