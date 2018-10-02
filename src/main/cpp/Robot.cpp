@@ -102,7 +102,7 @@ public:
 	Intake *intake_;
 	TeleopStateMachine *teleop_state_machine;
 	AutonStateMachine *auton_state_machine;
-	ElevatorMotionProfiler *elevator_profiler_, another,
+	ElevatorMotionProfiler *elevator_profiler_;
 	IntakeMotionProfiler *intake_profiler_;
 	Compressor *compressor_;
 	Joystick *joyThrottle, *joyWheel, *joyOp;
@@ -188,15 +188,14 @@ public:
 		SmartDashboard::PutNumber("P Right Vel", 0);
 
 		elevator_profiler_ = new ElevatorMotionProfiler(1.15, 5.0, TIME_STEP); //max vel, max accel, timestep
-		another = new ElevatorMotionProfiler(1.15, 5.0, TIME_STEP);
 		intake_profiler_ = new IntakeMotionProfiler(2.0, 10.0, TIME_STEP);
 
 		compressor_ = new Compressor(3); //commenting these out breaks the code
 		pdp_ = new PowerDistributionPanel(3);
 
 		drive_controller = new DriveController(TIME_STEP); //inherits from mother class //pass in time step here for auton subclasses
+		carr_ = new Carriage(elevator_profiler_);
 		mds_ = new MiddleStage(elevator_profiler_);
-		carr_ = new Carriage(another);
 		intake_ = new Intake(pdp_, intake_profiler_, carr_);
 		teleop_state_machine = new TeleopStateMachine(mds_, carr_, intake_,
 				drive_controller); //actually has both state machines
@@ -451,8 +450,6 @@ public:
 	}
 
 	void TeleopPeriodic() {
-
-		std::cout << "y: " << mds_->GetGearRatio() << "  " << carr_->GetGearRatio() << std::endl;
 
 		bool low_gear = joyWheel->GetRawButton(LOW_GEAR_BUTTON);
 		bool high_gear = joyWheel->GetRawButton(HIGH_GEAR_BUTTON);

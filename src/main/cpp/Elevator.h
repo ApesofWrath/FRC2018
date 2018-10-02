@@ -19,8 +19,17 @@
 
 class Elevator {
 
-	double down_pos, mid_pos, hps_pos, up_pos;
-	bool is_carr_;
+private:
+
+	const double free_speed_e = 18730.0; //rad/s
+	const double TICKS_PER_ROT_E = 4096.0; //possibly not
+	const double MAX_VOLTAGE_E = 12.0; //CANNOT EXCEED abs(12)
+	const double MIN_VOLTAGE_E = -10.0;
+
+	std::vector<std::vector<double>> K_down_e, K_up_e, K_e; //parameter variables specific to carr/mds MUST be here. otherwise the second object creation will override the first one's variables
+	double down_pos, mid_pos, hps_pos, up_pos, G_e, ff_percent_e, PULLEY_DIAMETER, friction_loss;
+	int TOP_HALL, BOT_HALL, TALON_ID_1, TALON_ID_2;
+	std::string elev_type, elev_safety, elev_state;
 
 public:
 
@@ -86,7 +95,7 @@ public:
 	bool ZeroEncs();
 
 	void StartElevatorThread();
-	static void ElevatorWrapper(Elevator *elevator_);
+	static void ElevatorWrapper(Elevator *elevator_); //TODO: may need to have two separate static functions for mds and carr
 	void EndElevatorThread();
 
 private:

@@ -18,11 +18,6 @@ const int UP_STATE_E = 3;
 const int STOP_STATE_E = 4;
 const int HPS_STATE_E = 5;
 
-const double free_speed_e = 18730.0; //rad/s
-const double TICKS_PER_ROT_E = 4096.0; //possibly not
-const double MAX_VOLTAGE_E = 12.0; //CANNOT EXCEED abs(12)
-const double MIN_VOLTAGE_E = -10.0;
-
 const int ELEVATOR_SLEEP_TIME = 0;
 const double ELEVATOR_WAIT_TIME = 0.01; //sec
 
@@ -55,12 +50,6 @@ bool voltage_safety_e = false;
 
 int init_counter = 0;
 int encoder_counter_e = 0;
-
-std::string elev_type, elev_safety, elev_state;
-
-std::vector<std::vector<double>> K_down_e, K_up_e, K_e;
-double down_pos, mid_pos, hps_pos, up_pos, G_e, ff_percent_e, PULLEY_DIAMETER, friction_loss;
-int TOP_HALL, BOT_HALL, TALON_ID_1, TALON_ID_2;
 
 Elevator::Elevator(ElevatorMotionProfiler *elevator_profiler_, std::vector<std::vector<double> > K_down_e_, std::vector<std::vector<double> > K_up_e_,
 	double down_pos_, double mid_pos_, double hps_pos_, double up_pos_, double G_e_, double ff_percent_e_, double PULLEY_DIAMETER_,
@@ -186,18 +175,10 @@ Elevator::Elevator(ElevatorMotionProfiler *elevator_profiler_, std::vector<std::
 
 }
 
-double Elevator::GetVoltageElevator() {
+double Elevator::GetVoltageElevator() { //not voltage sent to the motor. the voltage the controller sends to SetVoltage()
 
 	return u_e;
 
-}
-
-std::string Elevator::GetElevatorState() {
-	return elev_state;
-}
-
-double Elevator::GetGearRatio() {
-	return G_e;
 }
 
 void Elevator::SetVoltage(double elevator_voltage) {
@@ -242,11 +223,7 @@ void Elevator::SetVoltage(double elevator_voltage) {
 		elev_safety = "NONE";
 	}
 
-	if (is_carr_) {
-		SmartDashboard::PutString("CARR SAFETY", elev_safety);
-	} else {
-		SmartDashboard::PutString("MDS SAFETY", elev_safety);
-	}
+	SmartDashboard::PutString(elev_type + "SAFETY", elev_safety);
 
 	if (!is_elevator_init) { //changed this to just zero on start up (as it always be at the bottom at the start of the match)
 		if (ZeroEncs()) { //successfully zeroed one time
@@ -264,7 +241,7 @@ void Elevator::SetVoltage(double elevator_voltage) {
 
 	elevator_voltage *= -1.0; //reverse at END
 
-	//2 is slaved to 1
+	//2 is slaved to 1 or dne
 	talonElevator1->Set(ControlMode::PercentOutput, elevator_voltage);
 
 }
@@ -338,11 +315,7 @@ void Elevator::ManualElevator(Joystick *joyOpElev) {
 
 void Elevator::ElevatorStateMachine() {
 
-	if (is_carr_) {
-		SmartDashboard::PutString("CARR", elev_state);
-	} else {
-		SmartDashboard::PutString("MDS", elev_state);
-	}
+	SmartDashboard::PutString(elev_type, elev_state);
 
 	switch (elevator_state) {
 

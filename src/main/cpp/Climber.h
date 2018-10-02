@@ -10,29 +10,10 @@
 class Climber {
 public:
 
-	TalonSRX *talonClimber1;
-	TalonSRX *talonClimber2;
-
-	const int INIT_STATE_C_H = 0;
-	const int DOWN_STATE_C_H = 1;
-	const int UP_STATE_C_H = 2;
-	int climber_state = INIT_STATE_C_H;
+	TalonSRX *canTalonClimber;
 
 	Climber();
 
-void ClimberStateMachine();
-void Move();
-
-double GetVoltageElevator();
-
-double GetClimberPosition();
-
-void StartClimberThread();
-static void ClimberWrapper(Climber *climber_);
-void EndClimberThread();
-
 };
 
-#endif /* CLIMBER_H_ */
-
-//compt bot is comp bt for everything
+#endif /* BARREL_H_ */
