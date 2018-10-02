@@ -40,6 +40,8 @@ bool is_intake_low_enough, is_carr_low_enough, is_mds_low_enough;
 
 int last_state = 0;
 
+double slider_input = 0.0;
+
 int shot_type = 0;
 
 bool arm_up = true;
@@ -65,7 +67,7 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 		bool post_intake, bool raise_to_switch, bool pop_switch, bool raise_to_scale_low,
 		bool raise_to_scale_mid, bool raise_to_scale_high, bool intake_arm_up,
 		bool intake_arm_mid, bool intake_arm_down, bool mds_up, bool mds_mid, bool mds_down, bool open_intake, bool close_intake,
-		bool carr_down, bool carr_mid, bool carr_up, bool raise_to_scale_backwards) {
+		bool carr_down, bool carr_mid, bool carr_up, bool raise_to_scale_backwards, Joystick *joySlider) {
 
 			if (wait_for_button) { //can always return to wait for button state
 				state = WAIT_FOR_BUTTON_STATE;
@@ -468,25 +470,36 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 
 			case OUTTAKE_STATE:
 
-			//place
-			if (state_intake_wheel) {
-				intake->intake_wheel_state = intake->SLOW_STATE_H;
-			}
-			if (state_intake_solenoid) {
-				intake->intake_solenoid_state = intake->OPEN_STATE_H;
-			}
-			if (intake->ReleasedCube(shot_type)) {
-				state = POST_INTAKE_STATE;
+			if (last_state != OUTTAKE_STATE) {
+				slider_input = joySlider->GetAxis(3); //or whatever
 			}
 
-			//shoot
-			if (state_intake_solenoid) {
-				intake->intake_solenoid_state = intake->CLOSE_STATE_H;
-				intake->intake_wheel_state = intake->POP_SWITCH_STATE_H;
+			if (slider_input > 0.5) { //place
+				if (state_intake_solenoid) {
+					intake->intake_solenoid_state = intake->OPEN_STATE_H;
+					intake->intake_wheel_state = intake->SLOW_STATE_H;
+				}
+				if (intake->ReleasedCube(shot_type)) {
+					state = POST_INTAKE_STATE;
+				}
+			} else if (slider_input <= 0.5) && (slider_input > -0.3) { //shoot slow
+				if (state_intake_solenoid) {
+					intake->intake_solenoid_state = intake->CLOSE_STATE_H;
+					intake->intake_wheel_state = intake->SLOW_SCALE_STATE_H;
+				}
+				if (intake->ReleasedCube(shot_type)) {
+					state = POST_INTAKE_STATE;
+				}
+			} else if (slider_input <= -0.3) { //shoot fast
+				if (state_intake_solenoid) {
+					intake->intake_solenoid_state = intake->CLOSE_STATE_H;
+					intake->intake_wheel_state = intake->OUT_STATE_H;
+				}
+				if (intake->ReleasedCube(shot_type)) {
+					state = POST_INTAKE_STATE;
+				}
 			}
-			if (intake->ReleasedCube(shot_type)) {
-				state = POST_INTAKE_STATE;
-			}
+			last_state = OUTTAKE_STATE;
 			break;
 		}
 

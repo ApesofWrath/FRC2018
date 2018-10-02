@@ -38,10 +38,10 @@ void TaskManager::StartThread(bool *wait_for_button, bool *intake_spin_in,
 		bool *raise_to_switch, bool *pop_switch, bool *raise_to_scale_low, bool *raise_to_scale_mid, bool *raise_to_scale_high, bool *intake_arm_up,
 		bool *intake_arm_mid, bool *intake_arm_down, bool *mds_up, bool *mds_mid, bool *mds_down, bool *open_intake, bool *close_intake, bool *carr_up,
 		bool *carr_mid, bool *carr_down, bool *raise_to_scale_backwards,
-		Joystick *JoyThrottle, Joystick *JoyWheel, bool *is_heading) {
+		Joystick *JoyThrottle, Joystick *JoyWheel, Joystick *JoySlider, bool *is_heading) {
 
 	TaskManager *tm = this;
-	Thread = std::thread(&TaskManager::ThreadWrapper, tm, JoyThrottle, JoyWheel,
+	Thread = std::thread(&TaskManager::ThreadWrapper, tm, JoyThrottle, JoyWheel, JoySlider,
 			wait_for_button, intake_spin_in, intake_spin_out, intake_spin_slow, intake_spin_med,
 			intake_spin_stop, get_cube_ground, get_cube_station, post_intake,
 			raise_to_switch, pop_switch, raise_to_scale_low, raise_to_scale_mid, raise_to_scale_high, intake_arm_up, intake_arm_mid,
@@ -53,7 +53,7 @@ void TaskManager::StartThread(bool *wait_for_button, bool *intake_spin_in,
 }
 
 void TaskManager::ThreadWrapper(TaskManager *task_manager,
-		Joystick *JoyThrottle, Joystick *JoyWheel, bool *wait_for_button,
+		Joystick *JoyThrottle, Joystick *JoyWheel, Joystick *JoySlider, bool *wait_for_button,
 		bool *intake_spin_in, bool *intake_spin_out, bool *intake_spin_slow, bool *intake_spin_med,
 		bool *intake_spin_stop, bool *get_cube_ground, bool *get_cube_station,
 		bool *post_intake, bool *raise_to_switch, bool *pop_switch, bool *raise_to_scale_low, bool *raise_to_scale_mid, bool *raise_to_scale_high,
@@ -115,7 +115,7 @@ void TaskManager::ThreadWrapper(TaskManager *task_manager,
 					(bool) *raise_to_scale_low, (bool) *raise_to_scale_mid, (bool) *raise_to_scale_high, (bool) *intake_arm_up,
 					(bool) *intake_arm_mid, (bool) *intake_arm_down,
 					(bool) *mds_up, (bool) *mds_mid, (bool) *mds_down, (bool) *open_intake, (bool) *close_intake, (bool) *carr_up,
-					(bool) *carr_mid, (bool) *carr_down, (bool) *raise_to_scale_backwards);
+					(bool) *carr_mid, (bool) *carr_down, (bool) *raise_to_scale_backwards, JoySlider);
 
 		}
 

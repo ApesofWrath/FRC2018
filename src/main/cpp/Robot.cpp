@@ -43,6 +43,7 @@ public:
 	const int JOY_THROTTLE = 0;
 	const int JOY_WHEEL = 1;
 	const int JOY_OP = 2;
+	const int JOY_SLIDER = 3;
 
 	const int LOW_GEAR_BUTTON = 5;
 	const int HIGH_GEAR_BUTTON = 6;
@@ -105,7 +106,7 @@ public:
 	ElevatorMotionProfiler *elevator_profiler_;
 	IntakeMotionProfiler *intake_profiler_;
 	Compressor *compressor_;
-	Joystick *joyThrottle, *joyWheel, *joyOp;
+	Joystick *joyThrottle, *joyWheel, *joyOp, *joySlider;
 	TaskManager *task_manager;
 
 	DriveForward *drive_forward;
@@ -208,6 +209,7 @@ public:
 		joyThrottle = new Joystick(JOY_THROTTLE);
 		joyWheel = new Joystick(JOY_WHEEL);
 		joyOp = new Joystick(JOY_OP);
+		joySlider = new Joystick(JOY_SLIDER);
 
 		autonChooser.AddDefault(doNothing, doNothing); //TODO:change back to sideDriveForward  //drives backward
 		autonChooser.AddObject(centerDriveForward, centerDriveForward);
@@ -232,7 +234,7 @@ public:
 				&get_cube_station, &post_intake, &raise_to_switch, &pop_switch,
 				&raise_to_scale_low, &raise_to_scale_mid, &raise_to_scale_high,
 				&intake_arm_up, &intake_arm_mid, &intake_arm_down, &mds_up, &mds_mid, &mds_down, &open_intake, &close_intake, &carr_up,
-				&carr_mid, &carr_down, &raise_to_scale_backwards, joyThrottle, joyWheel, &is_heading);
+				&carr_mid, &carr_down, &raise_to_scale_backwards, joyThrottle, joyWheel, joySlider, &is_heading);
 
 	}
 
