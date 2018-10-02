@@ -54,9 +54,9 @@ public:
 	//const int POST_INTAKE = 5; //taken for middle shot
 	const int RAISE_TO_SWITCH = 6;
 	const int POP_SWITCH = 2;
-	const int RAISE_TO_SCALE_MED = 1;
-	const int RAISE_TO_SCALE_SLOW = 5;
-	const int RAISE_TO_SCALE_FAST = 4;
+	const int RAISE_TO_SCALE_MID = 1;
+	const int RAISE_TO_SCALE_LOW = 5;
+	const int RAISE_TO_SCALE_HIGH = 4;
 	const int RAISE_TO_SCALE_BACKWARDS = 12;
 
 	const int INTAKE_SPIN_IN = 10; //not enough buttons for these three
@@ -84,7 +84,7 @@ public:
 	bool wait_for_button, intake_spin_in, intake_spin_out, intake_spin_slow,
 			intake_spin_med, intake_spin_stop, get_cube_ground,
 			get_cube_station, post_intake, raise_to_switch, pop_switch,
-			raise_to_scale_slow, raise_to_scale_med, raise_to_scale_fast,
+			raise_to_scale_low, raise_to_scale_mid, raise_to_scale_high,
 			intake_arm_up, intake_arm_mid, intake_arm_down, mds_up,
 				mds_mid, mds_down, open_intake, close_intake, raise_to_scale_backwards, carr_down,
 				carr_mid, carr_up; //for BOTH state machines
@@ -233,7 +233,7 @@ public:
 				&intake_spin_in, &intake_spin_out, &intake_spin_slow,
 				&intake_spin_med, &intake_spin_stop, &get_cube_ground,
 				&get_cube_station, &post_intake, &raise_to_switch, &pop_switch,
-				&raise_to_scale_slow, &raise_to_scale_med, &raise_to_scale_fast,
+				&raise_to_scale_low, &raise_to_scale_mid, &raise_to_scale_high,
 				&intake_arm_up, &intake_arm_mid, &intake_arm_down, &mds_up, &mds_mid, &mds_down, &open_intake, &close_intake, &carr_up,
 				&carr_mid, &carr_down, &raise_to_scale_backwards, joyThrottle, joyWheel, &is_heading);
 
@@ -463,9 +463,9 @@ public:
 		post_intake = false;
 		raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
 		pop_switch = joyOp->GetRawButton(POP_SWITCH);
-		raise_to_scale_med = joyOp->GetRawButton(RAISE_TO_SCALE_MED);
-		raise_to_scale_slow = joyOp->GetRawButton(RAISE_TO_SCALE_SLOW);
-		raise_to_scale_fast = joyOp->GetRawButton(RAISE_TO_SCALE_FAST);
+		raise_to_scale_mid = joyOp->GetRawButton(RAISE_TO_SCALE_MID);
+		raise_to_scale_low = joyOp->GetRawButton(RAISE_TO_SCALE_LOW);
+		raise_to_scale_high = joyOp->GetRawButton(RAISE_TO_SCALE_HIGH);
 		raise_to_scale_backwards = joyOp->GetRawButton(
 				RAISE_TO_SCALE_BACKWARDS);
 

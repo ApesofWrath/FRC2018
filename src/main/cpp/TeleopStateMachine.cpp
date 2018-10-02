@@ -16,7 +16,7 @@ const int INIT_STATE = 0;
 const int WAIT_FOR_BUTTON_STATE = 1;
 const int GET_CUBE_GROUND_STATE = 2;
 const int GET_CUBE_STATION_STATE = 3;
-const int POST_INTAKE_SWITCH_STATE = 4; //once we have gotten a cube, AND after we have shot a cube
+const int POST_INTAKE_STATE = 4; //once we have gotten a cube, AND after we have shot a cube
 const int POST_INTAKE_SCALE_STATE = 5; //scale AND backwards scale
 const int SCALE_LOW_STATE = 6;
 const int SCALE_MID_STATE = 7;
@@ -25,10 +25,10 @@ const int SWITCH_STATE = 9;
 const int SWITCH_POP_STATE = 10;
 const int SCALE_HIGH_BACK_STATE = 11;
 const int SCALE_LOW_BACK_STATE = 12;
-const int SHOOT_STATE = 13;
+const int OUTTAKE_STATE = 13;
 int state = INIT_STATE;
 //TODO: post_outtake?
-//TODO: shoot_state?
+//TODO: OUTTAKE_STATE?
 
 bool state_intake_wheel = false; //set to true to override the states set in the state machine
 bool state_intake_arm = false;
@@ -172,7 +172,7 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 		} else if (get_cube_station) {
 			state = GET_CUBE_STATION_STATE;
 		} else if (post_intake) {
-			state = POST_INTAKE_SWITCH_STATE;
+			state = POST_INTAKE_STATE;
 		} else if (raise_to_scale_low) {
 			state = SCALE_LOW_STATE;
 		} else if (raise_to_scale_mid) {
@@ -209,7 +209,7 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 			intake->intake_arm_state = intake->DOWN_STATE_H; //3
 		}
 		if (intake->HaveCube()) {
-			state = POST_INTAKE_SWITCH_STATE;
+			state = POST_INTAKE_STATE;
 		}
 		last_state = GET_CUBE_GROUND_STATE;
 		break;
@@ -234,17 +234,14 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 			intake->intake_arm_state = intake->DOWN_STATE_H;
 		}
 		if (intake->HaveCube()) {
-			state = POST_INTAKE_SWITCH_STATE;
+			state = POST_INTAKE_STATE;
 		}
 		last_state = GET_CUBE_STATION_STATE;
 		break;
 
-		case POST_INTAKE_SWITCH_STATE: //do not use this for after scale
+		case POST_INTAKE_STATE: //do not use this for after scale
 
-		SmartDashboard::PutString("STATE", "POST INTAKE SWITCH");
-
-		is_intake_low_enough = (intake->GetAngularPosition()
-		< (intake->UP_ANGLE + 0.05)); //use same check for the entirety of the state
+		SmartDashboard::PutString("STATE", "POST INTAKE");
 
 		if (state_intake_solenoid) {
 			intake->intake_solenoid_state = intake->CLOSE_STATE_H;
@@ -272,11 +269,10 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 			state = SWITCH_STATE;
 		} else if (raise_to_scale_backwards) {
 			state = SCALE_HIGH_BACK_STATE;
-		} else if (last_state == SCALE_LOW_STATE || last_state == SCALE_MID_STATE || last_state == SCALE_HIGH_STATE//will keep checking if arm is low enough to start lowering the elevator
-			|| last_state == SWITCH_STATE || is_intake_low_enough) { //little bit of a hack but the check wont run if it only goes through this state once
-				state = WAIT_FOR_BUTTON_STATE;
-			}
-			last_state = POST_INTAKE_SWITCH_STATE;
+		} else if (pop_switch) {
+			state = SWITCH_POP_STATE;
+		}
+			last_state = POST_INTAKE_STATE;
 			//can always go back to wait for button state
 			break;
 
@@ -311,7 +307,7 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 
 			SmartDashboard::PutString("STATE", "SCALE LOW FORWARDS");
 
-		  if (state_intake_solenoid) {
+			if (state_intake_solenoid) {
 				intake->intake_solenoid_state = intake->CLOSE_STATE_H;
 			}
 			if (state_intake_arm) {
@@ -325,7 +321,7 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 			}
 			if (!raise_to_scale_low && carr->IsAtPos(carr->UP_POS_CARR) && intake->IsAtAngle(intake->UP_ANGLE)) {
 				shot_type = intake->SLOW_SCALE;
-				//state = SHOOT_STATE;
+				state = OUTTAKE_STATE;
 			}
 			last_state = SCALE_LOW_STATE;
 			break;
@@ -348,7 +344,7 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 			}
 			if (!raise_to_scale_mid && carr->IsAtPos(carr->UP_POS_CARR) && intake->IsAtAngle(intake->UP_ANGLE)) {
 				shot_type = intake->SLOW_SCALE;
-				//state = SHOOT_STATE;
+				state = OUTTAKE_STATE;
 			}
 			last_state = SCALE_MID_STATE;
 			break;
@@ -371,7 +367,7 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 			}
 			if (!raise_to_scale_high && carr->IsAtPos(carr->UP_POS_CARR) && intake->IsAtAngle(intake->UP_ANGLE)) {
 				shot_type = intake->SLOW_SCALE;
-				//state = SHOOT_STATE;
+				state = OUTTAKE_STATE;
 			}
 			last_state = SCALE_HIGH_STATE;
 			break;
@@ -394,7 +390,7 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 			}
 			if (!raise_to_switch && carr->IsAtPos(carr->MID_POS_CARR) && intake->IsAtAngle(intake->MID_ANGLE)) {
 				shot_type = intake->SWITCH;
-				//state = SHOOT_STATE;
+				state = OUTTAKE_STATE;
 			}
 			last_state = SWITCH_STATE;
 			break;
@@ -415,7 +411,7 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 			if (std::abs(intake->GetAngularPosition() - intake->UP_ANGLE) <= 0.2 //switch will not shoot if you press a shooting button
 			&& state_intake_wheel && is_mds_low_enough && !pop_switch) { //hold button until ready to shoot, elevator and intake will be in position //state_intake_wheel means you let go of intake_spin_mid
 				shot_type = intake->SWITCH;
-				//state = SHOOT_STATE; //TODO: replace
+				state = OUTTAKE_STATE;
 			}
 			last_state = SWITCH_STATE;
 			break;
@@ -440,7 +436,7 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 			&& intake->GetAngularPosition() > 1.98 //&& state_intake_wheel
 			&& !raise_to_scale_backwards) { //shoot if the height of the elevator and the angle of the arm is good enough //hold button until ready to shoot, elevator and intake will be in position
 				shot_type = intake->BACK;
-				//state = SHOOT_STATE;
+				state = OUTTAKE_STATE;
 			}
 			last_state = SCALE_HIGH_BACK_STATE;
 			break;
@@ -465,21 +461,32 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 			&& intake->GetAngularPosition() > 1.98 //&& state_intake_wheel
 			&& !raise_to_scale_backwards) { //shoot if the height of the elevator and the angle of the arm is good enough //hold button until ready to shoot, elevator and intake will be in position
 				shot_type = intake->BACK;
-				//state = SHOOT_STATE;
+				state = OUTTAKE_STATE;
 			}
 			last_state = SCALE_LOW_BACK_STATE;
 			break;
 
-			case SHOOT_STATE:
+			case OUTTAKE_STATE:
 
-				if (state_intake_solenoid) {
-					intake->intake_solenoid_state = intake->OPEN_STATE_H;
-					intake->intake_wheel_state = intake->POP_SWITCH_STATE_H;
-				}
-				if (intake->ReleasedCube(shot_type)) {
-				//	state = POST_INTAKE_SWITCH_STATE;
-				}
+			//place
+			if (state_intake_wheel) {
+				intake->intake_wheel_state = intake->SLOW_STATE_H;
+			}
+			if (state_intake_solenoid) {
+				intake->intake_solenoid_state = intake->OPEN_STATE_H;
+			}
+			if (intake->ReleasedCube(shot_type)) {
+				state = POST_INTAKE_STATE;
+			}
 
+			//shoot
+			if (state_intake_solenoid) {
+				intake->intake_solenoid_state = intake->CLOSE_STATE_H;
+				intake->intake_wheel_state = intake->POP_SWITCH_STATE_H;
+			}
+			if (intake->ReleasedCube(shot_type)) {
+				state = POST_INTAKE_STATE;
+			}
 			break;
 		}
 
