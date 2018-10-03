@@ -56,7 +56,7 @@ public:
 	const double DOWN_POS_E = 0.009; //lowest possible height is 0.008
 	const double MID_POS_E = 0.668;
 	const double SWITCH_POS_E = 0.5;
-	const double UP_POS_E = 0.89; //reaches only 0.88 according to the elevator's own readings, but is outputting 1.4 volts
+	const double UP_POS_E = 0.90; //reaches only 0.88 according to the elevator's own readings, but is outputting 1.4 volts  //0.89
 	//el gains could be a bit more aggressive
 
 	void InitializeElevator();

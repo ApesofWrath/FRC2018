@@ -11,11 +11,11 @@
 
 #define PI 3.14159265
 
-#define CORNELIUS 0
+#define CORNELIUS 1
 
 #if CORNELIUS
 double ff_percent_i = 0.6;
-double offset_angle = 1.65;
+double offset_angle = 1.63;
 double SLOW_SPEED = 0.28; //from 0.25
 //down angle 0.02
 #else
@@ -440,13 +440,13 @@ void Intake::Rotate() { //a vector of a pos vector and a vel vector
 		double current_vel = GetAngularVelocity();
 
 		///	SmartDashboard::PutNumber("IntakeActualVel", current_vel);
-		//	SmartDashboard::PutNumber("IntakeActualPos", current_pos);
+			SmartDashboard::PutNumber("IntakeActualPos", current_pos);
 
 		double goal_pos = ref_intake[0][0];
 		double goal_vel = ref_intake[1][0];
 
 		//	SmartDashboard::PutNumber("IntakeGoalVel", goal_vel);
-		//	SmartDashboard::PutNumber("IntakeGoalPos", goal_pos);
+			SmartDashboard::PutNumber("IntakeGoalPos", goal_pos);
 
 		error_i[0][0] = goal_pos - current_pos;
 		error_i[1][0] = goal_vel - current_vel;
@@ -777,7 +777,7 @@ bool Intake::HaveCube() {
 
 	if (start_counting) {
 		have_cube_wait++;
-		if (have_cube_wait == 40) { //wait until it has the cube securely in the intake //25
+		if (have_cube_wait == 25) { //wait until it has the cube securely in the intake //25
 			have_cube_wait = 0;
 			start_counting = false;
 			for (int i = 0; i < (sample_window_intake - 1); i++) { //to index 18

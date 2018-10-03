@@ -563,7 +563,7 @@ public:
 		raise_to_scale_med = joyOp->GetRawButton(RAISE_TO_SCALE_MED);
 		raise_to_scale_slow = joyOp->GetRawButton(RAISE_TO_SCALE_SLOW);
 		raise_to_scale_fast = joyOp->GetRawButton(RAISE_TO_SCALE_FAST);
-		raise_to_scale_backwards = 0; //joyOp->GetRawButton(RAISE_TO_SCALE_BACKWARDS);
+		raise_to_scale_backwards = joyOp->GetRawButton(RAISE_TO_SCALE_BACKWARDS);
 
 		intake_spin_med = false; //joyOp->GetRawButton(INTAKE_SPIN_MED); //operator switch pop shot
 		intake_spin_stop = false;

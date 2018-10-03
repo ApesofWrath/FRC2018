@@ -64,7 +64,7 @@ public:
 	const int POP_SWITCH_STATE_H = 5;
 	int intake_wheel_state = STOP_WHEEL_STATE_H;
 
-	const double DOWN_ANGLE = 0.0; //instead of changing the offset
+	const double DOWN_ANGLE = 0.0; //instead of changing the offset. all the way down is actually 0.09
 	const double MID_ANGLE = 0.55;
 	const double SWITCH_ANGLE = 1.0; //safety for elev
 	const double UP_ANGLE = 1.35; //starting pos -> also the shooting position 1.3
