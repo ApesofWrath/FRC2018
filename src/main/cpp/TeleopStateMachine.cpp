@@ -17,7 +17,7 @@ const int WAIT_FOR_BUTTON_STATE = 1;
 const int GET_CUBE_GROUND_STATE = 2;
 const int GET_CUBE_STATION_STATE = 3;
 const int POST_INTAKE_STATE = 4; //once we have gotten a cube, AND after we have shot a cube
-const int POST_INTAKE_SCALE_STATE = 5; //scale AND backwards scale
+const int POST_OUTTAKE_STATE = 5; //scale AND backwards scale
 const int SCALE_LOW_STATE = 6;
 const int SCALE_MID_STATE = 7;
 const int SCALE_HIGH_STATE = 8;
@@ -248,14 +248,14 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 		if (state_intake_solenoid) {
 			intake->intake_solenoid_state = intake->CLOSE_STATE_H;
 		}
-		if (state_carr) { //higher elevator heights will trigger the safety and zero the elevator, bringing it down too early
+		if (state_carr) { //mds down before carr
 			carr->elevator_state = carr->DOWN_STATE_E_H;
 		}
 		if (state_mds && is_carr_low_enough) {
 			mds->elevator_state = mds->DOWN_STATE_E_H;
 		}
 		if (state_intake_arm) {
-			intake->intake_arm_state = intake->UP_STATE_H; //have to change up angle because we don't GO to safe angle
+			intake->intake_arm_state = intake->UP_STATE_H;
 		}
 		if (state_intake_wheel) {
 			intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
@@ -264,7 +264,7 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 		if (raise_to_scale_low) {
 			state = SCALE_LOW_STATE;
 		} else if (raise_to_scale_mid) {
-			state = SCALE_MID_STATE; //go to place from this state, return to this state after placing and then wfb
+			state = SCALE_MID_STATE;
 		} else if (raise_to_scale_high) {
 			state = SCALE_HIGH_STATE;
 		} else if (raise_to_switch) {
@@ -278,14 +278,14 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 			//can always go back to wait for button state
 			break;
 
-			case POST_INTAKE_SCALE_STATE:
+			case POST_OUTTAKE_STATE:
 
-			SmartDashboard::PutString("STATE", "POST INTAKE SCALE");
+			SmartDashboard::PutString("STATE", "POST OUTTAKE STATE");
 
 			is_intake_low_enough = (intake->GetAngularPosition()
 			< (intake->SWITCH_ANGLE + 0.05)); //use same check for the entirety of the state
 
-			if (state_carr) {
+			if (state_carr && is_intake_low_enough) {
 				carr->elevator_state = carr->DOWN_STATE_E_H;
 				if (state_mds && is_carr_low_enough) {
 					mds->elevator_state = mds->DOWN_STATE_E_H;
@@ -294,14 +294,13 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 						state = WAIT_FOR_BUTTON_STATE;
 					}
 				}
-				else if (state_intake_arm) {
-					intake->intake_arm_state = intake->SWITCH_STATE_H;
-				}
+			} else if (state_intake_arm) { //not sure why this is an else-if
+				intake->intake_arm_state = intake->SWITCH_STATE_H;
 			}
 			if (state_intake_wheel) {
 				intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
 			}
-			last_state = POST_INTAKE_SCALE_STATE;
+			last_state = POST_OUTTAKE_STATE;
 			//can always go back to wait for button state
 			break;
 
@@ -480,7 +479,7 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 					intake->intake_wheel_state = intake->SLOW_STATE_H;
 				}
 				if (intake->ReleasedCube(shot_type)) {
-					state = POST_INTAKE_STATE;
+					state = POST_OUTTAKE_STATE;
 				}
 			} else if (slider_input <= 0.5) && (slider_input > -0.3) { //shoot slow
 				if (state_intake_solenoid) {
@@ -488,7 +487,7 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 					intake->intake_wheel_state = intake->SLOW_SCALE_STATE_H;
 				}
 				if (intake->ReleasedCube(shot_type)) {
-					state = POST_INTAKE_STATE;
+					state = POST_OUTTAKE_STATE;
 				}
 			} else if (slider_input <= -0.3) { //shoot fast
 				if (state_intake_solenoid) {
@@ -496,7 +495,7 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 					intake->intake_wheel_state = intake->OUT_STATE_H;
 				}
 				if (intake->ReleasedCube(shot_type)) {
-					state = POST_INTAKE_STATE;
+					state = POST_OUTTAKE_STATE;
 				}
 			}
 			last_state = OUTTAKE_STATE;
