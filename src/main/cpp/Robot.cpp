@@ -233,7 +233,7 @@ public:
 		joyWheel = new Joystick(JOY_WHEEL);
 		joyOp = new Joystick(JOY_OP);
 
-		autonChooser.AddDefault(doNothing, doNothing); //TODO:change back to sideDriveForward  //drives backward
+		autonChooser.AddDefault(centerCubeSwitch, centerCubeSwitch); //TODO:change back to sideDriveForward  //drives backward
 		autonChooser.AddObject(centerDriveForward, centerDriveForward);
 		autonChooser.AddObject(doNothing, doNothing);
 

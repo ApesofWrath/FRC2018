@@ -846,21 +846,11 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 		target_rpm_right = -MAX_FPS;
 	}
 
-//	std::cout << "yep " << target_rpm_right << "  " << target_rpm_left << "  " << targetYawRate  << "  " << tarVelLeft <<  "   " << tarVelRight << std::endl;
-//target rpm right, left
-
-//	if (canTalonRight1->GetSelectedSensorPosition(0) == -1.0 || canTalonLeft1->GetSelectedSensorPosition(0) == -1.0) { //if ever read -1.0 from encoders, don't drive for the rest of auton
-//		target_rpm_left = 0.0;
-//		target_rpm_right = 0.0;
-//		targetYawRate = 0.0;
-//		SmartDashboard::PutString("Encoders", "Out");
-//	}
-
-
-
-	// Controller(0.0, 0.0, 0.0, targetYawRate, k_p_right_vel_au, k_p_left_vel_au, //TODO: put this back in
-	// 		0.0, k_p_yaw_au, k_d_yaw_au, k_d_left_vel_au, k_d_right_vel_au, 0.0, //sends all 0.0 gains
-	// 		target_rpm_left, target_rpm_right, 0.0);
+	if (set_refs) { //only set to true if set_profile is set to true in the DriveContrller, by actually filling the profile, for everything except doNothing auton
+	Controller(0.0, 0.0, 0.0, targetYawRate, k_p_right_vel_au, k_p_left_vel_au,
+			0.0, k_p_yaw_au, k_d_yaw_au, k_d_left_vel_au, k_d_right_vel_au, 0.0, //sends all 0.0 gains
+			target_rpm_left, target_rpm_right, 0.0);
+	}
 
 	l_last_error = l_error_dis_au;
 	r_last_error = r_error_dis_au;
@@ -1108,6 +1098,7 @@ void DriveControllerMother::SetRefs(std::vector<std::vector<double>> profile) {
 
 	auton_profile = profile;
 	set_profile = true; //cannot re-enable to restart profile
+	set_refs = true;
 	row_index = 0;
 	zeroing_counter = 0;
 
@@ -1118,6 +1109,7 @@ void DriveControllerMother::SetRows(
 
 	auton_rows = two_rows_profile;
 	set_profile = true; //cannot re-enable to restart profile
+	set_refs = true;
 	//row_index = 0;
 
 }

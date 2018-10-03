@@ -38,6 +38,7 @@ public:
 
 	bool continue_profile = true;
 	bool set_profile = false;
+	bool set_refs = false;
 
 	std::vector<double> drive_ref = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }; //AutonDrive, row, individual points
 
