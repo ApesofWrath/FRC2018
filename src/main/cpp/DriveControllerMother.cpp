@@ -684,7 +684,7 @@ void DriveControllerMother::TeleopWCDrive(Joystick *JoyThrottle, //finds targets
 //		joy_wheel_val *= reverse_x * JoyWheel->GetX();
 //	}
 
-	if (std::abs(joy_wheel_val) < .03) {
+	if (std::abs(joy_wheel_val) < .02) {
 		joy_wheel_val = 0.0;
 	}
 
