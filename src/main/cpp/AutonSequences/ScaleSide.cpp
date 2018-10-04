@@ -28,13 +28,13 @@ void ScaleSide::GenerateSameScale(bool is_left, bool added_switch,
 	Waypoint p1, p2, p3;
 
 	//feet
-	if (is_left) {
+	if (is_left) { // left
 		left_scale = true;
 		p1 = {0.0, 0.0, 0.0};
 		p2 = {-16.0, 0.0, d2r(0.0)}; //yaw is still from the robot's perspective
 		p3 = {-21.5, 1.1, d2r(-10.0)};
 	}
-	else {
+	else { // right
 		left_scale = false;
 		p1 = {0.0, 0.0, 0.0};
 		p2 = {-16.0, 0.0, d2r(0.0)}; //yaw is still from the robot's perspective
@@ -280,6 +280,8 @@ void ScaleSide::GenerateAddedSwitch(bool same_side, bool added_scale //if doing 
 
 	}
 
+	SmartDashboard::PutNumber("finished traj", 0);
+
 	free(trajectory); //need to free malloc'd elements
 	free(leftTrajectory);
 	free(rightTrajectory);
@@ -387,20 +389,22 @@ void ScaleSide::RunStateMachineSameScaleSwitch(bool *place_scale_backwards, //do
 
 	//added check for state to stop profile
 	if (((drive_index >= same_scale_len
-			&& auton_state_machine->shoot_counter == 0)
-			|| (elevator_->GetElevatorPosition() > 0.3 //elevator going down
+			&& auton_state_machine->shoot_counter == 0) //in position to place scale
+			|| (elevator_->GetElevatorPosition() > 0.3 //elevator still going down after placing scale
 			&& auton_state_machine->shoot_counter == 1))
-			|| auton_state_machine->state_a
-					== auton_state_machine->POST_INTAKE_SCALE_STATE_A_H
-			|| (intake_->GetAngularPosition() <= 0.3 //TODO: why is this here
-					&& auton_state_machine->state_a
-							== auton_state_machine->GET_CUBE_GROUND_STATE_A_H)
-			|| auton_state_machine->shoot_counter == 2
-			|| (drive_index >= (same_scale_len + added_switch_len)
+			|| (auton_state_machine->state_a
+					== auton_state_machine->POST_INTAKE_SCALE_STATE_A_H)
+		//	|| (intake_->GetAngularPosition() <= 0.3 //wait until have cube
+			//		&& auton_state_machine->state_a
+				//			== auton_state_machine->GET_CUBE_GROUND_STATE_A_H)
+			|| auton_state_machine->shoot_counter == 2 //after shooting both
+			|| (drive_index >= (same_scale_len + added_switch_len) //in position for place switch
 					&& auton_state_machine->shoot_counter == 1)) { //for shooting first cube, for waiting for elev/arm to come back down to get ready to get the second cube... a possibly redundant case, for getting the second cube
 		drive_controller->StopProfile(true);
+		SmartDashboard::PutNumber("stopped", 0);
 	} else {
 		drive_controller->StopProfile(false);
+		SmartDashboard::PutNumber("started", 0);
 	}
 
 	if (drive_index >= ((same_scale_len + added_switch_len) / 1.5) //start placing once close enough to switch
