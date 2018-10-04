@@ -751,9 +751,9 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 
 // SmartDashboard::PutNumber(":", refYaw);
 
-	// SmartDashboard::PutNumber("refLeft", refLeft);
+	 SmartDashboard::PutNumber("refLeft", refLeft);
 	// SmartDashboard::PutNumber("refRight", refRight);
-	// SmartDashboard::PutNumber("refLeftVel", tarVelLeft);
+	 SmartDashboard::PutNumber("refLeftVel", tarVelLeft);
 	// SmartDashboard::PutNumber("refRightVel", tarVelRight);
 	// SmartDashboard::PutNumber("refYaw", refYaw);
 
@@ -770,9 +770,9 @@ void DriveControllerMother::AutonDrive() { //yaw pos, left pos, right pos, yaw v
 	double l_dis = ((double) canTalonLeft1->GetSelectedSensorPosition(0)
 			/ TICKS_PER_FOOT);
 
-// SmartDashboard::PutNumber("actualLeftDis", l_dis);
+ SmartDashboard::PutNumber("actualLeftDis", l_dis);
 // SmartDashboard::PutNumber("actualRightDis", r_dis);
-// SmartDashboard::PutNumber("actualLeftVel", l_current);
+ SmartDashboard::PutNumber("actualLeftVel", l_current);
 // SmartDashboard::PutNumber("actualRightVel", r_current);
 
 	double y_dis = -1.0 * ahrs->GetYaw() * (double) (PI / 180); //current theta (yaw) value

@@ -313,7 +313,7 @@ void ScaleSide::GenerateAddedScale(bool same_side) { //new trajectory so that ol
 	else { //left_scale
 		if (same_side) { //{-16.3, 2.4, d2r(0.0)};
 			p1 = {-16.3, 2.8, d2r(0.0)}; //should be right, we tested these
-			p2 = {-21.5, 1.4, d2r(-10.0)}; //+0.4
+			p2 = {-20.5, 1.4, d2r(0.0)}; //-21.5, 1.4, -10
 			SmartDashboard::PutString("waypoints2", "same side left");
 		} else {
 			p1 = {-19.5, -17.0, d2r(0.0)}; //not tested
@@ -519,12 +519,12 @@ void ScaleSide::RunStateMachineSameScaleScale(bool *place_scale_backwards, //sta
 
 	int drive_index = drive_controller->GetDriveIndex();
 
-	SmartDashboard::PutNumber("total indeces.", //went through whole profile without shooting the second cube
-			added_switch_len + same_scale_len + added_scale_len);
-	SmartDashboard::PutNumber("1.", same_scale_len);
-	SmartDashboard::PutNumber("2.", added_switch_len);
-	SmartDashboard::PutNumber("3.", added_scale_len);
-	SmartDashboard::PutNumber("index..", drive_index);
+	// SmartDashboard::PutNumber("total indeces.", //went through whole profile without shooting the second cube
+	// 		added_switch_len + same_scale_len + added_scale_len);
+	// SmartDashboard::PutNumber("1.", same_scale_len);
+	// SmartDashboard::PutNumber("2.", added_switch_len);
+	// SmartDashboard::PutNumber("3.", added_scale_len);
+	// SmartDashboard::PutNumber("index..", drive_index);
 
 //no other state machine booleans needed, all other ones will stay false
 
@@ -533,12 +533,12 @@ void ScaleSide::RunStateMachineSameScaleScale(bool *place_scale_backwards, //sta
 			||
 			(elevator_->GetElevatorPosition() > 0.3 && elevator_->elevator_state == elevator_->DOWN_STATE_E_H//elevator going down
 			&& auton_state_machine->shoot_counter == 1) //when shoot counter is 0, will be going up to shoot first cube and will not stop drive. once shot first cube and everything is coming down, will stop drive. once everything is coming back up, will stop drive
-			|| auton_state_machine->state_a
-					== auton_state_machine->POST_INTAKE_SCALE_STATE_A_H
-			|| auton_state_machine->shoot_counter == 2
-			) { //second case should not be needed, but just there //scale cube, was driving //|| (drive_index
-	//	>= (same_scale_len + added_switch_len + added_scale_len)
-	//	&& auton_state_machine->shoot_counter == 1)
+			|| (auton_state_machine->state_a
+					== auton_state_machine->POST_INTAKE_SCALE_STATE_A_H)
+			|| (auton_state_machine->shoot_counter == 2)
+			|| (drive_index
+		>= (same_scale_len + added_switch_len)
+		&& auton_state_machine->state_a == auton_state_machine->GET_CUBE_GROUND_STATE_A_H)) {
 		drive_controller->StopProfile(true);
 	} else {
 		drive_controller->StopProfile(false);
