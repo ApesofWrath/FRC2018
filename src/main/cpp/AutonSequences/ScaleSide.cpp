@@ -313,7 +313,7 @@ void ScaleSide::GenerateAddedScale(bool same_side) { //new trajectory so that ol
 	else { //left_scale
 		if (same_side) { //{-16.3, 2.4, d2r(0.0)};
 			p1 = {-16.3, 2.8, d2r(0.0)}; //should be right, we tested these
-			p2 = {-20.5, 1.4, d2r(0.0)}; //-21.5, 1.4, -10
+			p2 = {-21.5, 1.4, d2r(-10.0)}; //-21.5, 1.4, -10
 			SmartDashboard::PutString("waypoints2", "same side left");
 		} else {
 			p1 = {-19.5, -17.0, d2r(0.0)}; //not tested
