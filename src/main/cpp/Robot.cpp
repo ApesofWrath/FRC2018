@@ -210,6 +210,7 @@ public:
 		joyWheel = new Joystick(JOY_WHEEL);
 		joyOp = new Joystick(JOY_OP);
 		joySlider = new Joystick(JOY_SLIDER);
+		joySlider->SetYChannel(3);
 
 		autonChooser.AddDefault(doNothing, doNothing); //TODO:change back to sideDriveForward  //drives backward
 		autonChooser.AddObject(centerDriveForward, centerDriveForward);

@@ -17,15 +17,16 @@ const int WAIT_FOR_BUTTON_STATE = 1;
 const int GET_CUBE_GROUND_STATE = 2;
 const int GET_CUBE_STATION_STATE = 3;
 const int POST_INTAKE_STATE = 4; //once we have gotten a cube, AND after we have shot a cube
-const int POST_OUTTAKE_STATE = 5; //scale AND backwards scale
+const int POST_INTAKE_SCALE_STATE = 5; //scale AND backwards scale
 const int SCALE_LOW_STATE = 6;
 const int SCALE_MID_STATE = 7;
 const int SCALE_HIGH_STATE = 8;
 const int SWITCH_STATE = 9;
 const int SWITCH_POP_STATE = 10;
-const int SCALE_HIGH_BACK_STATE = 11;
-const int SCALE_LOW_BACK_STATE = 12;
-const int OUTTAKE_STATE = 13;
+const int SCALE_LOW_BACK_STATE = 11;
+const int SCALE_MID_BACK_STATE = 12;
+const int SCALE_HIGH_BACK_STATE = 13;
+const int OUTTAKE_STATE = 14;
 int state = INIT_STATE;
 //TODO: post_outtake?
 //TODO: OUTTAKE_STATE?
@@ -248,14 +249,14 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 		if (state_intake_solenoid) {
 			intake->intake_solenoid_state = intake->CLOSE_STATE_H;
 		}
-		if (state_carr) { //mds down before carr
+		if (state_carr) { //higher elevator heights will trigger the safety and zero the elevator, bringing it down too early
 			carr->elevator_state = carr->DOWN_STATE_E_H;
 		}
 		if (state_mds && is_carr_low_enough) {
 			mds->elevator_state = mds->DOWN_STATE_E_H;
 		}
 		if (state_intake_arm) {
-			intake->intake_arm_state = intake->UP_STATE_H;
+			intake->intake_arm_state = intake->UP_STATE_H; //have to change up angle because we don't GO to safe angle
 		}
 		if (state_intake_wheel) {
 			intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
@@ -264,7 +265,7 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 		if (raise_to_scale_low) {
 			state = SCALE_LOW_STATE;
 		} else if (raise_to_scale_mid) {
-			state = SCALE_MID_STATE;
+			state = SCALE_MID_STATE; //go to place from this state, return to this state after placing and then wfb
 		} else if (raise_to_scale_high) {
 			state = SCALE_HIGH_STATE;
 		} else if (raise_to_switch) {
@@ -278,14 +279,14 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 			//can always go back to wait for button state
 			break;
 
-			case POST_OUTTAKE_STATE:
+			case POST_INTAKE_SCALE_STATE:
 
-			SmartDashboard::PutString("STATE", "POST OUTTAKE STATE");
+			SmartDashboard::PutString("STATE", "POST INTAKE SCALE");
 
 			is_intake_low_enough = (intake->GetAngularPosition()
 			< (intake->SWITCH_ANGLE + 0.05)); //use same check for the entirety of the state
 
-			if (state_carr && is_intake_low_enough) {
+			if (state_carr) {
 				carr->elevator_state = carr->DOWN_STATE_E_H;
 				if (state_mds && is_carr_low_enough) {
 					mds->elevator_state = mds->DOWN_STATE_E_H;
@@ -294,13 +295,14 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 						state = WAIT_FOR_BUTTON_STATE;
 					}
 				}
-			} else if (state_intake_arm) { //not sure why this is an else-if
-				intake->intake_arm_state = intake->SWITCH_STATE_H;
+				else if (state_intake_arm) {
+					intake->intake_arm_state = intake->SWITCH_STATE_H;
+				}
 			}
 			if (state_intake_wheel) {
 				intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
 			}
-			last_state = POST_OUTTAKE_STATE;
+			last_state = POST_INTAKE_SCALE_STATE;
 			//can always go back to wait for button state
 			break;
 
@@ -417,31 +419,6 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 			last_state = SWITCH_STATE;
 			break;
 
-			case SCALE_HIGH_BACK_STATE: //arm at regular back angle, angled upwards
-
-			SmartDashboard::PutString("STATE", "SCALE HIGH BACK");
-
-			if (state_intake_arm && carr->GetElevatorPosition() >= .85) { //move to the flippy angle when safe
-				intake->intake_arm_state = intake->SWITCH_BACK_SHOT_STATE_H;
-			} else if (state_intake_arm && carr->GetElevatorPosition() < .85) { //move to normal up angle if not safe to go all the way to flippy angle
-				intake->intake_arm_state = intake->UP_STATE_H;
-			}
-
-			if (state_mds) {
-				mds->elevator_state = mds->DOWN_STATE_E_H;
-			}
-			if (state_carr && mds->IsAtPos(mds->DOWN_POS_MDS)) {
-				carr->elevator_state = carr->UP_STATE_E_H;
-			}
-			if (carr->GetElevatorPosition() >= 0.85
-			&& intake->GetAngularPosition() > 1.98 //&& state_intake_wheel
-			&& !raise_to_scale_backwards) { //shoot if the height of the elevator and the angle of the arm is good enough //hold button until ready to shoot, elevator and intake will be in position
-				shot_type = intake->BACK;
-				state = OUTTAKE_STATE;
-			}
-			last_state = SCALE_HIGH_BACK_STATE;
-			break;
-
 			case SCALE_LOW_BACK_STATE: //arm parallel to floor
 
 			SmartDashboard::PutString("STATE", "SCALE LOW BACK");
@@ -467,10 +444,61 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 			last_state = SCALE_LOW_BACK_STATE;
 			break;
 
+			case SCALE_MID_BACK_STATE: //arm parallel to floor
+
+			SmartDashboard::PutString("STATE", "SCALE MID BACK");
+
+			if (state_intake_arm && carr->GetElevatorPosition() >= .88) { //move to the flippy angle when safe
+				intake->intake_arm_state = intake->LOW_BACK_SHOT_STATE_H;
+			} else if (state_intake_arm && carr->GetElevatorPosition() < .85) { //move to normal up angle if not safe to go all the way to flippy angle
+				intake->intake_arm_state = intake->UP_STATE_H;
+			}
+
+			if (state_mds) {
+				mds->elevator_state = mds->DOWN_STATE_E_H;
+			}
+			if (state_carr && mds->IsAtPos(mds->DOWN_POS_MDS)) {
+				carr->elevator_state = carr->UP_STATE_E_H;
+			}
+			if (carr->GetElevatorPosition() >= 0.85
+			&& intake->GetAngularPosition() > 1.98 //&& state_intake_wheel
+			&& !raise_to_scale_backwards) { //shoot if the height of the elevator and the angle of the arm is good enough //hold button until ready to shoot, elevator and intake will be in position
+				shot_type = intake->BACK;
+				state = OUTTAKE_STATE;
+			}
+			last_state = SCALE_MID_BACK_STATE;
+			break;
+
+
+			case SCALE_HIGH_BACK_STATE: //arm at regular back angle, angled upwards
+
+			SmartDashboard::PutString("STATE", "SCALE HIGH BACK");
+
+			if (state_intake_arm && carr->GetElevatorPosition() >= .85) { //move to the flippy angle when safe
+				intake->intake_arm_state = intake->SWITCH_BACK_SHOT_STATE_H;
+			} else if (state_intake_arm && carr->GetElevatorPosition() < .85) { //move to normal up angle if not safe to go all the way to flippy angle
+				intake->intake_arm_state = intake->UP_STATE_H;
+			}
+
+			if (state_mds) {
+				mds->elevator_state = mds->DOWN_STATE_E_H;
+			}
+			if (state_carr && mds->IsAtPos(mds->DOWN_POS_MDS)) {
+				carr->elevator_state = carr->UP_STATE_E_H;
+			}
+			if (carr->GetElevatorPosition() >= 0.85
+			&& intake->GetAngularPosition() > 1.98 //&& state_intake_wheel
+			&& !raise_to_scale_backwards) { //shoot if the height of the elevator and the angle of the arm is good enough //hold button until ready to shoot, elevator and intake will be in position
+				shot_type = intake->BACK;
+				state = OUTTAKE_STATE;
+			}
+			last_state = SCALE_HIGH_BACK_STATE;
+			break;
+
 			case OUTTAKE_STATE:
 
 			if (last_state != OUTTAKE_STATE) {
-				slider_input = joySlider->GetAxis(3); //or whatever
+				slider_input = joySlider->GetY(); //or whatever
 			}
 
 			if (slider_input > 0.5) { //place
@@ -479,15 +507,15 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 					intake->intake_wheel_state = intake->SLOW_STATE_H;
 				}
 				if (intake->ReleasedCube(shot_type)) {
-					state = POST_OUTTAKE_STATE;
+					state = POST_INTAKE_STATE;
 				}
-			} else if (slider_input <= 0.5) && (slider_input > -0.3) { //shoot slow
+			} else if ((slider_input <= 0.5) && (slider_input > -0.3)) { //shoot slow
 				if (state_intake_solenoid) {
 					intake->intake_solenoid_state = intake->CLOSE_STATE_H;
 					intake->intake_wheel_state = intake->SLOW_SCALE_STATE_H;
 				}
 				if (intake->ReleasedCube(shot_type)) {
-					state = POST_OUTTAKE_STATE;
+					state = POST_INTAKE_STATE;
 				}
 			} else if (slider_input <= -0.3) { //shoot fast
 				if (state_intake_solenoid) {
@@ -495,7 +523,7 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 					intake->intake_wheel_state = intake->OUT_STATE_H;
 				}
 				if (intake->ReleasedCube(shot_type)) {
-					state = POST_OUTTAKE_STATE;
+					state = POST_INTAKE_STATE;
 				}
 			}
 			last_state = OUTTAKE_STATE;
