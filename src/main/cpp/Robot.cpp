@@ -32,8 +32,6 @@
 #define BUTTONBOX 1
 #define TESTING 1
 
-//BACKUP CALGAMES 2
-
 class Robot: public frc::IterativeRobot {
 public:
 
@@ -168,7 +166,7 @@ public:
 
 	void RobotInit() {
 
-		SmartDashboard::PutNumber("YAW POS", 0);
+		//SmartDashboard::PutNumber("YAW POS", 0);
 		// SmartDashboard::PutNumber("Actual Heading", 0);
 		// SmartDashboard::PutNumber("refYaw", 0);
 		//
@@ -193,20 +191,20 @@ public:
 		// SmartDashboard::PutNumber("Encoder Left", 0);
 		// SmartDashboard::PutNumber("Encoder Right", 0);
 
-		SmartDashboard::PutNumber("l_current", 0.0);
-		SmartDashboard::PutNumber("r_current", 0.0);
-
-		SmartDashboard::PutNumber("ref_left", 0);
-		SmartDashboard::PutNumber("ref_right", 0);
-
-		SmartDashboard::PutNumber("l_error_vel_t",0);
-		SmartDashboard::PutNumber("r_error_vel_t", 0);
-
-		SmartDashboard::PutNumber("% OUT LEFT", 0);
-		SmartDashboard::PutNumber("% OUT RIGHT", 0);
-
-		SmartDashboard::PutNumber("D Right Vel", 0);
-		SmartDashboard::PutNumber("P Right Vel", 0);
+		// SmartDashboard::PutNumber("l_current", 0.0);
+		// SmartDashboard::PutNumber("r_current", 0.0);
+		//
+		// SmartDashboard::PutNumber("ref_left", 0);
+		// SmartDashboard::PutNumber("ref_right", 0);
+		//
+		// SmartDashboard::PutNumber("l_error_vel_t",0);
+		// SmartDashboard::PutNumber("r_error_vel_t", 0);
+		//
+		// SmartDashboard::PutNumber("% OUT LEFT", 0);
+		// SmartDashboard::PutNumber("% OUT RIGHT", 0);
+		//
+		// SmartDashboard::PutNumber("D Right Vel", 0);
+		// SmartDashboard::PutNumber("P Right Vel", 0);
 
 
 		elevator_profiler_ = new ElevatorMotionProfiler(1.15, 5.0, TIME_STEP); //max vel, max accel, timestep
@@ -365,21 +363,20 @@ public:
 			}
 
 		} else if (autoSelected == leftCubeScaleScale) {
-			std::cout << "left" << std::endl;
+			//std::cout << "left" << std::endl;
 			if (leftScale) {
 				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
 						auton_state_machine);
 				scale_side->GenerateSameScale(true, false, true);
 				sameScaleTwoState = true;
 			} else {
-				drive_forward = new DriveForward(drive_controller, elevator_, // IF WRONG SIDE, will stay safe and just do one on opp
-						intake_, auton_state_machine);
-				drive_forward->GenerateForward(false);
-
-//				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
-//						auton_state_machine);
-//				scale_side->GenerateOppScale(true, false, false);
-//				oppScaleOneState = true;
+				// drive_forward = new DriveForward(drive_controller, elevator_, // IF WRONG SIDE, will stay safe and just do one on opp
+				// 		intake_, auton_state_machine);
+				// drive_forward->GenerateForward(false);
+				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
+						auton_state_machine);
+				scale_side->GenerateOppScale(true, false, false); //first param is starting pos
+				oppScaleOneState = true;
 			}
 
 		} else if (autoSelected == rightCubeScaleScale) {
@@ -405,14 +402,12 @@ public:
 			if (leftScale && leftSwitch) { //scale and switch
 				scale_side->GenerateSameScale(true, true, false);
 				sameScaleSwitchState = true;
-			} else if (leftScale && !leftSwitch) { //only scale
-				scale_side->GenerateSameScale(true, false, false);
-				sameScaleOneState = true;
-			} else { //!leftScale
-//				drive_forward = new DriveForward(drive_controller, elevator_,
-//						intake_, auton_state_machine);
-//				drive_forward->GenerateForward(false);
-
+			} else if (leftScale && !leftSwitch) { //two scale
+				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
+						auton_state_machine);
+				scale_side->GenerateSameScale(true, false, true);
+				sameScaleTwoState = true;
+			} else { //opp scale
 				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
 						auton_state_machine);
 				scale_side->GenerateOppScale(true, false, false);
@@ -425,14 +420,12 @@ public:
 			if (!leftScale && !leftSwitch) { //scale and switch
 				scale_side->GenerateSameScale(false, true, false);
 				sameScaleSwitchState = true; //scale state machine works for both scale and scale+switch
-			} else if (!leftScale && leftSwitch) { //only scale
-				scale_side->GenerateSameScale(false, false, false);
-				sameScaleOneState = true;
-			} else { //leftScale
-//				drive_forward = new DriveForward(drive_controller, elevator_,
-//						intake_, auton_state_machine);
-//				drive_forward->GenerateForward(false);
-
+			} else if (!leftScale && leftSwitch) { //two scale
+				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
+						auton_state_machine);
+				scale_side->GenerateSameScale(false, false, true);
+				sameScaleTwoState = true;
+			} else { //opp scale
 				scale_side = new ScaleSide(drive_controller, elevator_, intake_,
 						auton_state_machine);
 				scale_side->GenerateOppScale(false, false, false);
@@ -460,26 +453,6 @@ public:
 	}
 
 	void AutonomousPeriodic() {
-
-
-//std::cout << "HERE" << std::endl;
-		// SmartDashboard::PutNumber("Left 1",
-		// 		drive_controller->canTalonLeft1->GetOutputCurrent());
-		// SmartDashboard::PutNumber("Left 2",
-		// 		drive_controller->canTalonLeft2->GetOutputCurrent());
-		// SmartDashboard::PutNumber("Left 3",
-		// 		drive_controller->canTalonLeft3->GetOutputCurrent());
-		// SmartDashboard::PutNumber("Left 4",
-		// 		drive_controller->canTalonLeft4->GetOutputCurrent());
-		//
-		// SmartDashboard::PutNumber("Right 1",
-		// 		drive_controller->canTalonRight1->GetOutputCurrent());
-		// SmartDashboard::PutNumber("Right 2",
-		// 		drive_controller->canTalonRight2->GetOutputCurrent());
-		// SmartDashboard::PutNumber("Right 3",
-		// 		drive_controller->canTalonRight3->GetOutputCurrent());
-		// SmartDashboard::PutNumber("Right 4",
-		// 		drive_controller->canTalonRight4->GetOutputCurrent());
 
 		if (sameScaleOneState) { //same side
 			scale_side->RunStateMachineSameScale(&raise_to_scale_backwards,
@@ -544,13 +517,6 @@ public:
 		// SmartDashboard::PutNumber("RD 4",
 		// 		drive_controller->canTalonRight4->GetOutputCurrent());
 
-#if !STATEMACHINE
-		intake_->ManualArm(joyOp);
-		//	intake_->ManualWheels(joyOp);
-		elevator_->ManualElevator(joyThrottle);
-
-#else
-
 		bool low_gear = joyWheel->GetRawButton(LOW_GEAR_BUTTON);
 		bool high_gear = joyWheel->GetRawButton(HIGH_GEAR_BUTTON);
 
@@ -592,8 +558,6 @@ public:
 		} else {
 			is_auto_shift = true;
 		}
-
-#endif
 	}
 
 	void DisabledInit() override { //between auton and teleop
@@ -601,97 +565,6 @@ public:
 	}
 
 	void TestPeriodic() {
-
-		SmartDashboard::PutNumber("enc l",
-				drive_controller->canTalonLeft1->GetSelectedSensorPosition(0));
-
-		SmartDashboard::PutNumber("enc r",
-				drive_controller->canTalonRight1->GetSelectedSensorPosition(0));
-
-		SmartDashboard::PutNumber("EL POS", elevator_->GetElevatorPosition());
-		SmartDashboard::PutNumber("ARM POS", intake_->GetAngularPosition());
-
-//		drive_controller->canTalonLeft1->Set(ControlMode::PercentOutput, 1.0);
-//		drive_controller->canTalonRight1->Set(ControlMode::PercentOutput, 1.0);
-//
-//		SmartDashboard::PutNumber("Left 1",
-//				drive_controller->canTalonLeft1->GetOutputCurrent());
-//		SmartDashboard::PutNumber("Left 2",
-//				drive_controller->canTalonLeft2->GetOutputCurrent());
-//		SmartDashboard::PutNumber("Left 3",
-//				drive_controller->canTalonLeft3->GetOutputCurrent());
-//		SmartDashboard::PutNumber("Left 4",
-//				drive_controller->canTalonLeft4->GetOutputCurrent());
-//		SmartDashboard::PutNumber("Right 1",
-//				drive_controller->canTalonRight1->GetOutputCurrent());
-//		SmartDashboard::PutNumber("Right 2",
-//				drive_controller->canTalonRight2->GetOutputCurrent());
-//		SmartDashboard::PutNumber("Right 3",
-//				drive_controller->canTalonRight3->GetOutputCurrent());
-//		SmartDashboard::PutNumber("Right 4",
-//				drive_controller->canTalonRight4->GetOutputCurrent());
-//
-//		SmartDashboard::PutNumber("Left 1 Vel", drive_controller->GetLeftVel());
-//		SmartDashboard::PutNumber("Right 1 Vel",
-//				drive_controller->GetRightVel());
-//
-//		if (last_state_test != 0) {
-//			timerTest->Start();
-//		}
-//
-//		if (timerTest->HasPeriodPassed(3)
-//				&& std::abs(drive_controller->GetLeftVel()) > 0.0
-//				&& std::abs(drive_controller->GetRightVel()) > 0.0) { //first one not needed //550, 1250 //JUST LOOK AT CURRENTS
-//
-//			state_test = 1;
-//			timerTest->Reset();
-//
-//		}
-//
-//		last_state_test = 0;
-
-		switch (state_test) { //threads are always running
-
-		case 0:
-			intake_->IntakeArmStateMachine(); //init state
-			intake_->IntakeWheelStateMachine();
-			elevator_->ElevatorStateMachine();
-
-			if (intake_->is_init_intake && elevator_->is_elevator_init) { //once initialized, state machines are ou
-				state_test = 0;
-			}
-			last_state_test = 0;
-
-			break;
-
-		case 1:
-			intake_->IntakeArmStateMachine(); //up
-			intake_->IntakeWheelStateMachine();
-			if (std::abs(intake_->GetAngularPosition() - intake_->UP_ANGLE)
-					< 0.1) {
-				state_test = 2;
-			}
-			break;
-
-		case 2:
-			intake_->intake_arm_state = intake_->DOWN_STATE_H;
-			intake_->IntakeArmStateMachine(); //down states
-			intake_->IntakeWheelStateMachine();
-			if (std::abs(intake_->GetAngularPosition() - intake_->DOWN_ANGLE)
-					< 0.1) {
-				state_test = 3;
-			}
-			break;
-
-		case 3:
-			elevator_->elevator_state = elevator_->MID_STATE_E_H;
-			elevator_->ElevatorStateMachine();
-			if (std::abs(
-					elevator_->GetElevatorPosition() - elevator_->MID_POS_E)
-					< 0.1) {
-
-			}
-		}
 
 	} //arm up, elev down
 
