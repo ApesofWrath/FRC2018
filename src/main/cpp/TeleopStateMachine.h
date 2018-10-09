@@ -12,6 +12,7 @@
 #include <WPILib.h>
 #include "Intake.h"
 #include "MiddleStage.h"
+#include "Climber.h"
 #include "Carriage.h"
 #include <iostream>
 #include <Timer.h>
@@ -22,7 +23,7 @@
 class TeleopStateMachine {
 public:
 
-	TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intake *intake_, DriveController *drive_controller);
+	TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intake *intake_, Climber *climber_, DriveController *drive_controller);
 
 	void StateMachine(bool wait_for_button, bool intake_spin_in,
 		bool intake_spin_out, bool intake_spin_slow, bool intake_spin_med,

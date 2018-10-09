@@ -57,7 +57,7 @@ public:
 	const int STOP_ARM_STATE_H = 4;
 	const int SWITCH_STATE_H = 5; //not used
 	const int SWITCH_BACK_SHOT_STATE_H = 6; //new for the flippy back arm
-	const int LOW_BACK_SHOT_STATE_H = 7;z
+	const int LOW_BACK_SHOT_STATE_H = 7;
 	int intake_arm_state = INIT_STATE_H;
 
 	const int STOP_WHEEL_STATE_H = 0; //wheel state machine

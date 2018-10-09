@@ -27,9 +27,9 @@ const int SCALE_LOW_BACK_STATE = 11;
 const int SCALE_MID_BACK_STATE = 12;
 const int SCALE_HIGH_BACK_STATE = 13;
 const int OUTTAKE_STATE = 14;
+const int INIT_CLIMB_STATE = 15;
+const int CLIMB_STATE = 16;
 int state = INIT_STATE;
-//TODO: post_outtake?
-//TODO: OUTTAKE_STATE?
 
 bool state_intake_wheel = false; //set to true to override the states set in the state machine
 bool state_intake_arm = false;
@@ -51,14 +51,16 @@ MiddleStage *mds;
 Carriage *carr;
 Intake *intake;
 DriveController *driveController;
+Climber *climber;
 
-TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intake *intake_,
+TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intake *intake_, Climber *climber_,
 	DriveController *drive_controller) {
 
 		mds = mds_;  //current elevator will be middle stage
 		carr = carr_;
 		intake = intake_;
 		driveController = drive_controller;
+		climber = climber_;
 
 	}
 
@@ -68,7 +70,7 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 		bool post_intake, bool raise_to_switch, bool pop_switch, bool raise_to_scale_low,
 		bool raise_to_scale_mid, bool raise_to_scale_high, bool intake_arm_up,
 		bool intake_arm_mid, bool intake_arm_down, bool mds_up, bool mds_mid, bool mds_down, bool open_intake, bool close_intake,
-		bool carr_down, bool carr_mid, bool carr_up, bool raise_to_scale_backwards, Joystick *joySlider) {
+		bool carr_down, bool carr_mid, bool carr_up, bool raise_to_scale_backwards, bool climb_button, Joystick *joySlider) {
 
 			if (wait_for_button) { //can always return to wait for button state
 				state = WAIT_FOR_BUTTON_STATE;
@@ -188,6 +190,8 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 			state = SWITCH_POP_STATE;
 		} else if (raise_to_scale_backwards) {
 			state = SCALE_HIGH_BACK_STATE;
+		} else if (climb_button) {
+			state = INIT_CLIMB_STATE;
 		}
 		last_state = WAIT_FOR_BUTTON_STATE;
 		break;
@@ -275,259 +279,276 @@ TeleopStateMachine::TeleopStateMachine(MiddleStage *mds_, Carriage *carr_, Intak
 		} else if (pop_switch) {
 			state = SWITCH_POP_STATE;
 		}
-			last_state = POST_INTAKE_STATE;
-			//can always go back to wait for button state
-			break;
+		last_state = POST_INTAKE_STATE;
+		//can always go back to wait for button state
+		break;
 
-			case POST_INTAKE_SCALE_STATE:
+		case POST_INTAKE_SCALE_STATE:
 
-			SmartDashboard::PutString("STATE", "POST INTAKE SCALE");
+		SmartDashboard::PutString("STATE", "POST INTAKE SCALE");
 
-			is_intake_low_enough = (intake->GetAngularPosition()
-			< (intake->SWITCH_ANGLE + 0.05)); //use same check for the entirety of the state
+		is_intake_low_enough = (intake->GetAngularPosition()
+		< (intake->SWITCH_ANGLE + 0.05)); //use same check for the entirety of the state
 
-			if (state_carr) {
-				carr->elevator_state = carr->DOWN_STATE_E_H;
-				if (state_mds && is_carr_low_enough) {
-					mds->elevator_state = mds->DOWN_STATE_E_H;
-					if (mds->GetElevatorPosition() < 0.7) {
-						intake->intake_arm_state = intake->UP_STATE_H;
-						state = WAIT_FOR_BUTTON_STATE;
-					}
-				}
-				else if (state_intake_arm) {
-					intake->intake_arm_state = intake->SWITCH_STATE_H;
-				}
-			}
-			if (state_intake_wheel) {
-				intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
-			}
-			last_state = POST_INTAKE_SCALE_STATE;
-			//can always go back to wait for button state
-			break;
-
-			case SCALE_LOW_STATE:
-
-			SmartDashboard::PutString("STATE", "SCALE LOW FORWARDS");
-
-			if (state_intake_solenoid) {
-				intake->intake_solenoid_state = intake->CLOSE_STATE_H;
-			}
-			if (state_intake_arm) {
-				intake->intake_arm_state = intake->UP_STATE_H;
-			}
-			if (state_mds) {
-				mds->elevator_state = mds->DOWN_STATE_E_H;
-			}
-			if (is_mds_low_enough && state_carr) {
-				carr->elevator_state = carr->UP_STATE_E_H;
-			}
-			if (!raise_to_scale_low && carr->IsAtPos(carr->UP_POS_CARR) && intake->IsAtAngle(intake->UP_ANGLE)) {
-				shot_type = intake->SLOW_SCALE;
-				state = OUTTAKE_STATE;
-			}
-			last_state = SCALE_LOW_STATE;
-			break;
-
-			case SCALE_MID_STATE:
-
-			SmartDashboard::PutString("STATE", "SCALE MID FORWARDS");
-
-			if (state_intake_solenoid) {
-				intake->intake_solenoid_state = intake->CLOSE_STATE_H;
-			}
-			if (state_intake_arm) {
-				intake->intake_arm_state = intake->UP_STATE_H;
-			}
-			if (state_mds) {
-				mds->elevator_state = mds->MID_STATE_E_H;
-			}
-			if (mds->IsAtPos(mds->MID_POS_MDS) && state_carr) {
-				carr->elevator_state = carr->UP_STATE_E_H;
-			}
-			if (!raise_to_scale_mid && carr->IsAtPos(carr->UP_POS_CARR) && intake->IsAtAngle(intake->UP_ANGLE)) {
-				shot_type = intake->SLOW_SCALE;
-				state = OUTTAKE_STATE;
-			}
-			last_state = SCALE_MID_STATE;
-			break;
-
-			case SCALE_HIGH_STATE:
-
-			SmartDashboard::PutString("STATE", "SCALE HIGH FORWARDS");
-
-			if (state_intake_solenoid) {
-				intake->intake_solenoid_state = intake->CLOSE_STATE_H;
-			}
-			if (state_intake_arm) {
-				intake->intake_arm_state = intake->UP_STATE_H;
-			}
-			if (state_mds) {
-				mds->elevator_state = mds->UP_STATE_E_H;
-			}
-			if (mds->IsAtPos(mds->UP_POS_MDS) && state_carr) {
-				carr->elevator_state = carr->UP_STATE_E_H;
-			}
-			if (!raise_to_scale_high && carr->IsAtPos(carr->UP_POS_CARR) && intake->IsAtAngle(intake->UP_ANGLE)) {
-				shot_type = intake->SLOW_SCALE;
-				state = OUTTAKE_STATE;
-			}
-			last_state = SCALE_HIGH_STATE;
-			break;
-
-			case SWITCH_STATE:
-
-			SmartDashboard::PutString("STATE", "SWITCH");
-
-			if (state_intake_solenoid) {
-				intake->intake_solenoid_state = intake->CLOSE_STATE_H;
-			}
-			if (state_mds) {
-				mds->elevator_state = mds->DOWN_STATE_E_H;
-			}
-			if (state_carr && is_mds_low_enough) {
-				carr->elevator_state = carr->MID_STATE_E_H;
-			}
-			if (state_intake_arm) {
-				intake->intake_arm_state = intake->MID_STATE_H;
-			}
-			if (!raise_to_switch && carr->IsAtPos(carr->MID_POS_CARR) && intake->IsAtAngle(intake->MID_ANGLE)) {
-				shot_type = intake->SWITCH;
-				state = OUTTAKE_STATE;
-			}
-			last_state = SWITCH_STATE;
-			break;
-
-			case SWITCH_POP_STATE:
-
-			SmartDashboard::PutString("STATE", "POP SWITCH");
-
-			if (state_carr) {
-				carr->elevator_state = carr->DOWN_STATE_E_H;
-			}
+		if (state_carr) {
+			carr->elevator_state = carr->DOWN_STATE_E_H;
 			if (state_mds && is_carr_low_enough) {
 				mds->elevator_state = mds->DOWN_STATE_E_H;
-			}
-			if (state_intake_arm) {
-				intake->intake_arm_state = intake->UP_STATE_H;
-			}
-			if (std::abs(intake->GetAngularPosition() - intake->UP_ANGLE) <= 0.2 //switch will not shoot if you press a shooting button
-			&& state_intake_wheel && is_mds_low_enough && !pop_switch) { //hold button until ready to shoot, elevator and intake will be in position //state_intake_wheel means you let go of intake_spin_mid
-				shot_type = intake->SWITCH;
-				state = OUTTAKE_STATE;
-			}
-			last_state = SWITCH_STATE;
-			break;
-
-			case SCALE_LOW_BACK_STATE: //arm parallel to floor
-
-			SmartDashboard::PutString("STATE", "SCALE LOW BACK");
-
-			if (state_intake_arm && carr->GetElevatorPosition() >= .88) { //move to the flippy angle when safe
-				intake->intake_arm_state = intake->LOW_BACK_SHOT_STATE_H;
-			} else if (state_intake_arm && carr->GetElevatorPosition() < .85) { //move to normal up angle if not safe to go all the way to flippy angle
-				intake->intake_arm_state = intake->UP_STATE_H;
-			}
-
-			if (state_mds) {
-				mds->elevator_state = mds->DOWN_STATE_E_H;
-			}
-			if (state_carr && mds->IsAtPos(mds->DOWN_POS_MDS)) {
-				carr->elevator_state = carr->UP_STATE_E_H;
-			}
-			if (carr->GetElevatorPosition() >= 0.85
-			&& intake->GetAngularPosition() > 1.98 //&& state_intake_wheel
-			&& !raise_to_scale_backwards) { //shoot if the height of the elevator and the angle of the arm is good enough //hold button until ready to shoot, elevator and intake will be in position
-				shot_type = intake->BACK;
-				state = OUTTAKE_STATE;
-			}
-			last_state = SCALE_LOW_BACK_STATE;
-			break;
-
-			case SCALE_MID_BACK_STATE: //arm parallel to floor
-
-			SmartDashboard::PutString("STATE", "SCALE MID BACK");
-
-			if (state_intake_arm && carr->GetElevatorPosition() >= .88) { //move to the flippy angle when safe
-				intake->intake_arm_state = intake->LOW_BACK_SHOT_STATE_H;
-			} else if (state_intake_arm && carr->GetElevatorPosition() < .85) { //move to normal up angle if not safe to go all the way to flippy angle
-				intake->intake_arm_state = intake->UP_STATE_H;
-			}
-
-			if (state_mds) {
-				mds->elevator_state = mds->DOWN_STATE_E_H;
-			}
-			if (state_carr && mds->IsAtPos(mds->DOWN_POS_MDS)) {
-				carr->elevator_state = carr->UP_STATE_E_H;
-			}
-			if (carr->GetElevatorPosition() >= 0.85
-			&& intake->GetAngularPosition() > 1.98 //&& state_intake_wheel
-			&& !raise_to_scale_backwards) { //shoot if the height of the elevator and the angle of the arm is good enough //hold button until ready to shoot, elevator and intake will be in position
-				shot_type = intake->BACK;
-				state = OUTTAKE_STATE;
-			}
-			last_state = SCALE_MID_BACK_STATE;
-			break;
-
-
-			case SCALE_HIGH_BACK_STATE: //arm at regular back angle, angled upwards
-
-			SmartDashboard::PutString("STATE", "SCALE HIGH BACK");
-
-			if (state_intake_arm && carr->GetElevatorPosition() >= .85) { //move to the flippy angle when safe
-				intake->intake_arm_state = intake->SWITCH_BACK_SHOT_STATE_H;
-			} else if (state_intake_arm && carr->GetElevatorPosition() < .85) { //move to normal up angle if not safe to go all the way to flippy angle
-				intake->intake_arm_state = intake->UP_STATE_H;
-			}
-
-			if (state_mds) {
-				mds->elevator_state = mds->DOWN_STATE_E_H;
-			}
-			if (state_carr && mds->IsAtPos(mds->DOWN_POS_MDS)) {
-				carr->elevator_state = carr->UP_STATE_E_H;
-			}
-			if (carr->GetElevatorPosition() >= 0.85
-			&& intake->GetAngularPosition() > 1.98 //&& state_intake_wheel
-			&& !raise_to_scale_backwards) { //shoot if the height of the elevator and the angle of the arm is good enough //hold button until ready to shoot, elevator and intake will be in position
-				shot_type = intake->BACK;
-				state = OUTTAKE_STATE;
-			}
-			last_state = SCALE_HIGH_BACK_STATE;
-			break;
-
-			case OUTTAKE_STATE:
-
-			if (last_state != OUTTAKE_STATE) {
-				slider_input = joySlider->GetY(); //or whatever
-			}
-
-			if (slider_input > 0.5) { //place
-				if (state_intake_solenoid) {
-					intake->intake_solenoid_state = intake->OPEN_STATE_H;
-					intake->intake_wheel_state = intake->SLOW_STATE_H;
-				}
-				if (intake->ReleasedCube(shot_type)) {
-					state = POST_INTAKE_STATE;
-				}
-			} else if ((slider_input <= 0.5) && (slider_input > -0.3)) { //shoot slow
-				if (state_intake_solenoid) {
-					intake->intake_solenoid_state = intake->CLOSE_STATE_H;
-					intake->intake_wheel_state = intake->SLOW_SCALE_STATE_H;
-				}
-				if (intake->ReleasedCube(shot_type)) {
-					state = POST_INTAKE_STATE;
-				}
-			} else if (slider_input <= -0.3) { //shoot fast
-				if (state_intake_solenoid) {
-					intake->intake_solenoid_state = intake->CLOSE_STATE_H;
-					intake->intake_wheel_state = intake->OUT_STATE_H;
-				}
-				if (intake->ReleasedCube(shot_type)) {
-					state = POST_INTAKE_STATE;
+				if (mds->GetElevatorPosition() < 0.7) {
+					intake->intake_arm_state = intake->UP_STATE_H;
+					state = WAIT_FOR_BUTTON_STATE;
 				}
 			}
-			last_state = OUTTAKE_STATE;
-			break;
+			else if (state_intake_arm) {
+				intake->intake_arm_state = intake->SWITCH_STATE_H;
+			}
+		}
+		if (state_intake_wheel) {
+			intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
+		}
+		last_state = POST_INTAKE_SCALE_STATE;
+		//can always go back to wait for button state
+		break;
+
+		case SCALE_LOW_STATE:
+
+		SmartDashboard::PutString("STATE", "SCALE LOW FORWARDS");
+
+		if (state_intake_solenoid) {
+			intake->intake_solenoid_state = intake->CLOSE_STATE_H;
+		}
+		if (state_intake_arm) {
+			intake->intake_arm_state = intake->UP_STATE_H;
+		}
+		if (state_mds) {
+			mds->elevator_state = mds->DOWN_STATE_E_H;
+		}
+		if (is_mds_low_enough && state_carr) {
+			carr->elevator_state = carr->UP_STATE_E_H;
+		}
+		if (!raise_to_scale_low && carr->IsAtPos(carr->UP_POS_CARR) && intake->IsAtAngle(intake->UP_ANGLE)) {
+			shot_type = intake->SLOW_SCALE;
+			state = OUTTAKE_STATE;
+		}
+		last_state = SCALE_LOW_STATE;
+		break;
+
+		case SCALE_MID_STATE:
+
+		SmartDashboard::PutString("STATE", "SCALE MID FORWARDS");
+
+		if (state_intake_solenoid) {
+			intake->intake_solenoid_state = intake->CLOSE_STATE_H;
+		}
+		if (state_intake_arm) {
+			intake->intake_arm_state = intake->UP_STATE_H;
+		}
+		if (state_mds) {
+			mds->elevator_state = mds->MID_STATE_E_H;
+		}
+		if (mds->IsAtPos(mds->MID_POS_MDS) && state_carr) {
+			carr->elevator_state = carr->UP_STATE_E_H;
+		}
+		if (!raise_to_scale_mid && carr->IsAtPos(carr->UP_POS_CARR) && intake->IsAtAngle(intake->UP_ANGLE)) {
+			shot_type = intake->SLOW_SCALE;
+			state = OUTTAKE_STATE;
+		}
+		last_state = SCALE_MID_STATE;
+		break;
+
+		case SCALE_HIGH_STATE:
+
+		SmartDashboard::PutString("STATE", "SCALE HIGH FORWARDS");
+
+		if (state_intake_solenoid) {
+			intake->intake_solenoid_state = intake->CLOSE_STATE_H;
+		}
+		if (state_intake_arm) {
+			intake->intake_arm_state = intake->UP_STATE_H;
+		}
+		if (state_mds) {
+			mds->elevator_state = mds->UP_STATE_E_H;
+		}
+		if (mds->IsAtPos(mds->UP_POS_MDS) && state_carr) {
+			carr->elevator_state = carr->UP_STATE_E_H;
+		}
+		if (!raise_to_scale_high && carr->IsAtPos(carr->UP_POS_CARR) && intake->IsAtAngle(intake->UP_ANGLE)) {
+			shot_type = intake->SLOW_SCALE;
+			state = OUTTAKE_STATE;
+		}
+		last_state = SCALE_HIGH_STATE;
+		break;
+
+		case SWITCH_STATE:
+
+		SmartDashboard::PutString("STATE", "SWITCH");
+
+		if (state_intake_solenoid) {
+			intake->intake_solenoid_state = intake->CLOSE_STATE_H;
+		}
+		if (state_mds) {
+			mds->elevator_state = mds->DOWN_STATE_E_H;
+		}
+		if (state_carr && is_mds_low_enough) {
+			carr->elevator_state = carr->MID_STATE_E_H;
+		}
+		if (state_intake_arm) {
+			intake->intake_arm_state = intake->MID_STATE_H;
+		}
+		if (!raise_to_switch && carr->IsAtPos(carr->MID_POS_CARR) && intake->IsAtAngle(intake->MID_ANGLE)) {
+			shot_type = intake->SWITCH;
+			state = OUTTAKE_STATE;
+		}
+		last_state = SWITCH_STATE;
+		break;
+
+		case SWITCH_POP_STATE:
+
+		SmartDashboard::PutString("STATE", "POP SWITCH");
+
+		if (state_carr) {
+			carr->elevator_state = carr->DOWN_STATE_E_H;
+		}
+		if (state_mds && is_carr_low_enough) {
+			mds->elevator_state = mds->DOWN_STATE_E_H;
+		}
+		if (state_intake_arm) {
+			intake->intake_arm_state = intake->UP_STATE_H;
+		}
+		if (std::abs(intake->GetAngularPosition() - intake->UP_ANGLE) <= 0.2 //switch will not shoot if you press a shooting button
+		&& state_intake_wheel && is_mds_low_enough && !pop_switch) { //hold button until ready to shoot, elevator and intake will be in position //state_intake_wheel means you let go of intake_spin_mid
+			shot_type = intake->SWITCH;
+			state = OUTTAKE_STATE;
+		}
+		last_state = SWITCH_STATE;
+		break;
+
+		case SCALE_LOW_BACK_STATE: //arm parallel to floor
+
+		SmartDashboard::PutString("STATE", "SCALE LOW BACK");
+
+		if (state_intake_arm && carr->GetElevatorPosition() >= .88) { //move to the flippy angle when safe
+			intake->intake_arm_state = intake->LOW_BACK_SHOT_STATE_H;
+		} else if (state_intake_arm && carr->GetElevatorPosition() < .85) { //move to normal up angle if not safe to go all the way to flippy angle
+			intake->intake_arm_state = intake->UP_STATE_H;
 		}
 
+		if (state_mds) {
+			mds->elevator_state = mds->DOWN_STATE_E_H;
+		}
+		if (state_carr && mds->IsAtPos(mds->DOWN_POS_MDS)) {
+			carr->elevator_state = carr->UP_STATE_E_H;
+		}
+		if (carr->GetElevatorPosition() >= 0.85
+		&& intake->GetAngularPosition() > 1.98 //&& state_intake_wheel
+		&& !raise_to_scale_backwards) { //shoot if the height of the elevator and the angle of the arm is good enough //hold button until ready to shoot, elevator and intake will be in position
+			shot_type = intake->BACK;
+			state = OUTTAKE_STATE;
+		}
+		last_state = SCALE_LOW_BACK_STATE;
+		break;
+
+		case SCALE_MID_BACK_STATE: //arm parallel to floor
+
+		SmartDashboard::PutString("STATE", "SCALE MID BACK");
+
+		if (state_intake_arm && carr->GetElevatorPosition() >= .88) { //move to the flippy angle when safe
+			intake->intake_arm_state = intake->LOW_BACK_SHOT_STATE_H;
+		} else if (state_intake_arm && carr->GetElevatorPosition() < .85) { //move to normal up angle if not safe to go all the way to flippy angle
+			intake->intake_arm_state = intake->UP_STATE_H;
+		}
+
+		if (state_mds) {
+			mds->elevator_state = mds->DOWN_STATE_E_H;
+		}
+		if (state_carr && mds->IsAtPos(mds->DOWN_POS_MDS)) {
+			carr->elevator_state = carr->UP_STATE_E_H;
+		}
+		if (carr->GetElevatorPosition() >= 0.85
+		&& intake->GetAngularPosition() > 1.98 //&& state_intake_wheel
+		&& !raise_to_scale_backwards) { //shoot if the height of the elevator and the angle of the arm is good enough //hold button until ready to shoot, elevator and intake will be in position
+			shot_type = intake->BACK;
+			state = OUTTAKE_STATE;
+		}
+		last_state = SCALE_MID_BACK_STATE;
+		break;
+
+
+		case SCALE_HIGH_BACK_STATE: //arm at regular back angle, angled upwards
+
+		SmartDashboard::PutString("STATE", "SCALE HIGH BACK");
+
+		if (state_intake_arm && carr->GetElevatorPosition() >= .85) { //move to the flippy angle when safe
+			intake->intake_arm_state = intake->SWITCH_BACK_SHOT_STATE_H;
+		} else if (state_intake_arm && carr->GetElevatorPosition() < .85) { //move to normal up angle if not safe to go all the way to flippy angle
+			intake->intake_arm_state = intake->UP_STATE_H;
+		}
+
+		if (state_mds) {
+			mds->elevator_state = mds->DOWN_STATE_E_H;
+		}
+		if (state_carr && mds->IsAtPos(mds->DOWN_POS_MDS)) {
+			carr->elevator_state = carr->UP_STATE_E_H;
+		}
+		if (carr->GetElevatorPosition() >= 0.85
+		&& intake->GetAngularPosition() > 1.98 //&& state_intake_wheel
+		&& !raise_to_scale_backwards) { //shoot if the height of the elevator and the angle of the arm is good enough //hold button until ready to shoot, elevator and intake will be in position
+			shot_type = intake->BACK;
+			state = OUTTAKE_STATE;
+		}
+		last_state = SCALE_HIGH_BACK_STATE;
+		break;
+
+		case OUTTAKE_STATE:
+
+		if (last_state != OUTTAKE_STATE) {
+			slider_input = joySlider->GetY(); //or whatever
+		}
+
+		if (slider_input > 0.5) { //place
+			if (state_intake_solenoid) {
+				intake->intake_solenoid_state = intake->OPEN_STATE_H;
+				intake->intake_wheel_state = intake->SLOW_STATE_H;
+			}
+			if (intake->ReleasedCube(shot_type)) {
+				state = POST_INTAKE_STATE;
+			}
+		} else if ((slider_input <= 0.5) && (slider_input > -0.3)) { //shoot slow
+			if (state_intake_solenoid) {
+				intake->intake_solenoid_state = intake->CLOSE_STATE_H;
+				intake->intake_wheel_state = intake->SLOW_SCALE_STATE_H;
+			}
+			if (intake->ReleasedCube(shot_type)) {
+				state = POST_INTAKE_STATE;
+			}
+		} else if (slider_input <= -0.3) { //shoot fast
+			if (state_intake_solenoid) {
+				intake->intake_solenoid_state = intake->CLOSE_STATE_H;
+				intake->intake_wheel_state = intake->OUT_STATE_H;
+			}
+			if (intake->ReleasedCube(shot_type)) {
+				state = POST_INTAKE_STATE;
+			}
+		}
+		last_state = OUTTAKE_STATE;
+		break;
+
+		case INIT_CLIMB_STATE:
+		mds->elevator_state = mds->DOWN_STATE_E_H;
+		carr->elevator_state = carr->DOWN_STATE_E_H;
+		intake->intake_arm_state = intake->UP_STATE_H;
+		intake->intake_solenoid_state = intake->CLOSE_STATE_H;
+		intake->intake_wheel_state = intake->STOP_WHEEL_STATE_H;
+		state = CLIMB_STATE;
+		break;
+
+		case CLIMB_STATE:
+		climber->elevator_state = climber->UP_STATE_E_H;
+		if (false) { //TODO: what check
+			climber->elevator_state = climber->STOP_STATE_E_H;
+		}
+		break;
+
 	}
+
+}

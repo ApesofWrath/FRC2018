@@ -20,6 +20,7 @@
 #include "Intake.h"
 #include "MiddleStage.h"
 #include "Carriage.h"
+#include "Climber.h"
 #include "AutonSequences/DriveForward.h"
 #include "AutonSequences/SwitchCenter.h"
 #include "AutonSequences/ScaleSide.h"
@@ -32,8 +33,6 @@
 #define CORNELIUS 1 //in every class
 #define BUTTONBOX 1
 #define TESTING 1
-
-//BACKUP CALGAMES 2
 
 class Robot: public frc::IterativeRobot {
 public:
@@ -83,13 +82,15 @@ public:
 	const int CARR_MID = 33;
 	const int CARR_DOWN = 56;
 
+	const int CLIMB_BUTTON = -1;
+
 	bool wait_for_button, intake_spin_in, intake_spin_out, intake_spin_slow,
 			intake_spin_med, intake_spin_stop, get_cube_ground,
 			get_cube_station, post_intake, raise_to_switch, pop_switch,
 			raise_to_scale_low, raise_to_scale_mid, raise_to_scale_high,
 			intake_arm_up, intake_arm_mid, intake_arm_down, mds_up,
 				mds_mid, mds_down, open_intake, close_intake, raise_to_scale_backwards, carr_down,
-				carr_mid, carr_up; //for BOTH state machines
+				carr_mid, carr_up, climb_button; //for BOTH state machines
 
 	bool is_heading, is_vision, is_fc; //drive
 	bool is_auto_shift;
@@ -103,11 +104,12 @@ public:
 	Intake *intake_;
 	TeleopStateMachine *teleop_state_machine;
 	AutonStateMachine *auton_state_machine;
-	ElevatorMotionProfiler *elevator_profiler_;
+	ElevatorMotionProfiler *elevator_profiler_, *climber_profiler_;
 	IntakeMotionProfiler *intake_profiler_;
 	Compressor *compressor_;
 	Joystick *joyThrottle, *joyWheel, *joyOp, *joySlider;
 	TaskManager *task_manager;
+	Climber *climber_;
 
 	DriveForward *drive_forward;
 	SwitchCenter *switch_center;
@@ -188,6 +190,7 @@ public:
 		SmartDashboard::PutNumber("D Right Vel", 0);
 		SmartDashboard::PutNumber("P Right Vel", 0);
 
+		climber_profiler_ = new ElevatorMotionProfiler(0.8, 4.0, TIME_STEP);
 		elevator_profiler_ = new ElevatorMotionProfiler(1.15, 5.0, TIME_STEP); //max vel, max accel, timestep
 		intake_profiler_ = new IntakeMotionProfiler(2.0, 10.0, TIME_STEP);
 
@@ -197,13 +200,14 @@ public:
 		drive_controller = new DriveController(TIME_STEP); //inherits from mother class //pass in time step here for auton subclasses
 		carr_ = new Carriage(elevator_profiler_);
 		mds_ = new MiddleStage(elevator_profiler_);
+		climber_ = new Climber(climber_profiler_);
 		intake_ = new Intake(pdp_, intake_profiler_, carr_);
-		teleop_state_machine = new TeleopStateMachine(mds_, carr_, intake_,
+		teleop_state_machine = new TeleopStateMachine(mds_, carr_, intake_, climber_,
 				drive_controller); //actually has both state machines
 		auton_state_machine = new AutonStateMachine(mds_, carr_, intake_,
 				drive_controller);
 		task_manager = new TaskManager(teleop_state_machine,
-				auton_state_machine, drive_controller, mds_, carr_, intake_,
+				auton_state_machine, drive_controller, mds_, carr_, intake_, climber_,
 				TIME_STEP);
 
 		joyThrottle = new Joystick(JOY_THROTTLE);
@@ -235,7 +239,7 @@ public:
 				&get_cube_station, &post_intake, &raise_to_switch, &pop_switch,
 				&raise_to_scale_low, &raise_to_scale_mid, &raise_to_scale_high,
 				&intake_arm_up, &intake_arm_mid, &intake_arm_down, &mds_up, &mds_mid, &mds_down, &open_intake, &close_intake, &carr_up,
-				&carr_mid, &carr_down, &raise_to_scale_backwards, joyThrottle, joyWheel, joySlider, &is_heading);
+				&carr_mid, &carr_down, &raise_to_scale_backwards, &climb_button, joyThrottle, joyWheel, joySlider, &is_heading);
 
 	}
 
@@ -487,6 +491,8 @@ public:
 		intake_spin_out = joyThrottle->GetRawButton(INTAKE_SPIN_OUT);
 		intake_spin_slow = joyThrottle->GetRawButton(INTAKE_SPIN_SLOW); //this one specifically for slowing down backwards shot //TODO: maybe add a different state for the two back shot speeds
 		intake_spin_stop = false;
+
+		climb_button = joyOp->GetRawButton(CLIMB_BUTTON);
 
 		is_heading = joyThrottle->GetRawButton(HEADING_BUTTON);
 		is_vision = false;
