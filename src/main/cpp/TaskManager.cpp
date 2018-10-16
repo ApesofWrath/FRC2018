@@ -1,132 +1,164 @@
-/*
- * TaskManager.cpp
- *
- *  Created on: Mar 17, 2018
- *      Author: DriversStation
- */
-
+#include "globals.h"
 #include "TaskManager.h"
+#include "tasks/Task.h"
+#include "states/State.h"
 
-Timer *threadTimer = new Timer();
-
-std::thread Thread;
-
-TeleopStateMachine *teleop_state_machine;
-AutonStateMachine *auton_state_machine;
-DriveController *drive_controller;
-Elevator *elevator_t;
-Intake *intake_t;
-
-TaskManager::TaskManager(TeleopStateMachine *tsm, AutonStateMachine *ausm,
-		DriveController *dc, Elevator *el, Intake *in, double thread_time_dt) {
-
-	teleop_state_machine = tsm;
-	auton_state_machine = ausm;
-	drive_controller = dc;
-	elevator_t = el;
-	intake_t = in;
-
-	thread_time_step = thread_time_dt;
-
+TaskManager::TaskManager(
+	void
+): m_numTasks(0)
+, m_thread_low()
+, m_thread_high()
+, m_thread_low_running(false)
+, m_thread_high_running(false)
+, m_mutex(PTHREAD_MUTEX_INITIALIZER)
+{
 }
 
-void TaskManager::StartThread(bool *wait_for_button, bool *intake_spin_in,
-		bool *intake_spin_out, bool *intake_spin_slow, bool *intake_spin_med, bool *intake_spin_stop,
-		bool *get_cube_ground, bool *get_cube_station, bool *post_intake,
-		bool *raise_to_switch, bool *pop_switch, bool *raise_to_scale_slow, bool *raise_to_scale_med, bool *raise_to_scale_fast, bool *intake_arm_up,
-		bool *intake_arm_mid, bool *intake_arm_down, bool *elevator_up,
-		bool *elevator_mid, bool *elevator_down, bool *raise_to_scale_backwards,
-		Joystick *JoyThrottle, Joystick *JoyWheel, bool *is_heading) {
-
-	TaskManager *tm = this;
-	Thread = std::thread(&TaskManager::ThreadWrapper, tm, JoyThrottle, JoyWheel,
-			wait_for_button, intake_spin_in, intake_spin_out, intake_spin_slow, intake_spin_med,
-			intake_spin_stop, get_cube_ground, get_cube_station, post_intake,
-			raise_to_switch, pop_switch, raise_to_scale_slow, raise_to_scale_med, raise_to_scale_fast, intake_arm_up, intake_arm_mid,
-			intake_arm_down, elevator_up, elevator_mid, elevator_down,
-			raise_to_scale_backwards, is_heading);
-	Thread.detach();
-
+TaskManager::~TaskManager() {
+	Stop();
 }
 
-void TaskManager::ThreadWrapper(TaskManager *task_manager,
-		Joystick *JoyThrottle, Joystick *JoyWheel, bool *wait_for_button,
-		bool *intake_spin_in, bool *intake_spin_out, bool *intake_spin_slow, bool *intake_spin_med,
-		bool *intake_spin_stop, bool *get_cube_ground, bool *get_cube_station,
-		bool *post_intake, bool *raise_to_switch, bool *pop_switch, bool *raise_to_scale_slow, bool *raise_to_scale_med, bool *raise_to_scale_fast,
-		bool *intake_arm_up, bool *intake_arm_mid, bool *intake_arm_down,
-		bool *elevator_up, bool *elevator_mid, bool *elevator_down,
-		bool *raise_to_scale_backwards, bool *is_heading) {
+void TaskManager::Start(void) {
+	pthread_mutex_lock(&m_mutex)
+	if(!m_thread_low_running){
+		m_thread_low_running = true;
+		pthread_create(&m_thread_low, NULL, TaskLowFreqAll, this);
+	}
+	if(!m_thread_high_running){
+		m_thread_high_running = true;
+		pthread_create(&m_thread_high, NULL, TaskHighFreqAll, this);
+	}
+}
 
-	threadTimer->Start();
+bool TaskManager::RegisterTask(const char *taskName, CoopTask *task, uint32_t flags) {
+	bool success = false;
+	int index;
 
-	while (true) {
-
-		threadTimer->Reset();
-
-		if (frc::RobotState::IsEnabled() && frc::RobotState::IsAutonomous() && drive_controller->set_profile) { //this is always running, even during auton init
-
-			intake_t->Rotate();
-			elevator_t->Move();
-
-			drive_controller->RunAutonDrive();
-
-			intake_t->IntakeArmStateMachine();
-			intake_t->IntakeWheelStateMachine();
-			elevator_t->ElevatorStateMachine();
-
-			auton_state_machine->StateMachineAuton((bool) *wait_for_button,
-					(bool) *intake_spin_in, (bool) *intake_spin_out,
-					(bool) *intake_spin_slow, (bool) *intake_spin_stop,
-					(bool) *get_cube_ground, (bool) *get_cube_station,
-					(bool) *post_intake, (bool) *raise_to_switch,
-					(bool) *raise_to_scale_med, (bool) *intake_arm_up, //raise to scale med
-					(bool) *intake_arm_mid, (bool) *intake_arm_down,
-					(bool) *elevator_up, (bool) *elevator_mid,
-					(bool) *elevator_down, (bool) *raise_to_scale_backwards);
-
-		} else if (frc::RobotState::IsEnabled()
-				&& frc::RobotState::IsOperatorControl()) {
-
-			intake_t->Rotate();
-			elevator_t->Move();
-
-			drive_controller->RunTeleopDrive(JoyThrottle, JoyWheel, (bool)*is_heading);
-
-			intake_t->IntakeArmStateMachine();
-			intake_t->IntakeWheelStateMachine();
-			elevator_t->ElevatorStateMachine();
-
-			teleop_state_machine->StateMachine((bool) *wait_for_button,
-					(bool) *intake_spin_in, (bool) *intake_spin_out,
-					(bool) *intake_spin_slow, (bool) *intake_spin_med, (bool) *intake_spin_stop,
-					(bool) *get_cube_ground, (bool) *get_cube_station,
-					(bool) *post_intake, (bool) *raise_to_switch, (bool) *pop_switch,
-					(bool) *raise_to_scale_slow, (bool) *raise_to_scale_med, (bool) *raise_to_scale_fast, (bool) *intake_arm_up,
-					(bool) *intake_arm_mid, (bool) *intake_arm_down,
-					(bool) *elevator_up, (bool) *elevator_mid,
-					(bool) *elevator_down, (bool) *raise_to_scale_backwards);
-
-		}
-
-		double wait_time = task_manager->thread_time_step - threadTimer->Get(); //time step also needs to be changed in the motion profiler parameter
-
-		wait_time *= 1000000;
-		if (wait_time < 0) {
-			wait_time = 0;
-		}
-
-		std::this_thread::sleep_for(std::chrono::microseconds((int) wait_time));
-
-		SmartDashboard::PutNumber("TIME", threadTimer->Get());
-
+	index = this->FindTask(task);
+	if (index != -1) {
+		//If the task is already registered, just add to the existing flags
+		m_taskFlags[index] |= flags;
+		success = true;
+	}
+	else if (m_numTasks < MAX_NUM_TASKS) {
+		strncpy(m_taskNames[m_numTasks], taskName, MAX_TASK_NAME_LEN);
+		m_tasks[m_numTasks] = task;
+		m_taskFlags[m_numTasks] = flags;
+		m_numTasks++;
+		success = true;
 	}
 
+	fprintf(stderr, "Task %s registered to %p with result %d (1 is go0d)\n",
+	taskName, this, success);
+
+	return success;
 }
 
-void TaskManager::EndThread() {
+bool TaskManager::UnregisterTask(CoopTask *task) {
+	bool success = false;
+	int taskIndex, j;
 
-	Thread.~thread(); //does not actually kill the thread
+	taskIndex = this->FindTask(task);
+	if (taskIndex != -1) {
+		//Shift tasks to replace the removed one
+		for (j = taskIndex + 1; j < m_numTasks; j++) {
+			strcpy(m_taskNames[j - 1], m_taskNames[j]);
+			m_tasks[j - 1] = m_tasks[j];
+			m_taskFlags[j - 1] = m_taskFlags[j];
+		}
 
+		//clear out the last task in the list
+		m_numTasks--;
+		m_taskNames[m_numTasks][0] = '\0';
+		m_tasks[m_numTasks] = NULL;
+		m_taskFlags[m_numTasks] = 0;
+
+		success = true;
+	}
+
+	return success;
 }
 
+void TaskManager::TaskStartModeAll(RobotMode mode) {
+	uint64_t startTime, endTime;
+
+	for (int i = 0; i < m_numTasks; i++) {
+		if (m_taskFlags[i] & TASK_START_MODE) {
+			startTime = GetUsecTime();
+			m_tasks[i]->TaskStartMode(mode);
+			endTime = GetUsecTime();
+
+			if (ENABLE_PROFILING) {
+				printf("TaskStartMode(%d) for %s took %llu us\n",
+				mode, m_taskNames[i], endTime - startTime);
+			}
+		}
+	}
+}
+
+void TaskManager::TaskStopModeAll(RobotMode mode) {
+	uint64_t startTime, endTime;
+
+	//stop tasks in the reverse order they were started in
+	for (int i = m_numTasks - 1; i >= 0; i--) {
+		if (m_taskFlags[i] & TASK_STOP_MODE) {
+			startTime = GetUsecTime();
+			m_tasks[i]->TaskStopMode(mode);
+			endTime = GetUsecTime();
+
+			if (ENABLE_PROFILING) {
+				printf("TaskStopMode(%d) for %s took %llu us\n",
+				mode, m_taskNames[i], endTime - startTime);
+			}
+		}
+	}
+}
+
+void TaskManager::TaskLowFreqAll(RobotMode mode) {
+	uint64_t startTime, endTime;
+
+	for (int i = 0; i < m_numTasks; i++) {
+		if (m_taskFlags[i] & TASK_PERIODIC) {
+			startTime = GetUsecTime();
+			m_tasks[i]->TaskPeriodic(mode);
+			endTime = GetUsecTime();
+
+			if (ENABLE_PROFILING) {
+				printf("TaskPeriodicAll(%d) for %s took %llu us\n",
+				mode, m_taskNames[i], endTime - startTime);
+			}
+		}
+	}
+}
+
+void TaskManager::TaskHighFreqAll(RobotMode mode) {
+	uint64_t startTime, endTime;
+
+	for (int i = 0; i < m_numTasks; i++) {
+		if (m_taskFlags[i] & TASK_PERIODIC) {
+			startTime = GetUsecTime();
+			m_tasks[i]->TaskPeriodic(mode);
+			endTime = GetUsecTime();
+
+			if (ENABLE_PROFILING) {
+				printf("TaskPeriodicAll(%d) for %s took %llu us\n",
+				mode, m_taskNames[i], endTime - startTime);
+			}
+		}
+	}
+}
+
+int TaskManager::FindTask(CoopTask *task) {
+	int index = -1;
+
+	for (int i = 0; i < m_numTasks; i++) {
+		if (m_tasks[i] == task) {
+			index = i;
+			break;
+		}
+	}
+
+	return index;
+}
+
+}
