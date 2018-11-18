@@ -8,7 +8,7 @@
 #include <globals.h>
 
 	void RobotInit() {
-
+			//make state, task objects
 	}
 
 	void AutonomousInit() override {
@@ -33,7 +33,7 @@
 
 	void TestPeriodic() {
 
-	} //arm up, elev down
+	}
 
 private:
 

@@ -924,24 +924,6 @@ void DriveControllerMother::Controller(double ref_kick,
 //	double kick_current = ((double) canTalonKicker->GetSelectedSensorVelocity(0) //will timeout, taking too much time
 //			 (double) TICKS_PER_ROT) * MINUTE_CONVERSION; //going right is positive
 
-//	SmartDashboard::PutNumber("actual left vel", l_current);
-
-//	if ((std::abs(l_current) <= 0.5 && canTalonLeft1->GetOutputCurrent() > 4.0) //encoders not working
-//			|| (std::abs(r_current) <= 0.5
-//					&& canTalonRight1->GetOutputCurrent() > 4.0)) {
-//		SmartDashboard::PutString("Drive Motor Encoders", "Not working");
-//		k_p_yaw = 0.0;
-//		k_d_yaw = 0.0;
-//		feed_forward_l = 0.0;
-//		feed_forward_r = 0.0;
-//		k_p_left = 0.0;
-//		k_p_right = 0.0;
-//		k_d_left = 0.0;
-//		k_d_right = 0.0;
-//	} else {
-//		SmartDashboard::PutString("Drive Motor Encoders", "Not working");
-//	}
-
 SmartDashboard::PutNumber("l_current", l_current);
 SmartDashboard::PutNumber("r_current", r_current);
 
