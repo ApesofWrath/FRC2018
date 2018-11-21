@@ -7,19 +7,21 @@
 * Modified version of 973's 2017 robot code
 */
 
-#pragma once
+//#pragma once
 
 #include "globals.h"
 #include "pthread.h"
+#include "tasks/Task.h"
+#include "states/State.h"
 
 #define MAX_NUM_TASKS			32
 #define MAX_TASK_NAME_LEN		31
 
-static constexpr double FREQUENCY_LOW_HZ 10.0;
-static constexpr double FREQUENCY_HIGH_HZ 100.0;
-
-static constexpr double PERIOD_LOW_MS = 1000.0 / FREQUENCY_LOW_HZ;
-static constexpr double PERIOD_HIGH_MS = 1000.0 / FREQUENCY_HIGH_HZ;
+// static constexpr double FREQUENCY_LOW_HZ 10.0; //won't build
+// static constexpr double FREQUENCY_HIGH_HZ 100.0;
+//
+// static constexpr double PERIOD_LOW_MS = 1000.0 / FREQUENCY_LOW_HZ;
+// static constexpr double PERIOD_HIGH_MS = 1000.0 / FREQUENCY_HIGH_HZ;
 
 using namespace frc;
 

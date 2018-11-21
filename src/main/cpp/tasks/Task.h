@@ -6,8 +6,8 @@ public:
   Task();
 	virtual ~Task();
 
-  virtual void TaskStart();
-	virtual void TaskRun();
-  virtual void TaskStop();
+  virtual void TaskStart() {}
+	virtual void TaskRun() {}
+  virtual void TaskStop() {}
 
 };

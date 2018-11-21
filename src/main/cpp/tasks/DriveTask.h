@@ -47,6 +47,10 @@ public:
 	void ZeroI();
 	void SetCurrentLimits();
 
+	void TaskStart() override;
+	void TaskRun() override;
+	void TaskStop() override;
+
   void UpdateInputs();
   void NormalizeInputs();
   void UpdateState();

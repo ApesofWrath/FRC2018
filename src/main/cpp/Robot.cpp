@@ -5,10 +5,14 @@
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
 
-#include <globals.h>
+#include "globals.h"
+#include "tasks/DriveTask.h"
+
+class Robot: public frc::IterativeRobot {
+public:
 
 	void RobotInit() {
-			//make state, task objects
+
 	}
 
 	void AutonomousInit() override {
@@ -27,7 +31,7 @@
 
 	}
 
-	void DisabledInit() override { //between auton and teleop
+	void DisabledInit() override {
 
 	}
 

@@ -1,7 +1,4 @@
-#include "globals.h"
 #include "TaskManager.h"
-#include "tasks/Task.h"
-#include "states/State.h"
 
 TaskManager::TaskManager(
 	void

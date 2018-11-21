@@ -205,7 +205,7 @@ int LF = 0, L2 = 0, L3 = 0, LR = 0, RF = 0, R2 = 0, R3 = 0, RR = 0, KICKER = 0;
 std::vector<std::vector<double> > auton_profile(1500, std::vector<double>(6)); //rows stacked on rows, all points // can't be in .h for some reason
 std::vector<std::vector<double> > auton_rows(2, std::vector<double>(6));
 
-void DriveTask::DriveTask(int l1, int l2, int l3, int l4,
+DriveTask::DriveTask(int l1, int l2, int l3, int l4,
 		int r1, int r2, int r3, int r4, bool start_low, double time_step) {
 
       time_step_drive = time_step;
