@@ -14,11 +14,21 @@ double Kv;
 
 //controller()
 
-double ref_kick, double ref_right, double ref_left,
-		double ref_yaw, double k_p_right, double k_p_left, double k_p_kick,
-		double k_p_yaw, double k_d_yaw, double k_d_right, double k_d_left,
-		double k_d_kick, double target_vel_left, double target_vel_right,
-		double target_vel_kick;
+double ref_right = 0;
+double ref_kick = 0;
+double ref_left = 0;
+double ref_yaw = 0;
+double k_p_right = 0;
+double k_p_left = 0;
+double k_p_kick = 0;
+double k_p_yaw = 0;
+double k_d_yaw = 0;
+double k_d_right = 0;
+double k_d_left = 0;
+double k_d_kick = 0;
+double target_vel_left = 0;
+double target_vel_right = 0;
+double target_vel_kick = 0;
 
 double feed_forward_r, feed_forward_l, feed_forward_k;
 
@@ -214,9 +224,11 @@ DriveTask::DriveTask(int l1, int l2, int l3, int l4,
 #ifndef CORNELIUS
 	solenoid = new DoubleSolenoid(3, 1, 0);
 #else
-	solenoid = new DoubleSolenoid(0, 0, 1);k
+	solenoid = new DoubleSolenoid(0, 0, 1);
 #endif
 	canTalonKicker = new TalonSRX(-1);
+
+	driveState = new DriveState();
 
 }
 
@@ -226,8 +238,17 @@ void DriveTask::TaskStart() {
   ShiftUp();
 }
 
-void DriveTask::TaskRunTeleop() { //from TeleopWCDrive
-	UpdateInputs();
+void DriveTask::TaskRun() {
+
+}
+
+void DriveTask::TaskRunAuto() {
+
+}
+
+void DriveTask::TaskRunTeleop(Joystick *JoyThrottle,
+		Joystick *JoyWheel) { //from TeleopWCDrive
+	UpdateInputs(JoyThrottle, JoyWheel);
 	SquareInputs();
 	UpdateTargets();
 	LimitTargets();
@@ -241,7 +262,7 @@ void DriveTask::TaskStop() {
 void DriveTask::Controller() {
 	double yaw_rate_current = -1.0 * ahrs->GetRate()
 			* ((PI) / 180.0); //left should be positive
-	UpdateYaw(yaw_rate_current);
+	driveState->UpdateYaw(yaw_rate_current);
 
 }
 

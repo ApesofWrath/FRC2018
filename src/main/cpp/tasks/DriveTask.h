@@ -24,6 +24,8 @@ public:
 	DoubleSolenoid *solenoid;
 	AHRS *ahrs;
 
+	DriveState *driveState;
+
 	bool continue_profile = true;
 	bool set_profile = false;
 	bool set_refs = false;
@@ -48,13 +50,16 @@ public:
 	void SetCurrentLimits();
 
 	void TaskStart() override;
-	void TaskRunTeleop() override;
-	void TaskRunAuto() override;
+	void TaskRun() override;
+	void TaskRunAuto();
+	void TaskRunTeleop(Joystick *JoyThrottle,
+			Joystick *JoyWheel);
 	void TaskStop() override;
 
 	void Controller();
 
-  void UpdateInputs();
+  void UpdateInputs(Joystick *JoyThrottle,
+			Joystick *JoyWheel);
 	void SquareInputs();
   void NormalizeInputs();
   void UpdateState();
