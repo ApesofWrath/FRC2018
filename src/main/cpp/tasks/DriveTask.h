@@ -48,15 +48,19 @@ public:
 	void SetCurrentLimits();
 
 	void TaskStart() override;
-	void TaskRun() override;
+	void TaskRunTeleop() override;
+	void TaskRunAuto() override;
 	void TaskStop() override;
 
+	void Controller();
+
   void UpdateInputs();
+	void SquareInputs();
   void NormalizeInputs();
   void UpdateState();
   void UpdateTargets();
   void UpdateError();
-  void LimitOutputs();
+  void LimitTargets();
   void SetOutputs(double left, double right);
 
 	void ShiftUp();

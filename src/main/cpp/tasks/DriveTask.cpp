@@ -3,6 +3,8 @@
 
 int LF = 0, L2 = 0, L3 = 0, LR = 0, RF = 0, R2 = 0, R3 = 0, RR = 0, KICKER = 0;
 
+double target_l, target_r, target_yaw_rate;
+double throttle, wheel;
 double max_y_rpm, actual_max_y_rpm, max_yaw_rate;
 double k_p_right_vel, k_p_left_vel, k_p_yaw_vel, k_d_right_vel, k_d_left_vel, //gains vary depending on gear
 		k_p_yaw_t, k_d_yaw_t, k_p_kick_vel, k_d_kick_vel, k_p_yaw_h_vel,
@@ -11,6 +13,12 @@ double k_f_left_vel, k_f_right_vel;
 double Kv;
 
 //controller()
+
+double ref_kick, double ref_right, double ref_left,
+		double ref_yaw, double k_p_right, double k_p_left, double k_p_kick,
+		double k_p_yaw, double k_d_yaw, double k_d_right, double k_d_left,
+		double k_d_kick, double target_vel_left, double target_vel_right,
+		double target_vel_kick;
 
 double feed_forward_r, feed_forward_l, feed_forward_k;
 
@@ -206,7 +214,7 @@ DriveTask::DriveTask(int l1, int l2, int l3, int l4,
 #ifndef CORNELIUS
 	solenoid = new DoubleSolenoid(3, 1, 0);
 #else
-	solenoid = new DoubleSolenoid(0, 0, 1);
+	solenoid = new DoubleSolenoid(0, 0, 1);k
 #endif
 	canTalonKicker = new TalonSRX(-1);
 
@@ -218,12 +226,63 @@ void DriveTask::TaskStart() {
   ShiftUp();
 }
 
-void DriveTask::TaskRun() {
-
+void DriveTask::TaskRunTeleop() { //from TeleopWCDrive
+	UpdateInputs();
+	SquareInputs();
+	UpdateTargets();
+	LimitTargets();
+	Controller();
 }
 
 void DriveTask::TaskStop() {
+	ZeroAll(true);
+}
 
+void DriveTask::Controller() {
+	double yaw_rate_current = -1.0 * ahrs->GetRate()
+			* ((PI) / 180.0); //left should be positive
+	UpdateYaw(yaw_rate_current);
+
+}
+
+void DriveTask::UpdateInputs(Joystick *JoyThrottle,
+		Joystick *JoyWheel) {
+	throttle = JoyThrottle->GetY();
+	wheel = JoyWheel->GetX();
+}
+
+void DriveTask::SquareInputs() {
+	if (throttle > 0.0) {
+		throttle = throttle * throttle * -1.0;
+	} else {
+		throttle = throttle * throttle * 1.0;
+	}
+
+	if (wheel > 0.0) {
+		wheel = wheel * wheel * 1.0;
+	} else {
+		wheel = wheel * wheel * -1.0;
+	}
+}
+
+void DriveTask::UpdateTargets() { //took out deadzone
+	ref_right = throttle * max_y_rpm;
+	ref_left = ref_right;
+	ref_yaw = wheel * max_yaw_rate;
+}
+
+void DriveTask::LimitTargets() {
+	if (ref_right > max_y_rpm) {
+		ref_right = max_y_rpm;
+	} else if (ref_right < -max_y_rpm) {
+		ref_right = -max_y_rpm;
+	}
+
+	if (ref_left > max_y_rpm) {
+		ref_left = max_y_rpm;
+	} else if (ref_left < -max_y_rpm) {
+		ref_left = -max_y_rpm;
+	}
 }
 
 void DriveTask::ZeroAll(bool stop_motors) {
