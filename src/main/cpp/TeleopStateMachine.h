@@ -31,7 +31,7 @@ public:
 		bool post_intake, bool raise_to_switch, bool pop_switch, bool raise_to_scale_low,
 		bool raise_to_scale_mid, bool raise_to_scale_high, bool intake_arm_up,
 		bool intake_arm_mid, bool intake_arm_down, bool mds_up, bool mds_mid, bool mds_down, bool open_intake, bool close_intake,
-		bool carr_down, bool carr_mid, bool carr_up, bool raise_to_scale_backwards, Joystick *joySlider);
+		bool carr_down, bool carr_mid, bool carr_up, bool raise_to_scale_backwards, bool climb_button, Joystick *joySlider);
 
 };
 
