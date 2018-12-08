@@ -515,8 +515,34 @@ public:
 	}
 
 	void TestPeriodic() {
-		//
 
+		wait_for_button = joyOp->GetRawButton(WAIT_FOR_BUTTON);
+		get_cube_ground = joyOp->GetRawButton(GET_CUBE_GROUND);
+		get_cube_station = false;
+		post_intake = false;
+		raise_to_switch = joyOp->GetRawButton(RAISE_TO_SWITCH);
+		pop_switch = joyOp->GetRawButton(POP_SWITCH);
+		raise_to_scale_mid = joyOp->GetRawButton(RAISE_TO_SCALE_MID);
+		raise_to_scale_low = joyOp->GetRawButton(RAISE_TO_SCALE_LOW);
+		raise_to_scale_high = joyOp->GetRawButton(RAISE_TO_SCALE_HIGH);
+		raise_to_scale_backwards = joyOp->GetRawButton(
+				RAISE_TO_SCALE_BACKWARDS);
+
+		intake_spin_med = false; //joyOp->GetRawButton(INTAKE_SPIN_MED); //operator switch pop shot
+		intake_spin_stop = false;
+		intake_arm_up = joyOp->GetRawButton(INTAKE_ARM_UP);
+		intake_arm_mid = false; // joyOp->GetRawButton(INTAKE_ARM_MID);
+		intake_arm_down = joyOp->GetRawButton(INTAKE_ARM_DOWN);
+		mds_up = joyOp->GetRawButton(MDS_UP);
+		mds_mid = joyOp->GetRawButton(MDS_MID);
+		mds_down = joyOp->GetRawButton(MDS_DOWN);
+		open_intake = joyOp->GetRawButton(OPEN_INTAKE);
+		close_intake = joyOp->GetRawButton(CLOSE_INTAKE);
+		carr_up = joyOp->GetRawButton(CARR_UP);
+		carr_mid = joyOp->GetRawButton(CARR_MID);
+		carr_down = joyOp->GetRawButton(CARR_DOWN);
+
+	
 //		drive_controller->canTalonLeft1->Set(ControlMode::PercentOutput, 1.0);
 //		drive_controller->canTalonRight1->Set(ControlMode::PercentOutput, 1.0);
 //

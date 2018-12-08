@@ -183,7 +183,7 @@ double Elevator::GetVoltageElevator() { //not voltage sent to the motor. the vol
 
 void Elevator::SetVoltage(double elevator_voltage) {
 
-	is_at_bottom_e = IsAtBottomElevator();
+  is_at_bottom_e = IsAtBottomElevator();
 	is_at_top = IsAtTopElevator();
 
 	double el_pos = GetElevatorPosition();
@@ -201,7 +201,7 @@ void Elevator::SetVoltage(double elevator_voltage) {
 	}
 
 	//TODO: may need to change order
-	if (el_pos >= (0.92) && elevator_voltage > 0.0) { //upper soft limit
+	if (el_pos >= (0.92) && elevator_voltage > 0.0) { //upper soft limit //TODO: separate carr, mds top height
 		elevator_voltage = 0.0;
 		elev_safety = "upper soft";
 	} else if (el_pos <= (-0.05) && elevator_voltage < 0.0) {  //lower soft limit
@@ -243,6 +243,8 @@ void Elevator::SetVoltage(double elevator_voltage) {
 
 	//2 is slaved to 1 or dne
 	talonElevator1->Set(ControlMode::PercentOutput, elevator_voltage);
+
+	SmartDashboard::PutNumber("ELEV VOLT", elevator_voltage);
 
 }
 
@@ -300,12 +302,15 @@ bool Elevator::IsAtPos(double target_pos) {
 
 void Elevator::ManualElevator(Joystick *joyOpElev) {
 
-	//SmartDashboard::PutNumber("ELEV CUR", talonElevator1->GetOutputCurrent());
+	SmartDashboard::PutNumber("ELEV CUR 1", talonElevator1->GetOutputCurrent());
+		SmartDashboard::PutNumber("ELEV CUR 2", talonElevator2->GetOutputCurrent());
 
-	//	SmartDashboard::PutNumber("ElEV ENC",
-	//		talonElevator1->GetSensorCollection.GetQuadraturePosition()); //TODO: figure out
+		SmartDashboard::PutNumber("ElEV ENC",
+			talonElevator1->GetSelectedSensorPosition(0));
+	SmartDashboard::PutNumber("ELEV HEIGHT", GetElevatorPosition());
 
-	//SmartDashboard::PutNumber("ELEV HEIGHT", GetElevatorPosition());
+	SmartDashboard::PutBoolean("TOP HALL", IsAtTopElevator());
+		SmartDashboard::PutBoolean("BOT HALL", IsAtBottomElevator());
 
 	double output = (joyOpElev->GetY()) * 0.5 * 12.0; //multiply by voltage because setvoltageelevator takes voltage
 	//
@@ -316,6 +321,16 @@ void Elevator::ManualElevator(Joystick *joyOpElev) {
 void Elevator::ElevatorStateMachine() {
 
 	SmartDashboard::PutString(elev_type, elev_state);
+
+	SmartDashboard::PutBoolean("TOP HALL", IsAtTopElevator());
+		SmartDashboard::PutBoolean("BOT HALL", IsAtBottomElevator());
+
+	SmartDashboard::PutNumber("ELEV CUR 1", talonElevator1->GetOutputCurrent());
+		SmartDashboard::PutNumber("ELEV CUR 2", talonElevator2->GetOutputCurrent());
+
+		SmartDashboard::PutNumber("ElEV ENC",
+			talonElevator1->GetSelectedSensorPosition(0));
+	SmartDashboard::PutNumber("ELEV HEIGHT", GetElevatorPosition());
 
 	switch (elevator_state) {
 
