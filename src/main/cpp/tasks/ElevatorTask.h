@@ -68,7 +68,7 @@ public:
      void TaskStart override();
      void TaskRun oveerride();
 	void TaskStop override();
-     
+
 	double GetVoltageElevator();
 
 	void ManualElevator(Joystick *joyOpElev);
@@ -90,13 +90,13 @@ public:
 
 private:
 
-  void SetVoltage(double elevator_voltage);
+  void SetVoltage(double voltage);
 	void SetZeroOffset();
-     void Stall(double *elevator_voltage);
-     void UpperSoftLimit(double *elevator_voltage);
+     void Stall();
+     void UpperSoftLimit();
      void ZeroElevator();
-     void CapVoltage(double *elevator_voltage);
-     void ScaleOutput(double *elevator_voltage);
-     void InvertOutput(double *elevator_voltage);
-     void OutputToTalon(double *elevator_voltage);
+     void CapVoltage();
+     void ScaleOutput();
+     void InvertOutput();
+     void OutputToTalon();
 };

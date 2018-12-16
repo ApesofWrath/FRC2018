@@ -46,7 +46,8 @@ bool voltage_safety_e = false;
 int init_counter = 0;
 int encoder_counter_e = 0;
 
-
+double elevator_voltage = 0.0;
+double el_pos = 0;
 
 
 void ElevatorTask::InitializeElevator() {
@@ -70,17 +71,22 @@ void ElevatorTask::TaskStop() {
 
 
 // TODO: rename hall effect sensor inpputs (is_at_top_e), implement Task interface functions (controller, stop, etc), ManualElevator revamp, ElevatorStateMachien revamp, Move revamp
-void ElevatorTask::SetVoltage(double elevator_voltage) {
+void ElevatorTask::SetVoltage(double voltage) {
+     //set the global variable to be the parameter of the function to preserve the logic of the function call [ex: double output = 5; SetVoltage() is less obvious than SetVoltage(5)]
+     elevator_voltage = voltage;
+
      is_at_bottom_e = IsAtBottomElevator();
 	is_at_top = IsAtTopElevator();
+     el_pos = GetElevatorPosition();
 
-     Stall(elevator_voltage)
-     UpperSoftLimit(elevator_voltage);
+     Stall()
+     UpperSoftLimit();
+     LowerSoftLimit();
 
      SmartDashboard::PutString(elev_type + "SAFETY", elev_safety);
 
      ZeroElevator();
-     CapVoltage(elevator_voltage);
+     CapVoltage();
 
      SmartDashboard::PutNumber("ELEV VOLT", elevator_voltage);
 }
@@ -237,19 +243,20 @@ void ElevatorTask::ElevatorStateMachine() {
 
 
 
-void ElevatorTask::ScaleOutput(double *elevator_voltage) {
+
+void ElevatorTask::ScaleOutput() {
      elevator_voltage /= 12.0;
 }
 
-void ElevatorTask::InvertOutput(double *elevator_voltage) {
+void ElevatorTask::InvertOutput() {
      elevator_voltage *= -1.0; //reverse at END
 }
 
-void ElevatorTask::OutputToTalon(double *elevator_voltage) {
+void ElevatorTask::OutputToTalon() {
      talonElevator1->Set(ControlMode::PercentOutput, elevator_voltage);
 }
 
-void ElevatorTask::CapVoltage(double *elevator_voltage) {
+void ElevatorTask::CapVoltage() {
      if (elevator_voltage > MAX_VOLTAGE_E) {
 		elevator_voltage = MAX_VOLTAGE_E;
 	} else if (elevator_voltage < MIN_VOLTAGE_E) {
@@ -265,7 +272,7 @@ void ElevatorTask::ZeroElevator() {
 	}
 }
 
-void ElevatorTask::Stall(double *elevator_voltage) {
+void ElevatorTask::Stall() {
      if (std::abs(GetElevatorVelocity()) <= 0.05
 	&& std::abs(elevator_voltage) > 3.0) { //this has to be here at the end
 		encoder_counter_e++;
@@ -279,14 +286,9 @@ void ElevatorTask::Stall(double *elevator_voltage) {
 	}
 }
 
-void  ElevatorTask::UpperSoftLimit(double *elevator_voltage) {
-     double el_pos = GetElevatorPosition();
 
-     //TODO: may need to change order
-	if (el_pos >= (0.92) && elevator_voltage > 0.0) { //upper soft limit //TODO: separate carr, mds top height
-		elevator_voltage = 0.0;
-		elev_safety = "upper soft";
-	} else if (el_pos <= (-0.05) && elevator_voltage < 0.0) {  //lower soft limit
+void ElevatorTask::LowerSoftLimit() {
+     if (el_pos <= (-0.05) && elevator_voltage < 0.0) {  //lower soft limit
 		elevator_voltage = 0.0;
 		elev_safety = "lower soft";
 	} else if (is_at_top && elevator_voltage < -0.2) { //elevator_voltage is actually reverse
@@ -303,6 +305,14 @@ void  ElevatorTask::UpperSoftLimit(double *elevator_voltage) {
 		elev_safety = "stall";
 	}	else {
 		elev_safety = "NONE";
+	}
+}
+
+void  ElevatorTask::UpperSoftLimit() {
+     //TODO: may need to change order
+	if (el_pos >= (0.92) && elevator_voltage > 0.0) { //upper soft limit //TODO: separate carr, mds top height
+		elevator_voltage = 0.0;
+		elev_safety = "upper soft";
 	}
 }
 
