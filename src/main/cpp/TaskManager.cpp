@@ -1,4 +1,5 @@
 #include "TaskManager.h"
+#include "tasks/Task.h"
 
 TaskManager::TaskManager(
 	void
@@ -27,7 +28,7 @@ void TaskManager::Start(void) {
 	}
 }
 
-bool TaskManager::RegisterTask(const char *taskName, CoopTask *task, uint32_t flags) {
+bool TaskManager::RegisterTask(const char *taskName, Task *task, uint32_t flags) {
 	bool success = false;
 	int index;
 
@@ -51,7 +52,7 @@ bool TaskManager::RegisterTask(const char *taskName, CoopTask *task, uint32_t fl
 	return success;
 }
 
-bool TaskManager::UnregisterTask(CoopTask *task) {
+bool TaskManager::UnregisterTask(Task *task) {
 	bool success = false;
 	int taskIndex, j;
 
@@ -145,7 +146,7 @@ void TaskManager::TaskHighFreqAll(RobotMode mode) {
 	}
 }
 
-int TaskManager::FindTask(CoopTask *task) {
+int TaskManager::FindTask(Task *task) {
 	int index = -1;
 
 	for (int i = 0; i < m_numTasks; i++) {

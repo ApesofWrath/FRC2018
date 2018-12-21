@@ -313,6 +313,24 @@ void DriveTask::ZeroAll(bool stop_motors) {
   ZeroYaw();
 }
 
+void DriveControllerMother::ShiftUp() { //high gear, inside
+
+  SmartDashboard::PutString("GEAR", "HIGH");
+
+	solenoid->Set(DoubleSolenoid::Value::kForward);
+	SetGainsHigh();
+
+}
+
+void DriveControllerMother::ShiftDown() { //low gear, outside
+
+  SmartDashboard::PutString("GEAR", "LOW");
+
+	solenoid->Set(DoubleSolenoid::Value::kReverse);
+	SetGainsLow(); //separate for gains in case we want to initialize them by themselves in the constructor
+
+}
+
 void DriveTask::StopAll() {
   SetOutputs(0.0, 0.0);
 }

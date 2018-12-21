@@ -105,7 +105,7 @@ private:
 	*
 	* @return If found, the task index is returned.  Otherwise it returns -1
 	*/
-	int FindTask(CoopTask *task);
+	int FindTask(Task *task);
 
 	int			m_numTasks;
 	char	    m_taskNames[MAX_NUM_TASKS][MAX_TASK_NAME_LEN + 1];
