@@ -89,14 +89,21 @@ public:
 	void EndElevatorThread();
 
 private:
-
-  void SetVoltage(double voltage);
+  	void SetVoltage(double voltage);
 	void SetZeroOffset();
-     void Stall();
      void UpperSoftLimit();
+	void LowerSoftLimit();
+	void TopHallEffectSafety();
+	void BottomHallEffectSafety();
+	void ArmSafety();
+	void StallSafety();
      void ZeroElevator();
      void CapVoltage();
      void ScaleOutput();
      void InvertOutput();
      void OutputToTalon();
+	void ManualElevatorOutput();
+	void PrintElevatorInfo();
+	void InitState()
+	void CheckElevatorGoal(int current_state, double goal_pos);
 };

@@ -10,7 +10,7 @@ const int UP_STATE_E = 3;
 const int STOP_STATE_E = 4;
 const int HPS_STATE_E = 5;
 
-// how many times the robots loops through code with high current draw before stopping elevator; used in Stall()
+// how many times the robots loops through code with high current draw before stopping elevator; used in StallSafety()
 const int STALLS_TILL_STOP = 3;
 
 const int ELEVATOR_SLEEP_TIME = 0;
@@ -41,7 +41,6 @@ bool is_at_top = false;
 bool first_at_bottom_e = false;
 bool last_at_bottom_e = false;
 bool encs_zeroed_e = false;
-bool voltage_safety_e = false;
 
 int init_counter = 0;
 int encoder_counter_e = 0;
@@ -70,18 +69,23 @@ void ElevatorTask::TaskStop() {
 
 
 
-// TODO: rename hall effect sensor inpputs (is_at_top_e), implement Task interface functions (controller, stop, etc), ManualElevator revamp, ElevatorStateMachien revamp, Move revamp
+// TODO: rename hall effect sensor inpputs (is_at_top_e), implement Task interface functions (controller, stop, etc), Move revamp, copy in and revise constructor
 void ElevatorTask::SetVoltage(double voltage) {
-     //set the global variable to be the parameter of the function to preserve the logic of the function call [ex: double output = 5; SetVoltage() is less obvious than SetVoltage(5)]
+     //set the global variable to be the parameter of the function to preserve the logic of the function call [ex: double output = 5; SetVoltage(); is less obvious than SetVoltage(5)]
      elevator_voltage = voltage;
 
      is_at_bottom_e = IsAtBottomElevator();
 	is_at_top = IsAtTopElevator();
      el_pos = GetElevatorPosition();
 
-     Stall()
+	// Safeties
+	elev_safety = "NONE"; // Default value
+	StallSafety();
      UpperSoftLimit();
      LowerSoftLimit();
+	TopHallEffectSafety();
+	BottomHallEffectSafety();
+	ArmSafety();
 
      SmartDashboard::PutString(elev_type + "SAFETY", elev_safety);
 
@@ -93,32 +97,33 @@ void ElevatorTask::SetVoltage(double voltage) {
 
 
 void ElevatorTask::ManualElevator(Joystick *joyOpElev) {
+	PrintElevatorInfo();
+	ManualElevatorOutput();
+}
 
+void ElevatorTask::ManualElevatorOutput() {
+	double output = (joyOpElev->GetY()) * 0.5 * 12.0; //multiply by voltage because setvoltageelevator takes voltage
+	SetVoltage(output);
+}
+
+void ElevatorTask::PrintElevatorInfo() {
 	SmartDashboard::PutNumber("ELEV CUR 1", talonElevator1->GetOutputCurrent());
-		SmartDashboard::PutNumber("ELEV CUR 2", talonElevator2->GetOutputCurrent());
+	SmartDashboard::PutNumber("ELEV CUR 2", talonElevator2->GetOutputCurrent());
 
-		SmartDashboard::PutNumber("ElEV ENC",
-			talonElevator1->GetSelectedSensorPosition(0));
+	SmartDashboard::PutNumber("ElEV ENC", talonElevator1->GetSelectedSensorPosition(0));
+
 	SmartDashboard::PutNumber("ELEV HEIGHT", GetElevatorPosition());
 
 	SmartDashboard::PutBoolean("TOP HALL", IsAtTopElevator());
-		SmartDashboard::PutBoolean("BOT HALL", IsAtBottomElevator());
-
-	double output = (joyOpElev->GetY()) * 0.5 * 12.0; //multiply by voltage because setvoltageelevator takes voltage
-	//
-	SetVoltage(output);
-
+	SmartDashboard::PutBoolean("BOT HALL", IsAtBottomElevator());
 }
 
-
-
-// calculate the postiions to move to
+// calculate the postions to move to
 void ElevatorTask::Move() {
 
 	if (elevator_state != STOP_STATE_E_H && elevator_state != INIT_STATE_E_H) {
 
-		std::vector<std::vector<double> > ref_elevator =
-		elevator_profiler->GetNextRefElevator();
+		std::vector<std::vector<double> > ref_elevator = elevator_profiler->GetNextRefElevator();
 
 		current_pos_e = ref_elevator[0][0];//GetElevatorPosition(); //TAKE THIS BACK OUT
 		current_vel_e = ref_elevator[1][0];//GetElevatorVelocity();
@@ -127,7 +132,7 @@ void ElevatorTask::Move() {
 		//	SmartDashboard::PutNumber("Actual Pos", current_pos_e);
 
 		double goal_pos = ref_elevator[0][0];
-		goal_vel_e = ref_elevator[1][0];
+		double goal_vel_e = ref_elevator[1][0];
 
 		//	SmartDashboard::PutNumber("Goal Vel", goal_vel_e);
 		//	SmartDashboard::PutNumber("Goal Pos", goal_pos);
@@ -139,16 +144,16 @@ void ElevatorTask::Move() {
 
 		if (elevator_profiler->GetFinalGoalElevator()
 		< elevator_profiler->GetInitPosElevator()) { //can't be the next goal in case we get ahead of the profiler
-		K_e = K_down_e;
-		ff = (Kv_e * goal_vel_e * v_bat_e) * 0.55;
-		offset = 1.0; //dampen
-	} else {
-		offset = 1.0;
-		K_e = K_up_e;
+			K_e = K_down_e;
+			ff = (Kv_e * goal_vel_e * v_bat_e) * 0.55;
+			offset = 1.0; //dampen
+		} else {
+			offset = 1.0;
+			K_e = K_up_e;
 
-		ff = (Kv_e * goal_vel_e * v_bat_e) * ff_percent_e;
+			ff = (Kv_e * goal_vel_e * v_bat_e) * ff_percent_e;
 
-	}
+		}
 
 	u_e = (K_e[0][0] * error_e[0][0]) + (K_e[0][1] * error_e[1][0]);
 
@@ -159,89 +164,61 @@ void ElevatorTask::Move() {
 
 
 void ElevatorTask::ElevatorStateMachine() {
-
-	SmartDashboard::PutString(elev_type, elev_state);
-
-	SmartDashboard::PutBoolean("TOP HALL", IsAtTopElevator());
-		SmartDashboard::PutBoolean("BOT HALL", IsAtBottomElevator());
-
-	SmartDashboard::PutNumber("ELEV CUR 1", talonElevator1->GetOutputCurrent());
-		SmartDashboard::PutNumber("ELEV CUR 2", talonElevator2->GetOutputCurrent());
-
-		SmartDashboard::PutNumber("ElEV ENC",
-			talonElevator1->GetSelectedSensorPosition(0));
-	SmartDashboard::PutNumber("ELEV HEIGHT", GetElevatorPosition());
+	PrintElevatorInfo();
 
 	switch (elevator_state) {
 
 		case INIT_STATE_E:
-
 		elev_state = "INIT";
-		if (is_elevator_init) {
-			elevator_state = DOWN_STATE_E;
-		} else {
-			InitializeElevator();
-		}
-		last_elevator_state = INIT_STATE_E;
+		InitState();
 		break;
 
 		case DOWN_STATE_E:
-
 		elev_state = "DOWN";
-
-		if (last_elevator_state != DOWN_STATE_E) { //first time in state
-			elevator_profiler->SetFinalGoalElevator(down_pos);
-			elevator_profiler->SetInitPosElevator(GetElevatorPosition());
-		}
-		last_elevator_state = DOWN_STATE_E;
+		CheckElevatorGoal(DOWN_STATE_E, down_pos);
 		break;
 
 		case MID_STATE_E:
-
 		elev_state = "MID";
-
-		if (last_elevator_state != MID_STATE_E) { //first time in state
-			elevator_profiler->SetFinalGoalElevator(mid_pos);
-			elevator_profiler->SetInitPosElevator(GetElevatorPosition());
-		}
-		last_elevator_state = MID_STATE_E;
+		CheckElevatorGoal(MID_STATE_E, mid_pos);
 		break;
 
 		case UP_STATE_E:
-
 		elev_state = "UP";
-
-		if (last_elevator_state != UP_STATE_E) { //first time in state
-			elevator_profiler->SetFinalGoalElevator(up_pos);
-			elevator_profiler->SetInitPosElevator(GetElevatorPosition());
-		}
-		last_elevator_state = UP_STATE_E;
+		CheckElevatorGoal(UP_STATE_E, up_pos);
 		break;
 
 		case STOP_STATE_E:
-
 		elev_state = "STOP";
-		StopElevator();
+		TaskStop();
 		last_elevator_state = STOP_STATE_E;
 		break;
 
 		case HPS_STATE_E:
-
 		elev_state = "HPS";
-
-		if (last_elevator_state != HPS_STATE_E) {
-			elevator_profiler->SetFinalGoalElevator(hps_pos);
-			elevator_profiler->SetInitPosElevator(GetElevatorPosition());
-		}
-		last_elevator_state = HPS_STATE_E;
+		CheckElevatorGoal(HPS_STATE_E, hps_pos);
 		break;
 
 	}
 
 }
 
+void ElevatorTask::InitState() {
+	if (is_elevator_init) {
+		elevator_state = DOWN_STATE_E;
+	} else {
+		InitializeElevator();
+	}
+	last_elevator_state = INIT_STATE_E;
+}
 
-
+void ElevatorTask::CheckElevatorGoal(int current_state, double goal_pos) {
+	if (last_elevator_state != current_state) {
+		elevator_profiler->SetFinalGoalElevator(goal_pos);
+		elevator_profiler->SetInitPosElevator(GetElevatorPosition());
+	}
+	last_elevator_state = current_state;
+}
 
 
 void ElevatorTask::ScaleOutput() {
@@ -272,39 +249,44 @@ void ElevatorTask::ZeroElevator() {
 	}
 }
 
-void ElevatorTask::Stall() {
-     if (std::abs(GetElevatorVelocity()) <= 0.05
+void ElevatorTask::StallSafety() {
+	if (std::abs(GetElevatorVelocity()) <= 0.05
 	&& std::abs(elevator_voltage) > 3.0) { //this has to be here at the end
 		encoder_counter_e++;
 	} else {
 		encoder_counter_e = 0;
 	}
 	if (encoder_counter_e > STALLS_TILL_STOP) { //bypass the initial high voltage to accelerate from 0
-		voltage_safety_e = true;
-	} else {
-		voltage_safety_e = false;
+		elevator_voltage = 0.0;
+		elev_safety = "stall";
 	}
 }
 
+void ElevatorTask::ArmSafety() {
+	if (keep_elevator_up) {
+		elevator_voltage = 1.0;
+		elev_safety = "arm safety";
+	}
+}
+
+void ElevatorTask::BottomHallEffectSafety() {
+	if (is_at_bottom_e && elevator_voltage > 0.2) { //elevator_voltage is actually reverse
+		elev_safety = "bot hall eff";
+		elevator_voltage = 0.0;
+	}
+}
+
+void ElevatorTask::TopHallEffectSafety() {
+	if (is_at_top && elevator_voltage < -0.2) { //elevator_voltage is actually reverse
+		elev_safety = "top hall eff";
+		elevator_voltage = 0.0;
+	}
+}
 
 void ElevatorTask::LowerSoftLimit() {
      if (el_pos <= (-0.05) && elevator_voltage < 0.0) {  //lower soft limit
 		elevator_voltage = 0.0;
 		elev_safety = "lower soft";
-	} else if (is_at_top && elevator_voltage < -0.2) { //elevator_voltage is actually reverse
-		elev_safety = "top hall eff";
-		elevator_voltage = 0.0;
-	} else if (is_at_bottom_e && elevator_voltage > 0.2) { //elevator_voltage is actually reverse
-		elev_safety = "bot hall eff";
-		elevator_voltage = 0.0;
-	} else if (keep_elevator_up) {
-		elevator_voltage = 1.0;
-		elev_safety = "arm safety";
-	} else if (voltage_safety_e) {
-		elevator_voltage = 0.0;
-		elev_safety = "stall";
-	}	else {
-		elev_safety = "NONE";
 	}
 }
 
