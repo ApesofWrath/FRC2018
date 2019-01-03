@@ -3,21 +3,7 @@
 
 class ElevatorTask : public Task {
 
-
-private:
-
-	const double free_speed_e = 18730.0; //rad/s
-	const double TICKS_PER_ROT_E = 4096.0; //possibly not
-	const double MAX_VOLTAGE_E = 12.0; //CANNOT EXCEED abs(12)
-	const double MIN_VOLTAGE_E = -10.0;
-
-	std::vector<std::vector<double>> K_down_e, K_up_e, K_e; //parameter variables specific to carr/mds MUST be here. otherwise the second object creation will override the first one's variables
-	double down_pos, mid_pos, hps_pos, up_pos, G_e, ff_percent_e, PULLEY_DIAMETER, friction_loss;
-	int TOP_HALL, BOT_HALL, TALON_ID_1, TALON_ID_2;
-	std::string elev_type, elev_safety, elev_state;
-
 public:
-
      ElevatorState *elevatorState;
 
 	Elevator(ElevatorMotionProfiler *elevator_profiler_, std::vector<std::vector<double> > K_down_e_, std::vector<std::vector<double> > K_up_e_,
@@ -89,6 +75,30 @@ public:
 	void EndElevatorThread();
 
 private:
+	const double free_speed_e = 18730.0; //rad/s
+	const double TICKS_PER_ROT_E = 4096.0; //possibly not
+	const double MAX_VOLTAGE_E = 12.0; //CANNOT EXCEED abs(12)
+	const double MIN_VOLTAGE_E = -10.0;
+
+	std::vector<std::vector<double>> K_down_e, K_up_e, K_e; //parameter variables specific to carr/mds MUST be here. otherwise the second object creation will override the first one's variables
+	double down_pos, mid_pos, hps_pos, up_pos, G_e, ff_percent_e, PULLEY_DIAMETER, friction_loss;
+	int TOP_HALL, BOT_HALL, TALON_ID_1, TALON_ID_2;
+	std::string elev_type, elev_safety;
+
+	std::map <int, std::string> elev_state = {
+		{INIT_STATE_E, "INIT"},
+		{DOWN_STATE_E, "DOWN"},
+		{MID_STATE_E, "MID"},
+		{UP_STATE_E, "UP"},
+		{STOP_STATE_E, "STOP"},
+		{HPS_STATE_E, "HPS"}
+	};
+
+	// Constructor helpers
+	void SetupTalon1();
+	void SetupTalon2();
+
+	// Setvoltage helpers
   	void SetVoltage(double voltage);
 	void SetZeroOffset();
      void UpperSoftLimit();
@@ -102,8 +112,16 @@ private:
      void ScaleOutput();
      void InvertOutput();
      void OutputToTalon();
+
+	// State machine helpers
 	void ManualElevatorOutput();
 	void PrintElevatorInfo();
-	void InitState()
+	void InitState();
 	void CheckElevatorGoal(int current_state, double goal_pos);
+
+	// Move helpers
+	void UpdateToMoveDirection(double offset_, double percent, std::vector<std::vector<double>> K_e_);
+	void UpdateVoltage();
+	void UpdateMoveError();
+	void UpdateMoveCoordinates();
 };

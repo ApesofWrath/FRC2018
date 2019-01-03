@@ -48,6 +48,77 @@ int encoder_counter_e = 0;
 double elevator_voltage = 0.0;
 double el_pos = 0;
 
+ElevatorTask::Elevator(ElevatorMotionProfiler *elevator_profiler_, std::vector<std::vector<double> > K_down_e_, std::vector<std::vector<double> > K_up_e_,
+	double down_pos_, double mid_pos_, double hps_pos_, double up_pos_, double G_e_, double ff_percent_e_, double PULLEY_DIAMETER_,
+	double friction_loss_, int TOP_HALL_, int BOT_HALL_, std::string elev_type_, int TALON_ID_1_, int TALON_ID_2_) { //carr
+
+		X_e = { { 0.0 }, //state matrix filled with the state of the states of the system //not used
+		{ 0.0 } };
+		error_e = { { 0.0 }, { 0.0 } };
+
+		K_down_e = K_down_e_;
+		K_up_e = K_up_e_;
+
+		G_e = G_e_;
+
+		ff_percent_e = ff_percent_e_;
+
+		PULLEY_DIAMETER = PULLEY_DIAMETER_;
+
+		friction_loss = friction_loss_;
+
+		down_pos = down_pos_;
+		mid_pos = mid_pos_;
+		hps_pos = hps_pos_;
+		up_pos = up_pos_;
+
+		TOP_HALL = TOP_HALL_;
+		BOT_HALL = BOT_HALL_;
+
+		elev_type = elev_type_;
+
+		TALON_ID_1 = TALON_ID_1_;
+		SetupTalon1();
+
+		TALON_ID_2 = TALON_ID_2_;
+		SetupTalon2();
+
+		MAX_THEORETICAL_VELOCITY_E = (free_speed_e / G_e) / 60.0
+		* PULLEY_DIAMETER * PI * friction_loss; //m/s //1.87 //1.32
+
+		Kv_e = 1 / MAX_THEORETICAL_VELOCITY_E;
+
+		hallEffectTop = new DigitalInput(TOP_HALL);
+		hallEffectBottom = new DigitalInput(BOT_HALL);
+
+		elevator_profiler = elevator_profiler_;
+
+}
+
+void ElevatorTask::SetupTalon2() {
+	if (TALON_ID_2 >= 0) {
+		talonElevator2 = new TalonSRX(TALON_ID_2); //0
+		talonElevator2->Set(ControlMode::Follower, TALON_ID_1); //re-slaved
+		talonElevator2->EnableCurrentLimit(false);
+		talonElevator2->ConfigContinuousCurrentLimit(40, 0);
+		talonElevator2->ConfigPeakCurrentLimit(80, 0);
+		talonElevator2->ConfigPeakCurrentDuration(100, 0);
+	}
+}
+
+void ElevatorTask::SetupTalon1() {
+	talonElevator1 = new TalonSRX(TALON_ID_1);
+	talonElevator1->ConfigSelectedFeedbackSensor(QuadEncoder, 0, 0);
+	talonElevator1->EnableCurrentLimit(false);
+	talonElevator1->ConfigContinuousCurrentLimit(40, 0);
+	talonElevator1->ConfigPeakCurrentLimit(80, 0);
+	talonElevator1->ConfigPeakCurrentDuration(100, 0);
+
+	talonElevator1->ConfigVelocityMeasurementPeriod(VelocityMeasPeriod::Period_10Ms, 0);
+	talonElevator1->ConfigVelocityMeasurementWindow(5, 0); //5 samples for every talon return
+	talonElevator1->SetControlFramePeriod(ControlFrame::Control_3_General, 5); //set talons every 5ms, default is 10
+	talonElevator1->SetStatusFramePeriod(StatusFrameEnhanced::Status_2_Feedback0, 10, 0); //for getselectedsensor //getselectedsensor defaults to 10ms anyway. don't use getsensorcollection because that defaults to 160ms
+}
 
 void ElevatorTask::InitializeElevator() {
 	if (!is_elevator_init) { //don't see hall effect
@@ -89,8 +160,12 @@ void ElevatorTask::SetVoltage(double voltage) {
 
      SmartDashboard::PutString(elev_type + "SAFETY", elev_safety);
 
+	// Output Voltage
      ZeroElevator();
      CapVoltage();
+	ScaleOutput();
+	InvertOutput();
+	OutputToTalon();
 
      SmartDashboard::PutNumber("ELEV VOLT", elevator_voltage);
 }
@@ -107,6 +182,8 @@ void ElevatorTask::ManualElevatorOutput() {
 }
 
 void ElevatorTask::PrintElevatorInfo() {
+	SmartDashboard::PutString(elev_type, elev_state[elevator_state]);
+
 	SmartDashboard::PutNumber("ELEV CUR 1", talonElevator1->GetOutputCurrent());
 	SmartDashboard::PutNumber("ELEV CUR 2", talonElevator2->GetOutputCurrent());
 
@@ -118,21 +195,22 @@ void ElevatorTask::PrintElevatorInfo() {
 	SmartDashboard::PutBoolean("BOT HALL", IsAtBottomElevator());
 }
 
-// calculate the postions to move to
+// TODO: once clearance obtained, make goal_pos global and move beginning to UpdateMoveCoordinates()
+	// move errors to UpdateMoveError()
 void ElevatorTask::Move() {
 
-	if (elevator_state != STOP_STATE_E_H && elevator_state != INIT_STATE_E_H) {
+	if (NotStopOrInitState()) {
 
 		std::vector<std::vector<double> > ref_elevator = elevator_profiler->GetNextRefElevator();
 
-		current_pos_e = ref_elevator[0][0];//GetElevatorPosition(); //TAKE THIS BACK OUT
-		current_vel_e = ref_elevator[1][0];//GetElevatorVelocity();
+		current_pos_e = GetElevatorPosition();//GetElevatorPosition(); //TAKE THIS BACK OUT
+		current_vel_e = GetElevatorVelocity();//GetElevatorVelocity();
 
 		///	SmartDashboard::PutNumber("Actual Vel", current_vel_e);
 		//	SmartDashboard::PutNumber("Actual Pos", current_pos_e);
 
 		double goal_pos = ref_elevator[0][0];
-		double goal_vel_e = ref_elevator[1][0];
+		goal_vel_e = ref_elevator[1][0];
 
 		//	SmartDashboard::PutNumber("Goal Vel", goal_vel_e);
 		//	SmartDashboard::PutNumber("Goal Pos", goal_pos);
@@ -142,26 +220,41 @@ void ElevatorTask::Move() {
 
 		v_bat_e = 12.0;
 
+		// Need to go down
 		if (elevator_profiler->GetFinalGoalElevator()
 		< elevator_profiler->GetInitPosElevator()) { //can't be the next goal in case we get ahead of the profiler
-			K_e = K_down_e;
-			ff = (Kv_e * goal_vel_e * v_bat_e) * 0.55;
-			offset = 1.0; //dampen
+			UpdateToMoveDirection(1.0, 0.55, K_down_e);
 		} else {
-			offset = 1.0;
-			K_e = K_up_e;
-
-			ff = (Kv_e * goal_vel_e * v_bat_e) * ff_percent_e;
-
+			UpdateToMoveDirection(1.0, ff_percent_e, K_up_e);
 		}
 
-	u_e = (K_e[0][0] * error_e[0][0]) + (K_e[0][1] * error_e[1][0]);
+		UpdateVoltage();
+		SetVoltage(u_e);
+	}
+}
 
+void ElevatorTask::UpdateVoltage() {
+	u_e = (K_e[0][0] * error_e[0][0]) + (K_e[0][1] * error_e[1][0]);
 	u_e += ff + offset;
-	SetVoltage(u_e);
+}
+
+void ElevatorTask::UpdateMoveCoordinates() {
 
 }
 
+void ElevatorTask::UpdateMoveError() {
+
+}
+
+void ElevatorTask::UpdateToMoveDirection(double offset_, double percent, std::vector<std::vector<double>> K_e_) {
+	K_e = K_e_;
+	offset = offset_; //dampen
+	ff = (Kv_e * goal_vel_e * v_bat_e) * percent;
+}
+
+bool ElevatorTask::NotStopOrInitState() {
+	return elevator_state != STOP_STATE_E_H && elevator_state != INIT_STATE_E_H;
+}
 
 void ElevatorTask::ElevatorStateMachine() {
 	PrintElevatorInfo();
@@ -169,33 +262,27 @@ void ElevatorTask::ElevatorStateMachine() {
 	switch (elevator_state) {
 
 		case INIT_STATE_E:
-		elev_state = "INIT";
 		InitState();
 		break;
 
 		case DOWN_STATE_E:
-		elev_state = "DOWN";
 		CheckElevatorGoal(DOWN_STATE_E, down_pos);
 		break;
 
 		case MID_STATE_E:
-		elev_state = "MID";
 		CheckElevatorGoal(MID_STATE_E, mid_pos);
 		break;
 
 		case UP_STATE_E:
-		elev_state = "UP";
 		CheckElevatorGoal(UP_STATE_E, up_pos);
 		break;
 
 		case STOP_STATE_E:
-		elev_state = "STOP";
 		TaskStop();
 		last_elevator_state = STOP_STATE_E;
 		break;
 
 		case HPS_STATE_E:
-		elev_state = "HPS";
 		CheckElevatorGoal(HPS_STATE_E, hps_pos);
 		break;
 
@@ -298,17 +385,7 @@ void  ElevatorTask::UpperSoftLimit() {
 	}
 }
 
-double ElevatorTask::GetElevatorVelocity() {
 
-	//native units are ticks per 100 ms so we multiply the whole thing by 10 to get it into per second. Then divide by ticks per rotation to get into
-	//RPS then muliply by circumference for m/s
-	double elevator_vel =
-	(talonElevator1->GetSelectedSensorVelocity(0)
-	/ (TICKS_PER_ROT_E)) * (PULLEY_DIAMETER * PI) * (10.0)
-	* -1.0;
-	return elevator_vel;
-
-}
 
 
 bool ElevatorTask::IsAtBottomElevator() {
@@ -339,6 +416,18 @@ double ElevatorTask::GetElevatorPosition() {
 	* (PI * PULLEY_DIAMETER) * -1.0;
 
 	return elevator_pos;
+
+}
+
+double ElevatorTask::GetElevatorVelocity() {
+
+	//native units are ticks per 100 ms so we multiply the whole thing by 10 to get it into per second. Then divide by ticks per rotation to get into
+	//RPS then muliply by circumference for m/s
+	double elevator_vel =
+	(talonElevator1->GetSelectedSensorVelocity(0)
+	/ (TICKS_PER_ROT_E)) * (PULLEY_DIAMETER * PI) * (10.0)
+	* -1.0;
+	return elevator_vel;
 
 }
 
