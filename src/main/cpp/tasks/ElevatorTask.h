@@ -22,6 +22,7 @@ public:
 	bool keep_elevator_up = false; //used in intake for safety
 
 	double goal_vel_e = 0.0;
+	double goal_pos_e = 0.0;
 
 	int zeroing_counter_e = 0;
 

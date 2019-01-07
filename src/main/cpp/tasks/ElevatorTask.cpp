@@ -126,7 +126,7 @@ void ElevatorTask::InitializeElevator() {
 }
 
 void ElevatorTask::TaskRun() {
-
+	ElevatorStateMachine();
 }
 
 void ElevatorTask::TaskStart() {
@@ -135,12 +135,15 @@ void ElevatorTask::TaskStart() {
 
 void ElevatorTask::TaskStop() {
 	talonElevator1->Set(ControlMode::PercentOutput, 0.0);
+	if (talonElevator2 != null) {
+		talonElevator2->Set(ControlMode::PercentOutput, 0.0);
+	}
 }
 
 
 
 
-// TODO: rename hall effect sensor inpputs (is_at_top_e), implement Task interface functions (controller, stop, etc), Move revamp, copy in and revise constructor
+// TODO: rename hall effect sensor inpputs (is_at_top_e), implement Task interface functions (controller, stop, etc)
 void ElevatorTask::SetVoltage(double voltage) {
      //set the global variable to be the parameter of the function to preserve the logic of the function call [ex: double output = 5; SetVoltage(); is less obvious than SetVoltage(5)]
      elevator_voltage = voltage;
@@ -195,28 +198,10 @@ void ElevatorTask::PrintElevatorInfo() {
 	SmartDashboard::PutBoolean("BOT HALL", IsAtBottomElevator());
 }
 
-// TODO: once clearance obtained, make goal_pos global and move beginning to UpdateMoveCoordinates()
-	// move errors to UpdateMoveError()
 void ElevatorTask::Move() {
-
 	if (NotStopOrInitState()) {
-
-		std::vector<std::vector<double> > ref_elevator = elevator_profiler->GetNextRefElevator();
-
-		current_pos_e = GetElevatorPosition();//GetElevatorPosition(); //TAKE THIS BACK OUT
-		current_vel_e = GetElevatorVelocity();//GetElevatorVelocity();
-
-		///	SmartDashboard::PutNumber("Actual Vel", current_vel_e);
-		//	SmartDashboard::PutNumber("Actual Pos", current_pos_e);
-
-		double goal_pos = ref_elevator[0][0];
-		goal_vel_e = ref_elevator[1][0];
-
-		//	SmartDashboard::PutNumber("Goal Vel", goal_vel_e);
-		//	SmartDashboard::PutNumber("Goal Pos", goal_pos);
-
-		error_e[0][0] = goal_pos - current_pos_e;
-		error_e[1][0] = goal_vel_e - current_vel_e;
+		UpdateMoveCoordinates();
+		UpdateMoveError();
 
 		v_bat_e = 12.0;
 
@@ -239,11 +224,24 @@ void ElevatorTask::UpdateVoltage() {
 }
 
 void ElevatorTask::UpdateMoveCoordinates() {
+	std::vector<std::vector<double> > ref_elevator = elevator_profiler->GetNextRefElevator();
 
+	current_pos_e = GetElevatorPosition();//GetElevatorPosition(); //TAKE THIS BACK OUT
+	current_vel_e = GetElevatorVelocity();//GetElevatorVelocity();
+
+	///	SmartDashboard::PutNumber("Actual Vel", current_vel_e);
+	//	SmartDashboard::PutNumber("Actual Pos", current_pos_e);
+
+	goal_pos_e = ref_elevator[0][0];
+	goal_vel_e = ref_elevator[1][0];
+
+	//	SmartDashboard::PutNumber("Goal Vel", goal_vel_e);
+	//	SmartDashboard::PutNumber("Goal Pos", goal_pos_e);
 }
 
 void ElevatorTask::UpdateMoveError() {
-
+	error_e[0][0] = goal_pos_e - current_pos_e;
+	error_e[1][0] = goal_vel_e - current_vel_e;
 }
 
 void ElevatorTask::UpdateToMoveDirection(double offset_, double percent, std::vector<std::vector<double>> K_e_) {
