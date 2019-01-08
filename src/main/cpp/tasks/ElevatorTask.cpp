@@ -122,7 +122,8 @@ void ElevatorTask::SetupTalon1() {
 
 void ElevatorTask::InitializeElevator() {
 	if (!is_elevator_init) { //don't see hall effect
-	SetVoltage(0.0);
+		SetVoltage(0.0);
+	}
 }
 
 void ElevatorTask::TaskRun() {
